@@ -1,0 +1,98 @@
+ID_Zadania,Model,Tryb,Iteracja,Wejscie_Prompt,Odpowiedz_LLM,Ocena_Merytoryczna_1,Ocena_Merytoryczna_2,Ocena_Merytoryczna_3
+R1,gpt-4o,LLM-only,1,"Opis systemu: System umożliwia rezerwację wizyt. Użytkownicy mogą anulować wizyty i zarządzać nimi.
+
+Wypisz wszystkie niejednoznaczności i braki. Sformułuj konkretne pytania do interesariuszy. Zwróć wynik jako wypunktowaną listę.","- Czy system jest przeznaczony dla konkretnego typu wizyt (np. medycznych, biznesowych), czy ma być uniwersalny?
+- Jakie role użytkowników są przewidziane w systemie (np. pacjent, lekarz, administrator)?
+- Czy istnieją ograniczenia dotyczące czasu, w którym można dokonać rezerwacji lub anulowania wizyty?
+- Jakie informacje są wymagane od użytkownika podczas rezerwacji wizyty?
+- Czy system wysyła powiadomienia o zbliżających się wizytach? Jeśli tak, to w jaki sposób (np. e-mail, SMS)?
+- Czy użytkownicy mogą zmieniać szczegóły wizyty, czy tylko ją anulować?
+- Czy system obsługuje rezerwacje grupowe, czy tylko indywidualne?
+- Jakie są zasady dotyczące zarządzania wizytami? Czy użytkownicy mogą np. zmieniać termin wizyty?
+- Czy istnieje możliwość integracji systemu z kalendarzami użytkowników (np. Google Calendar)?
+- Jakie są wymagania dotyczące bezpieczeństwa i ochrony danych osobowych użytkowników?
+- Czy system ma obsługiwać różne języki, czy jest przeznaczony tylko dla użytkowników jednego języka?
+- Jakie są wymagania dotyczące dostępności systemu (np. dostępność 24/7)?
+- Czy istnieją jakieś limity dotyczące liczby wizyt, które użytkownik może zarezerwować w określonym czasie?
+- Czy system ma funkcjonalność raportowania lub analizy danych dotyczących wizyt?
+- Jakie są wymagania dotyczące interfejsu użytkownika? Czy ma być dostępny na urządzeniach mobilnych?
+- Czy system ma obsługiwać płatności online za wizyty? Jeśli tak, to jakie metody płatności są przewidziane?
+- Jakie są procedury w przypadku awarii systemu lub utraty danych?",,,
+R1,gemini-3-flash,LLM-only,1,"Opis systemu: System umożliwia rezerwację wizyt. Użytkownicy mogą anulować wizyty i zarządzać nimi.
+
+Wypisz wszystkie niejednoznaczności i braki. Sformułuj konkretne pytania do interesariuszy. Zwróć wynik jako wypunktowaną listę.","Jako analityk wymagań, po zapoznaniu się z przedstawionym opisem, stwierdzam, że jest on skrajnie ogólny i zawiera szereg luk informacyjnych, które uniemożliwiają precyzyjne zaprojektowanie systemu.
+
+Oto szczegółowa analiza niejednoznaczności, braków oraz lista pytań do interesariuszy:
+
+### 1. Niejednoznaczności (Ambiguities)
+
+*   **Definicja „Użytkownika”:** Nie określono, czy system rozróżnia role (np. Klient, Pracownik, Administrator). Czy „użytkownik” to osoba rezerwująca, czy również osoba świadcząca usługę?
+*   **Pojęcie „Zarządzania”:** Słowo to jest zbyt szerokie. Może oznaczać edycję danych, zmianę terminu, podgląd historii, przypisanie pracownika lub zmianę statusu wizyty.
+*   **Pojęcie „Wizyty”:** Nie określono natury wizyty (np. medyczna, fryzjerska, konsultacja online). Różne typy wizyt wymagają różnych danych (np. czas trwania, wymagane zasoby/pokoje).
+*   **Proces anulowania:** Nie wiadomo, czy anulowanie jest bezwarunkowe, czy istnieją ograniczenia czasowe lub finansowe.
+
+### 2. Braki (Gaps)
+
+*   **Brak procesu autoryzacji:** Czy użytkownik musi mieć konto? Czy możliwa jest rezerwacja „gościnna”?
+*   **Brak logiki dostępności:** System nie wspomina o kalendarzu, godzinach pracy ani o tym, jak definiowane są wolne terminy.
+*   **Brak powiadomień:** Brak informacji o potwierdzeniach rezerwacji (E-mail, SMS, Push).
+*   **Brak obsługi konfliktów:** Co się dzieje, gdy dwóch użytkowników próbuje zarezerwować ten sam termin w tym samym czasie?
+*   **Brak danych o wizycie:** Jakie informacje są zbierane podczas rezerwacji (imię, telefon, rodzaj usługi)?
+*   **Brak aspektów płatności:** Czy wizyty są płatne? Jeśli tak, to czy system ma obsługiwać przedpłaty?
+
+### 3. Pytania do interesariuszy
+
+**Dotyczące ról i uprawnień:**
+1. Jakie typy użytkowników będą korzystać z systemu i jakie będą mieli poziomy uprawnień?
+2. Czy pracownik (usługodawca) ma osobny panel do zarządzania swoim grafikiem?
+
+**Dotyczące procesu rezerwacji:**
+3. Jakie konkretne dane musi podać użytkownik, aby dokonać rezerwacji?
+4. Czy istnieją limity rezerwacji (np. jedna osoba może mieć tylko 3 aktywne wizyty)?
+5. Czy system ma obsługiwać wizyty cykliczne?
+6. Jaki jest minimalny i maksymalny czas wyprzedzenia, z jakim można zarezerwować wizytę?
+
+**Dotyczące zarządzania i anulowania:**
+7. Do jakiego czasu przed wizytą użytkownik może ją anulować bez konsekwencji?
+8. Czy „zarządzanie” obejmuje również zmianę terminu (rescheduling), czy tylko podgląd i anulowanie?
+9. Czy po anulowaniu wizyty termin automatycznie wraca do puli dostępnych dla innych?
+
+**Dotyczące logiki biznesowej:**
+10. Czy wizyta wymaga zatwierdzenia przez pracownika, czy jest potwierdzana automatycznie?
+11. Czy system musi integrować się z zewnętrznymi kalendarzami (np. Google Calendar, Outlook)?
+12. Czy wymagana jest integracja z bramką płatności?
+13. Co definiuje „dostępność” (np. obecność konkretnego pracownika, dostępność konkretnego gabinetu/sprzętu)?
+
+**Dotyczące raportowania i powiadomień:**
+14. Czy system powinien wysyłać przypomnienia o zbliżającej się wizycie (np. 24h przed)?
+15. Czy administrator potrzebuje raportów dotyczących liczby wizyt, anulowań lub obłożenia terminów?",,,
+R1,llama-3.1,LLM-only,1,"Opis systemu: System umożliwia rezerwację wizyt. Użytkownicy mogą anulować wizyty i zarządzać nimi.
+
+Wypisz wszystkie niejednoznaczności i braki. Sformułuj konkretne pytania do interesariuszy. Zwróć wynik jako wypunktowaną listę.","Poniżej przedstawiam listę niejednoznaczności i braków w opisie systemu, a także proponuję konkretne pytania do interesariuszy:
+
+**Niejednoznaczności:**
+
+1. **Co rozumie się przez ""zarządzanie"" wizytami?** Czy oznacza to tylko możliwość anulowania wizyt, czy też również inne operacje, takie jak edycja danych wizyty lub dodawanie nowych wizyt?
+2. **Kto jest uprawniony do anulowania wizyt?** Czy tylko użytkownicy, którzy zarezerwowali wizytę, czy też również inni użytkownicy z odpowiednimi uprawnieniami?
+3. **Czy system umożliwia rezerwację wizyt w przyszłości?** Czy użytkownicy mogą zarezerwować wizytę na konkretną datę w przyszłości, czy też tylko na bieżącą datę?
+
+**Braki:**
+
+1. **Brak opisu procedury anulowania wizyt.** Jak powinna przebiegać procedura anulowania wizyt? Czy użytkownicy powinni otrzymywać potwierdzenie anulowania wizyt?
+2. **Brak opisu procedury zarządzania wizytami.** Jak powinna przebiegać procedura zarządzania wizytami? Czy użytkownicy powinni mieć dostęp do historii zmian wizyt?
+3. **Brak informacji o bezpieczeństwie danych.** Czy system zapewnia bezpieczeństwo danych użytkowników i wizyt? Czy istnieją procedury zabezpieczenia danych w przypadku awarii systemu?
+
+**Pytania do interesariuszy:**
+
+1. **Dla użytkowników:**
+ * Jak chcielibyście, aby system umożliwiał zarządzanie wizytami?
+ * Czy chcielibyście mieć dostęp do historii zmian wizyt?
+ * Jak chcielibyście, aby system potwierdzał anulowanie wizyt?
+2. **Dla administratorów systemu:**
+ * Jak chcielibyście, aby system zarządzał wizytami?
+ * Czy chcielibyście mieć dostęp do danych użytkowników i wizyt?
+ * Jak chcielibyście, aby system zapewniał bezpieczeństwo danych?
+3. **Dla deweloperów systemu:**
+ * Jak chcielibyście, aby system był zaprojektowany i zaimplementowany?
+ * Czy chcielibyście mieć dostęp do kodu źródłowego systemu?
+ * Jak chcielibyście, aby system był testowany i weryfikowany?",,,
