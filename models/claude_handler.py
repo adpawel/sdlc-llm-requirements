@@ -9,7 +9,7 @@ def get_claude_response(system_prompt: str, user_prompt: str, temperature: float
     client = Anthropic()
     
     response = client.messages.create(
-        model="claude-3-5-sonnet-20241022",
+        model="claude-sonnet-4-6",
         max_tokens=4096,
         temperature=temperature,
         system=system_prompt,

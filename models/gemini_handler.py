@@ -12,6 +12,9 @@ def get_gemini_response(system_prompt: str, user_prompt: str, temperature: float
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
         temperature=temperature,
+        top_p=0.9,
+        top_k=40,
+        max_output_tokens=4096,
     )
     
     response = client.models.generate_content(

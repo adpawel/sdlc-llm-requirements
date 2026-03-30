@@ -9,12 +9,16 @@ def get_openai_response(system_prompt: str, user_prompt: str, temperature: float
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        temperature=temperature
+        temperature=temperature,
+        max_completion_tokens=4096,
+        top_p=0.9,
+        frequency_penalty=0.2,
+        presence_penalty=0.0
     )
     
     # Zwracamy wyłącznie sam tekst wygenerowany przez LLM
