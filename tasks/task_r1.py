@@ -6,7 +6,7 @@ def run_task_r1(model_func, model_name, iteration=1):
     with open('inputs/descriptions_r1.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
     
-    system_description = data['reservations']
+    system_description = data['helpdesk']
     
     # Prompty specyficzne dla R1
     system_prompt = """Jesteś Doświadczonym Analitykiem Wymagań (Senior Business Analyst). Twoją specjalnością jest krytyczna weryfikacja surowych koncepcji biznesowych. 

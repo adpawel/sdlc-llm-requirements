@@ -1,6 +1,9 @@
 import os
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_gemini_response(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
     """

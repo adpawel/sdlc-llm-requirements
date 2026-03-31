@@ -1,5 +1,8 @@
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_openai_response(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
     """
