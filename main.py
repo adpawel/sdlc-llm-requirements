@@ -10,12 +10,12 @@ def main():
     
     # current_model_func = get_openai_response
     # current_model_name = "gpt-5.4"
-    # current_model_func = get_claude_response
-    # current_model_name = "claude-sonnet-4-6"
+    current_model_func = get_claude_response
+    current_model_name = "claude-sonnet-4-6"
     # current_model_func = get_gemini_response
     # current_model_name = "gemini-3-flash-preview"
-    current_model_func = get_llama_response
-    current_model_name = "llama-3.1:8b"
+    # current_model_func = get_llama_response
+    # current_model_name = "llama-3.1:8b"
     
     try:
         # Test zadania R1
