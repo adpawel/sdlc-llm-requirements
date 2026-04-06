@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "requirements.schema.json",
+  "title": "Requirements Artifact",
+  "description": "Schema for SDLC Requirements Team output - one artifact per version (human/llm/hybrid)",
+  "type": "object",
+  "required": [
+    "system_goal",
+    "roles",
+    "functional_requirements",
+    "non_functional_requirements",
+    "user_stories",
+    "acceptance_criteria",
+    "metadata"
+  ],
+  "properties": {
+    "system_goal": {
+      "type": "string",
+      "description": "High-level description of the system's purpose"
+    },
+    "roles": {
+      "type": "array",
+      "description": "User roles in the system",
+      "items": {
+        "type": "object",
+        "required": ["name", "permissions"],
+        "properties": {
+          "name": { "type": "string" },
+          "permissions": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "functional_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {
+          "id":          { "type": "string", "pattern": "^FR[0-9]+$" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "non_functional_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {
+          "id":          { "type": "string", "pattern": "^NFR[0-9]+$" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "user_stories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {
+          "id":          { "type": "string", "pattern": "^US[0-9]+$" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "given", "when", "then"],
+        "properties": {
+          "id":    { "type": "string", "pattern": "^AC[0-9]+$" },
+          "given": { "type": "string" },
+          "when":  { "type": "string" },
+          "then":  { "type": "string" }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["version", "case_study"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "enum": ["human", "llm", "hybrid"],
+          "description": "Workflow mode used to produce this artifact"
+        },
+        "case_study": {
+          "type": "string",
+          "enum": [
+            "appointment-booking",
+            "helpdesk-ticketing",
+            "file-storage-api"
+          ]
+        },
+        "model_used": {
+          "type": "string",
+          "description": "LLM model identifier, e.g. gpt-4.1 (null for human-only)"
+        },
+        "prompt_log": {
+          "type": "string",
+          "description": "Path or inline log of prompts used"
+        },
+        "human_changes": {
+          "type": "string",
+          "description": "Description of manual edits (required for hybrid)"
+        },
+        "score": {
+          "type": "object",
+          "description": "Self-evaluation 0-3 per metric",
+          "properties": {
+            "correctness":    { "type": "integer", "minimum": 0, "maximum": 3 },
+            "completeness":   { "type": "integer", "minimum": 0, "maximum": 3 },
+            "consistency":    { "type": "integer", "minimum": 0, "maximum": 3 },
+            "clarity":        { "type": "integer", "minimum": 0, "maximum": 3 },
+            "maintainability":{ "type": "integer", "minimum": 0, "maximum": 3 }
+          }
+        }
+      }
+    }
+  }
+}

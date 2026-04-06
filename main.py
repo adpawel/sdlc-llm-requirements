@@ -5,8 +5,7 @@ from models.openai_handler import get_openai_response
 from models.claude_handler import get_claude_response
 from models.gemini_handler import get_gemini_response
 from tasks.task_r1 import run_task_r1
-from tasks.task_r2 import run_task_r2
-from tasks.task_r3 import run_task_r3
+from tasks.task_r2_generate_whole_artifact import run_task_r2_generate_whole_artifact
 
 def main(model_req, task_req):
     print("Starting test session SDLC-LLM Benchmark...")
@@ -23,8 +22,7 @@ def main(model_req, task_req):
     
     tasks = {
         "r1" : run_task_r1,
-        "r2" : run_task_r2,
-        "r3" : run_task_r3
+        "r2" : run_task_r2_generate_whole_artifact
     }
 
     if model_req not in models:
