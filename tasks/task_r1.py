@@ -1,12 +1,12 @@
 import json
 from utils.logger import log_experiment_to_csv
 
-def run_task_r1(model_func, model_name, iteration=1):
+def run_task_r1(model_func, model_name, case_study, iteration=1):
     # Wczytanie opisu systemu z JSON
     with open('inputs/descriptions_r1.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
     
-    system_description = data['helpdesk']
+    system_description = data[case_study]
     
     # Prompty specyficzne dla R1
     system_prompt = """Jesteś Doświadczonym Analitykiem Wymagań (Senior Business Analyst). Twoją specjalnością jest krytyczna weryfikacja surowych koncepcji biznesowych. 

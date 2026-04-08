@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import Literal
 from enum import Enum
 
 class VersionMode(str, Enum):
@@ -34,12 +33,36 @@ class AcceptanceCriteria(BaseModel):
     when: str
     then: str
 
+class ClassificationMetrics(BaseModel):
+    precision: float = Field(ge=0, le=1)
+    recall: float = Field(ge=0, le=1)
+    f1_score: float = Field(ge=0, le=1)
+
+
+# Task 1
+class AmbiguityDetecionMetrics(BaseModel):
+    correctness: int = Field(ge=0, le=3)
+    completeness: int = Field(ge=0, le=3)
+    ambiguity_detection: ClassificationMetrics
+
+# Task 2
+class RefinementMetrics(BaseModel):
+    quality: int = Field(ge=0, le=3)
+    acceptance_criteria_accuracy : int = Field(ge=0, le=3)
+    clarity: int = Field(ge=0, le=3)
+
+# Task 3
+class ConflictDetectionMetrics(BaseModel):
+    correctness: int = Field(ge=0, le=3)
+    consistency: int = Field(ge=0, le=3)
+    ambiguity_detection: ClassificationMetrics
+
 class Score(BaseModel):
     correctness: int = Field(ge=0, le=3)
     completeness: int = Field(ge=0, le=3)
     consistency: int = Field(ge=0, le=3)
     clarity: int = Field(ge=0, le=3)
-    maintainability: int = Field(ge=0, le=3)
+    maintainability: int = Field(ge=0, le=3) # to może być metryka stosowana do zbiorowej oceny całego requirements schema 
 
 class ArtifactMetadata(BaseModel):
     version: VersionMode

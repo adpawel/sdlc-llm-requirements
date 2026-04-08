@@ -4,9 +4,9 @@ from utils.logger import log_experiment_to_csv
 from utils.json_saver import save_artifact
 from pydantic import ValidationError
 
-def run_task_r2_generate_whole_artifact(model_func, model_name, iteration=1):
+def run_task_r2_generate_whole_artifact(model_func, model_name, case_study, iteration=1):
     with open('inputs/descriptions_r2.json', 'r', encoding='utf-8') as f:
-        system_description = json.load(f)['reservations']
+        system_description = json.load(f)[case_study]
 
     system_prompt = """Jesteś analitykiem wymagań. Odpowiadaj WYŁĄCZNIE poprawnym JSON.
 Żadnego Markdown ani komentarzy."""
