@@ -2,7 +2,7 @@ import json
 from utils.logger import log_experiment_to_csv
 
 
-def run_task_r2_generate_whole_artifact(model_func, model_name, case_study, iteration=1):
+def run_task_r3(model_func, model_name, case_study, iteration=1):
     with open('inputs/descriptions_r3.json', 'r', encoding='utf-8') as f:
         system_description = json.load(f)[case_study]
 

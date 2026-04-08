@@ -6,6 +6,7 @@ from models.claude_handler import get_claude_response
 from models.gemini_handler import get_gemini_response
 from tasks.task_r1 import run_task_r1
 from tasks.task_r2_generate_whole_artifact import run_task_r2_generate_whole_artifact
+from tasks.task_r3 import run_task_r3
 
 def main(model_req, task_req, case_study):
     print("Starting test session SDLC-LLM Benchmark...")
@@ -23,7 +24,8 @@ def main(model_req, task_req, case_study):
     
     tasks = {
         "r1" : run_task_r1,
-        "r2" : run_task_r2_generate_whole_artifact
+        "r2" : run_task_r2_generate_whole_artifact,
+        "r3" : run_task_r3
     }
 
     if model_req not in models:
