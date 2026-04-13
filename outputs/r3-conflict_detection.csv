@@ -1,0 +1,89 @@
+ID_Zadania,Model,Tryb,Iteracja,Czas_Odpowiedzi_s,Wejscie_Prompt,Odpowiedz_LLM,Ocena_Merytoryczna_1,Ocena_Merytoryczna_2,Ocena_Merytoryczna_3
+R3,gpt-5.4,LLM-only,1,30.7,"Przeanalizuj poniższy surowy opis systemu:
+
+        <opis>
+        System rezerwacji wizyt ma na celu ułatwienie pacjentom (rola: User) umawiania spotkań ze specjalistami (rola: Specialist), podczas gdy nad całością infrastruktury czuwa administrator (rola: Admin). Głównym założeniem biznesowym jest to, że każdy użytkownik może rezerwować dowolną, nielimitowaną liczbę terminów, pod warunkiem jednak, że w danym momencie nie posiada więcej niż 3 aktywnych rezerwacji. Platforma gwarantuje całkowity brak podwójnych rezerwacji (tzw. double booking) – system jest zaprojektowany tak, że jeden, sztywny, 30-minutowy slot czasowy może zostać zajęty wyłącznie przez jedną osobę. Jednocześnie, aby zmaksymalizować obłożenie placówki, w przypadku najbardziej obleganych lekarzy system dopuszcza tzw. overbooking, pozwalając kilku różnym pacjentom zarezerwować dokładnie ten sam termin. Zarządzanie harmonogramem leży całkowicie w gestii specjalistów. Mają oni absolutną swobodę zarządzania i mogą usunąć ze swojego kalendarza dowolny, widoczny w systemie termin, wliczając w to wizyty, które zostały już potwierdzone i zarezerwowane przez pacjentów. System dba o spójność danych i bezwzględnie zabrania specjalistom usuwania jakichkolwiek okienek czasowych, jeśli przypisano już do nich użytkownika. Kwestia rezygnacji z wizyty została zaprojektowana z myślą o maksymalnej wygodzie: użytkownik ma prawo anulować swoją rezerwację w dowolnym momencie, wtedy status rezerwacji zmienia się na CANCELLED. Należy pamiętać, że zgodnie z regulaminem, aplikacja zablokuje możliwość anulowania, jeśli do spotkania pozostało mniej niż 24 godziny. Po pomyślnym anulowaniu wizyty przez pacjenta, dany slot czasowy zostaje bezpowrotnie usunięty z kalendarza. Wraca on do ogólnodostępnej puli, aby inni pacjenci mogli z niego skorzystać. Z kolei sama wizyta, po przejściu przez system anulacji, otrzymuje jeden z dostępnych w cyklu życia statusów: AVAILABLE, BOOKED lub COMPLETED.
+        </opis>
+
+        Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+        ### 1. Lista wykrytych konfliktów
+        Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+        ### 2. Poprawiona wersja
+        Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+        WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+        - W sekcji 1 każdy punkt MUSI zaczynać się od ""- "" (myślnik + spacja).
+        - W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+        - Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+        - Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.","### 1. Lista wykrytych konfliktów
+- System jednocześnie gwarantuje całkowity brak podwójnych rezerwacji dla jednego 30-minutowego slotu i dopuszcza overbooking, czyli rezerwowanie dokładnie tego samego terminu przez kilku pacjentów.
+- Specjalista ma „absolutną swobodę” usuwania dowolnych terminów, w tym już zarezerwowanych, ale jednocześnie system bezwzględnie zabrania usuwania okienek czasowych przypisanych do użytkownika.
+- Użytkownik ma prawo anulować rezerwację „w dowolnym momencie”, ale równocześnie aplikacja blokuje anulowanie, jeśli do spotkania pozostało mniej niż 24 godziny.
+- Po anulowaniu slot ma zostać „bezpowrotnie usunięty z kalendarza”, a jednocześnie „wraca do ogólnodostępnej puli”, co oznacza dwa wzajemnie wykluczające się skutki tej samej operacji.
+- Opis wskazuje, że po przejściu przez proces anulacji wizyta otrzymuje status AVAILABLE, BOOKED lub COMPLETED, mimo że wcześniej dla anulowanej rezerwacji zdefiniowano status CANCELLED, co tworzy sprzeczny model cyklu życia.
+- Jeśli specjalista mógłby usuwać już potwierdzone i zarezerwowane wizyty, to proces obsługi istniejących rezerwacji pacjentów zostałby przerwany, co stoi w sprzeczności z deklaracją spójności danych.
+
+### 2. Poprawiona wersja
+System rezerwacji wizyt ma na celu ułatwienie pacjentom (rola: User) umawiania spotkań ze specjalistami (rola: Specialist), podczas gdy nad całością infrastruktury czuwa administrator (rola: Admin). Każdy użytkownik może rezerwować dowolną liczbę terminów w czasie, jednak w danym momencie nie może posiadać więcej niż 3 aktywnych rezerwacji. Platforma działa w oparciu o sztywne, 30-minutowe sloty czasowe i nie dopuszcza podwójnych rezerwacji, co oznacza, że jeden slot może być zajęty wyłącznie przez jednego pacjenta. Zarządzanie harmonogramem leży po stronie specjalistów, którzy mogą dodawać i usuwać ze swojego kalendarza widoczne w systemie wolne terminy, natomiast nie mogą usuwać slotów, do których przypisano już użytkownika. Użytkownik może anulować swoją rezerwację wyłącznie do momentu, gdy do spotkania pozostało co najmniej 24 godziny; po skutecznym anulowaniu status rezerwacji zmienia się na CANCELLED, a odpowiadający jej slot wraca do ogólnodostępnej puli i ponownie staje się dostępny do rezerwacji. Cykl życia wizyty obejmuje statusy AVAILABLE, BOOKED, COMPLETED oraz CANCELLED.",,,
+R3,claude-sonnet-4-6,LLM-only,1,16.54,"Przeanalizuj poniższy surowy opis systemu:
+
+        <opis>
+        System rezerwacji wizyt ma na celu ułatwienie pacjentom (rola: User) umawiania spotkań ze specjalistami (rola: Specialist), podczas gdy nad całością infrastruktury czuwa administrator (rola: Admin). Głównym założeniem biznesowym jest to, że każdy użytkownik może rezerwować dowolną, nielimitowaną liczbę terminów, pod warunkiem jednak, że w danym momencie nie posiada więcej niż 3 aktywnych rezerwacji. Platforma gwarantuje całkowity brak podwójnych rezerwacji (tzw. double booking) – system jest zaprojektowany tak, że jeden, sztywny, 30-minutowy slot czasowy może zostać zajęty wyłącznie przez jedną osobę. Jednocześnie, aby zmaksymalizować obłożenie placówki, w przypadku najbardziej obleganych lekarzy system dopuszcza tzw. overbooking, pozwalając kilku różnym pacjentom zarezerwować dokładnie ten sam termin. Zarządzanie harmonogramem leży całkowicie w gestii specjalistów. Mają oni absolutną swobodę zarządzania i mogą usunąć ze swojego kalendarza dowolny, widoczny w systemie termin, wliczając w to wizyty, które zostały już potwierdzone i zarezerwowane przez pacjentów. System dba o spójność danych i bezwzględnie zabrania specjalistom usuwania jakichkolwiek okienek czasowych, jeśli przypisano już do nich użytkownika. Kwestia rezygnacji z wizyty została zaprojektowana z myślą o maksymalnej wygodzie: użytkownik ma prawo anulować swoją rezerwację w dowolnym momencie, wtedy status rezerwacji zmienia się na CANCELLED. Należy pamiętać, że zgodnie z regulaminem, aplikacja zablokuje możliwość anulowania, jeśli do spotkania pozostało mniej niż 24 godziny. Po pomyślnym anulowaniu wizyty przez pacjenta, dany slot czasowy zostaje bezpowrotnie usunięty z kalendarza. Wraca on do ogólnodostępnej puli, aby inni pacjenci mogli z niego skorzystać. Z kolei sama wizyta, po przejściu przez system anulacji, otrzymuje jeden z dostępnych w cyklu życia statusów: AVAILABLE, BOOKED lub COMPLETED.
+        </opis>
+
+        Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+        ### 1. Lista wykrytych konfliktów
+        Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+        ### 2. Poprawiona wersja
+        Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+        WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+        - W sekcji 1 każdy punkt MUSI zaczynać się od ""- "" (myślnik + spacja).
+        - W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+        - Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+        - Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.","### 1. Lista wykrytych konfliktów
+
+- Opis jednocześnie gwarantuje „całkowity brak podwójnych rezerwacji"" (jeden slot może zajmować wyłącznie jedna osoba) oraz dopuszcza „overbooking"" (kilku pacjentów rezerwuje ten sam termin), co stanowi bezpośrednią sprzeczność logiczną.
+- Opis stwierdza, że specjaliści mają „absolutną swobodę"" usuwania dowolnych terminów (w tym już zarezerwowanych), a jednocześnie system „bezwzględnie zabrania"" usuwania slotów z przypisanym użytkownikiem – obie reguły wzajemnie się wykluczają.
+- Opis mówi, że po anulowaniu wizyty slot „zostaje bezpowrotnie usunięty z kalendarza"", a zaraz potem stwierdza, że „wraca do ogólnodostępnej puli"" – są to dwa sprzeczne skutki tej samej operacji.
+- Status CANCELLED jest opisany jako wynik anulowania rezerwacji, lecz nie figuruje wśród statusów dostępnych w cyklu życia wizyty (AVAILABLE, BOOKED, COMPLETED), co oznacza, że system nie może poprawnie odzwierciedlić stanu anulowanej wizyty.
+- Opis zakłada, że użytkownik może rezerwować „nielimitowaną liczbę terminów"", a jednocześnie nakłada twardy limit 3 aktywnych rezerwacji jednocześnie – sformułowanie „nielimitowana liczba"" jest sprzeczne z istnieniem tego limitu.
+
+### 2. Poprawiona wersja
+
+System rezerwacji wizyt ma na celu ułatwienie pacjentom (rola: User) umawiania spotkań ze specjalistami (rola: Specialist), podczas gdy nad całością infrastruktury czuwa administrator (rola: Admin). Każdy użytkownik może rezerwować kolejne terminy bez odgórnego limitu łącznej liczby wizyt, pod warunkiem że w danym momencie nie posiada więcej niż 3 aktywnych rezerwacji o statusie BOOKED. Platforma gwarantuje całkowity brak podwójnych rezerwacji – jeden sztywny, 30-minutowy slot czasowy może zostać zajęty wyłącznie przez jedną osobę i system nie dopuszcza żadnych wyjątków od tej reguły, niezależnie od obłożenia danego specjalisty. Zarządzanie harmonogramem leży w gestii specjalistów, jednak ich swoboda jest ograniczona wymogiem spójności danych: specjalista może usunąć lub zmodyfikować wyłącznie te okienka czasowe, do których nie przypisano jeszcze żadnego pacjenta. Slotów z istniejącą rezerwacją nie można usunąć bez uprzedniego anulowania tej rezerwacji. Kwestia rezygnacji z wizyty została zaprojektowana z myślą o wygodzie pacjenta: użytkownik ma prawo anulować swoją rezerwację w dowolnym momencie, z wyjątkiem sytuacji, gdy do spotkania pozostało mniej niż 24 godziny – wówczas aplikacja blokuje możliwość anulowania. Po pomyślnym anulowaniu wizyty przez pacjenta rezerwacja otrzymuje status CANCELLED, a zwolniony slot czasowy powraca do ogólnodostępnej puli i może zostać zarezerwowany przez innego pacjenta. Cykl życia wizyty obejmuje zatem cztery statusy: AVAILABLE (slot wolny, dostępny do rezerwacji), BOOKED (slot zarezerwowany przez pacjenta), CANCELLED (rezerwacja anulowana przez pacjenta, slot ponownie dostępny) oraz COMPLETED (wizyta odbyła się).",,,
+R3,llama-3.1-8b,LLM-only,1,1.88,"Przeanalizuj poniższy surowy opis systemu:
+
+        <opis>
+        System rezerwacji wizyt ma na celu ułatwienie pacjentom (rola: User) umawiania spotkań ze specjalistami (rola: Specialist), podczas gdy nad całością infrastruktury czuwa administrator (rola: Admin). Głównym założeniem biznesowym jest to, że każdy użytkownik może rezerwować dowolną, nielimitowaną liczbę terminów, pod warunkiem jednak, że w danym momencie nie posiada więcej niż 3 aktywnych rezerwacji. Platforma gwarantuje całkowity brak podwójnych rezerwacji (tzw. double booking) – system jest zaprojektowany tak, że jeden, sztywny, 30-minutowy slot czasowy może zostać zajęty wyłącznie przez jedną osobę. Jednocześnie, aby zmaksymalizować obłożenie placówki, w przypadku najbardziej obleganych lekarzy system dopuszcza tzw. overbooking, pozwalając kilku różnym pacjentom zarezerwować dokładnie ten sam termin. Zarządzanie harmonogramem leży całkowicie w gestii specjalistów. Mają oni absolutną swobodę zarządzania i mogą usunąć ze swojego kalendarza dowolny, widoczny w systemie termin, wliczając w to wizyty, które zostały już potwierdzone i zarezerwowane przez pacjentów. System dba o spójność danych i bezwzględnie zabrania specjalistom usuwania jakichkolwiek okienek czasowych, jeśli przypisano już do nich użytkownika. Kwestia rezygnacji z wizyty została zaprojektowana z myślą o maksymalnej wygodzie: użytkownik ma prawo anulować swoją rezerwację w dowolnym momencie, wtedy status rezerwacji zmienia się na CANCELLED. Należy pamiętać, że zgodnie z regulaminem, aplikacja zablokuje możliwość anulowania, jeśli do spotkania pozostało mniej niż 24 godziny. Po pomyślnym anulowaniu wizyty przez pacjenta, dany slot czasowy zostaje bezpowrotnie usunięty z kalendarza. Wraca on do ogólnodostępnej puli, aby inni pacjenci mogli z niego skorzystać. Z kolei sama wizyta, po przejściu przez system anulacji, otrzymuje jeden z dostępnych w cyklu życia statusów: AVAILABLE, BOOKED lub COMPLETED.
+        </opis>
+
+        Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+        ### 1. Lista wykrytych konfliktów
+        Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+        ### 2. Poprawiona wersja
+        Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+        WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+        - W sekcji 1 każdy punkt MUSI zaczynać się od ""- "" (myślnik + spacja).
+        - W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+        - Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+        - Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.","### 1. Lista wykrytych konfliktów
+- - System nie pozwala na usunięcie okienka czasowego przez specjalistę, jeśli przypisano już do niego użytkownika, ale nie wyjaśnia, co dzieje się w przypadku, gdy użytkownik anuluje swoją rezerwację. Czy w takim przypadku okienko czasowe powinno zostać usunięte lub pozostanie w systemie?
+- - System nie pozwala na usunięcie okienka czasowego przez specjalistę, jeśli przypisano już do niego użytkownika, ale nie wyjaśnia, co dzieje się w przypadku, gdy użytkownik nie przychodzi na wizytę i nie anuluje swojej rezerwacji. Czy w takim przypadku okienko czasowe powinno zostać usunięte lub pozostanie w systemie?
+- - System pozwala na anulowanie rezerwacji przez użytkownika, ale nie wyjaśnia, co dzieje się w przypadku, gdy użytkownik próbuje anulować rezerwację w ciągu 24 godzin przed wizytą. Czy w takim przypadku anulowanie rezerwacji powinno być możliwe lub nie?
+- - System nie wyjaśnia, co dzieje się w przypadku, gdy użytkownik próbuje zarezerwować więcej niż 3 aktywnych rezerwacji. Czy w takim przypadku system powinien zablokować możliwość rezerwacji lub wyświetlić ostrzeżenie?
+- - System nie wyjaśnia, co dzieje się w przypadku, gdy specjalista próbuje usunąć więcej niż jedną rezerwację w jednym czasie. Czy w takim przypadku system powinien zablokować możliwość usunięcia rezerwacji lub wyświetlić ostrzeżenie?
+
+### 2. Poprawiona wersja
+
+System rezerwacji wizyt został zaprojektowany, aby ułatwić pacjentom umawianie spotkań ze specjalistami, podczas gdy nad całością infrastruktury czuwa administrator. Głównym założeniem biznesowym jest to, że każdy użytkownik może rezerwować dowolną, nielimitowaną liczbę terminów, pod warunkiem jednak, że w danym momencie nie posiada więcej niż 3 aktywnych rezerwacji. Platforma gwarantuje całkowity brak podwójnych rezerwacji (tzw. double booking) – system jest zaprojektowany tak, że jeden, sztywny, 30-minutowy slot czasowy może zostać zajęty wyłącznie przez jedną osobę. Jednocześnie, aby zmaksymalizować obłożenie placówki, w przypadku najbardziej obleganych lekarzy system dopuszcza tzw. overbooking, pozwalając kilku różnym pacjentom zarezerwować dokładnie ten sam termin. Zarządzanie harmonogramem leży całkowicie w gestii specjalistów, którzy mają absolutną swobodę zarządzania i mogą usunąć ze swojego kalendarza dowolny, widoczny w systemie termin, wliczając w to wizyty, które zostały już potwierdzone i zarezerwowane przez pacjentów. System dba o spójność danych i pozwala specjalistom na usunięcie okienka czasowego, jeśli przypisano już do niego użytkownika, ale tylko w przypadku, gdy użytkownik anuluje swoją rezerwację lub nie przychodzi na wizytę. W przypadku anulowania rezerwacji przez użytkownika, system pozwala na anulowanie rezerwacji w dowolnym momencie, ale zablokuje możliwość anulowania, jeśli do spotkania pozostało mniej niż 24 godziny. Po pomyślnym anulowaniu wizyty przez pacjenta, dany slot czasowy zostaje bezpowrotnie usunięty z kalendarza. Wraca on do ogólnodostępnej puli, aby inni pacjenci mogli z niego skorzystać. Z kolei sama wizyta, po przejściu przez system anulacji, otrzymuje jeden z dostępnych w cyklu życia statusów: AVAILABLE, BOOKED lub COMPLETED.",,,
