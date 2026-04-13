@@ -1,0 +1,885 @@
+ID_Zadania,Model,Tryb,Iteracja,Wejscie_Prompt,Odpowiedz_LLM,Ocena_Merytoryczna_1,Ocena_Merytoryczna_2,Ocena_Merytoryczna_3
+R1,gpt-5.4,LLM-only,1,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Nie zdefiniowano mechanizmu uwierzytelniania i autoryzacji, więc nie da się zweryfikować, jak system ma egzekwować zasadę dostępu wyłącznie do własnych plików.
+- Pojęcie „swoich plików” jest niejednoznaczne, bo nie wiadomo, czy własność dotyczy pojedynczego użytkownika, konta organizacyjnego, czy innego modelu tożsamości.
+- Brakuje definicji uprawnień dla operacji przesyłania, pobierania i usuwania, więc nie wiadomo, czy każdy uwierzytelniony użytkownik może wykonywać wszystkie operacje na swoich zasobach.
+- Nie określono, czy system ma wspierać współdzielenie plików, co wpływa bezpośrednio na interpretację ograniczenia dostępu tylko do własnych plików.
+- Nie zdefiniowano zachowania dla prób dostępu do nieistniejącego lub cudzego pliku, co ma znaczenie dla bezpieczeństwa i ryzyka ujawniania informacji.
+- Brakuje informacji o limitach rozmiaru, typach i liczbie plików, więc nie da się ocenić wymagań wydajnościowych, kosztowych i zabezpieczeń przed nadużyciami.
+- Nie określono oczekiwanego modelu usuwania plików, więc nie wiadomo, czy usunięcie ma być natychmiastowe, miękkie, odwracalne czy trwałe.
+- Nie wiadomo, czy pobieranie i usuwanie mają być idempotentne oraz jak system ma reagować na ponowienie żądań, co jest istotne dla poprawności API w warunkach błędów sieciowych.
+- Brakuje wymagań dotyczących spójności danych, więc nie wiadomo, jak system ma się zachować przy równoczesnych operacjach na tym samym pliku.
+- Nie określono modelu identyfikacji plików, co rodzi ryzyko zgadywania identyfikatorów i niejasności w zakresie kontroli dostępu.
+- Wymaganie „bezpieczny” jest zbyt ogólne, bo nie wskazuje minimalnych standardów ochrony danych w transmisji, w spoczynku, logowania zdarzeń ani ochrony przed nadużyciami.
+- Nie wiadomo, czy pliki mogą zawierać dane wrażliwe lub regulowane prawnie, więc nie da się ustalić wymagań compliance i poziomu zabezpieczeń.
+- Wymaganie „skalowalny” jest nieprecyzyjne, bo nie określa oczekiwanego wolumenu danych, liczby użytkowników ani charakterystyki ruchu.
+- Brakuje oczekiwań dotyczących dostępności i trwałości danych, więc nie wiadomo, jaki poziom niezawodności i odporności na awarie ma zapewniać system.
+- Nie określono polityki retencji i przechowywania plików, więc nie wiadomo, jak długo dane mają być utrzymywane i kiedy powinny być usuwane.
+- Nie zdefiniowano wymagań dotyczących audytu operacji na plikach, co utrudnia wykrywanie incydentów bezpieczeństwa i rozliczalność działań użytkowników.
+- Brakuje zasad walidacji przesyłanych plików, więc nie wiadomo, czy system ma blokować złośliwe lub niedozwolone treści.
+- Nie określono sposobu obsługi dużych plików i przerwanych transferów, co wpływa na niezawodność przesyłania oraz zużycie zasobów.
+- Nie wiadomo, czy API ma być publiczne czy wewnętrzne, co istotnie zmienia wymagania bezpieczeństwa, skalowania i zarządzania dostępem.
+- Brakuje specyfikacji błędów i kodów odpowiedzi API, więc integratorzy nie będą wiedzieli, jak odróżniać błędy autoryzacji, walidacji i stanu zasobu.
+
+### 2. Pytania do doprecyzowania
+- Jak użytkownicy mają się uwierzytelniać do API: tokeny statyczne, OAuth2/OIDC, klucze API czy inny mechanizm?
+- Jaki jest model własności pliku: plik należy do pojedynczego użytkownika, do organizacji/tenantu czy do innej jednostki biznesowej?
+- Czy każdy uwierzytelniony użytkownik może przesyłać, pobierać i usuwać swoje pliki bez wyjątków, czy istnieją role ograniczające część operacji?
+- Czy system ma dopuszczać współdzielenie plików między użytkownikami lub kontami: nigdy, tylko jawnie udostępnione pliki czy pełny model współpracy?
+- Jak system powinien odpowiadać na próbę pobrania lub usunięcia cudzego albo nieistniejącego pliku: ten sam komunikat/kod dla obu przypadków czy rozróżnienie tych sytuacji?
+- Jakie są maksymalne limity rozmiaru pojedynczego pliku, łącznej przestrzeni na użytkownika oraz liczby plików?
+- Jakie typy plików są dozwolone: dowolne binaria czy tylko wybrane formaty zgodne z polityką biznesową?
+- Czy przy przesyłaniu plików system ma wykonywać walidację treści lub skanowanie bezpieczeństwa: brak skanowania, podstawowa walidacja typu/MIME czy pełne skanowanie antywirusowe?
+- Co dokładnie oznacza usunięcie pliku: natychmiastowe trwałe usunięcie, miękkie usunięcie z możliwością odzyskania czy oznaczenie do asynchronicznego purge?
+- Czy po usunięciu pliku wymagane jest jego odzyskanie w określonym czasie retencji, czy operacja ma być nieodwracalna?
+- Czy operacje pobierania i usuwania mają być idempotentne przy ponowieniu żądania po błędzie sieciowym?
+- Jak system ma obsługiwać równoczesne operacje na tym samym pliku: ostatni zapis wygrywa, blokady optymistyczne czy blokady pesymistyczne?
+- W jaki sposób identyfikowany jest plik w API: losowy nieprzewidywalny identyfikator, ścieżka/nazwa logiczna czy inny klucz?
+- Czy nazwy plików muszą być unikalne w obrębie użytkownika lub katalogu logicznego, a jeśli nie to jak rozróżniać duplikaty?
+- Jakie minimalne wymagania bezpieczeństwa są obowiązkowe: szyfrowanie TLS w transmisji, szyfrowanie danych w spoczynku, rotacja kluczy, rate limiting, audit logi?
+- Czy przechowywane pliki mogą zawierać dane osobowe, finansowe lub inne dane regulowane prawnie; jeśli tak, to jakie regulacje należy spełnić?
+- Co biznes rozumie przez „skalowalny”: ilu aktywnych użytkowników, jaki wolumen upload/download oraz jaki docelowy przyrost danych miesięcznie?
+- Jakie są wymagania niefunkcjonalne dotyczące dostępności i trwałości danych: np. docelowe SLA/SLO oraz poziom odporności na awarie?
+- Czy system ma wspierać duże pliki i transfer wznawialny: tylko małe jednoczęściowe uploady czy także multipart/chunked upload z resume?
+- Jaka ma być polityka retencji danych: bezterminowo do czasu usunięcia przez użytkownika czy automatyczne wygaszanie po określonym czasie?
+- Jakie zdarzenia muszą być audytowane: upload, download, delete, próby nieautoryzowanego dostępu oraz kto ma mieć dostęp do tych logów?
+- Czy API będzie wystawione publicznie dla klientów zewnętrznych czy używane wyłącznie wewnętrznie przez zaufane systemy?
+- Jakie kody błędów i odpowiedzi API są oczekiwane dla typowych scenariuszy: brak autoryzacji, brak uprawnień, przekroczony limit rozmiaru, nieobsługiwany typ pliku i brak zasobu?",,,
+R1,claude-sonnet-4-6,LLM-only,1,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji mechanizmu uwierzytelniania i autoryzacji – opis stwierdza, że użytkownicy mają mieć dostęp tylko do swoich plików, ale nie określa, w jaki sposób system ma weryfikować tożsamość użytkownika (np. tokeny JWT, klucze API, sesje).
+- Nieokreślona własność pliku – brak wyjaśnienia, co oznacza ""swój plik"": czy plik należy do użytkownika, który go przesłał, czy własność może być przenoszona, a jeśli tak, to w jaki sposób.
+- Brak specyfikacji dozwolonych typów i rozmiarów plików – bez tych ograniczeń system jest podatny na przesyłanie złośliwych plików lub wyczerpanie zasobów dyskowych.
+- Nieokreślone zachowanie przy usuwaniu pliku – opis nie precyzuje, czy usunięcie jest trwałe (hard delete) czy logiczne (soft delete), co ma krytyczne znaczenie dla możliwości odtworzenia danych.
+- Brak polityki dotyczącej duplikatów plików – nie wiadomo, czy system ma wykrywać i obsługiwać pliki o tej samej nazwie lub tej samej zawartości (np. deduplikacja), co może prowadzić do nieoczekiwanego nadpisywania danych.
+- Nieokreślony model współdzielenia plików – opis zakazuje dostępu do cudzych plików, ale nie rozstrzyga, czy istnieje (lub ma istnieć) mechanizm świadomego udostępniania pliku innemu użytkownikowi lub publicznie.
+- Brak definicji ""skalowalności"" – pojęcie jest użyte bez żadnych mierzalnych kryteriów (np. liczba równoczesnych użytkowników, rozmiar pliku, przepustowość), co uniemożliwia weryfikację spełnienia wymagania.
+- Nieokreślona polityka retencji i przechowywania danych – brak informacji o tym, jak długo pliki są przechowywane, czy wygasają oraz kto ponosi odpowiedzialność za archiwizację lub usunięcie po określonym czasie.
+- Brak wymagań dotyczących szyfrowania danych – opis mówi o ""bezpieczeństwie"", ale nie precyzuje, czy pliki mają być szyfrowane w spoczynku (at rest) i/lub w tranzycie (in transit).
+- Nieokreślone zachowanie API przy błędach i przypadkach brzegowych – brak informacji o tym, jak API ma reagować na próbę pobrania/usunięcia nieistniejącego pliku lub pliku należącego do innego użytkownika (np. czy zwracać 404 czy 403, co ma implikacje bezpieczeństwa – information disclosure).
+
+### 2. Pytania do doprecyzowania
+
+- Jaki mechanizm uwierzytelniania ma być stosowany: tokeny JWT, klucze API, OAuth 2.0, a może integracja z istniejącym systemem tożsamości (np. SSO)?
+- Czy własność pliku jest niezmienna (zawsze należy do osoby, która go przesłała), czy może być przenoszona na innego użytkownika, a jeśli tak – przez kogo (właściciel, administrator)?
+- Czy system ma umożliwiać świadome udostępnianie pliku: (a) innemu konkretnemu użytkownikowi, (b) grupie użytkowników, (c) publicznie poprzez link, czy (d) udostępnianie jest całkowicie poza zakresem systemu?
+- Jakie są dopuszczalne typy plików (np. tylko obrazy, dokumenty, dowolne) oraz maksymalny rozmiar pojedynczego pliku i łączny limit przestrzeni na użytkownika?
+- Czy usunięcie pliku ma być trwałe i natychmiastowe (hard delete), czy ma istnieć okres przejściowy / kosz (soft delete) umożliwiający odtworzenie, a jeśli tak – jak długi?
+- Jak system ma zachowywać się, gdy użytkownik przesyła plik o nazwie identycznej z już istniejącym: (a) nadpisać, (b) zwrócić błąd, (c) automatycznie zmienić nazwę, (d) przechowywać obie wersje?
+- Jakie są mierzalne kryteria skalowalności: ilu równoczesnych użytkowników, jaka maksymalna przepustowość przesyłania/pobierania, jaki docelowy czas odpowiedzi API?
+- Czy pliki muszą być szyfrowane w spoczynku (at rest) i/lub w tranzycie (in transit), a jeśli tak – czy szyfrowanie ma być zarządzane przez system, czy przez użytkownika (client-side encryption)?
+- Jak długo pliki mają być przechowywane: bezterminowo, przez określony czas (np. 30/90 dni), czy do momentu jawnego usunięcia przez użytkownika lub administratora?
+- Jak API ma odpowiadać na próbę dostępu do pliku należącego do innego użytkownika: zwrócić błąd 403 Forbidden (ujawniając, że plik istnieje) czy 404 Not Found (ukrywając ten fakt ze względów bezpieczeństwa)?",,,
+R1,gemini-3-flash-preview,LLM-only,1,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Brak definicji mechanizmu uwierzytelniania i autoryzacji użytkowników. Bez określenia sposobu identyfikacji podmiotu nie można zapewnić logicznej izolacji plików przypisanych do konkretnego właściciela.
+- Brak specyfikacji limitów technicznych dla operacji przesyłania (upload). Nieznajomość maksymalnego rozmiaru pliku oraz dopuszczalnych typów MIME uniemożliwia zaprojektowanie odpowiedniej infrastruktury do obsługi strumieniowania danych.
+- Niejasność w zakresie obsługi kolizji nazw plików w obrębie jednego użytkownika. System nie precyzuje, czy przesłanie pliku o istniejącej już nazwie powinno skutkować nadpisaniem, wersjonowaniem, czy błędem walidacji.
+- Brak zdefiniowania polityki retencji i cyklu życia danych. Nie określono, czy usunięcie pliku przez API oznacza usunięcie fizyczne (permanentne), czy logiczne (soft delete), oraz co dzieje się z danymi po usunięciu konta użytkownika.
+- Zbyt ogólne sformułowanie wymogu bezpieczeństwa. Brak wskazania, czy dane muszą być szyfrowane w spoczynku (at rest), czy wymagane jest logowanie zdarzeń (audit log) oraz jakie standardy ochrony transmisji (poza TLS) są wymagane.
+- Brak określenia parametrów skalowalności w ujęciu ilościowym. Brak danych o przewidywanej liczbie użytkowników, wolumenie danych oraz liczbie żądań na sekundę uniemożliwia dobór odpowiedniej technologii bazodanowej i storage'owej.
+
+### 2. Pytania do doprecyzowania
+- W jaki sposób system ma identyfikować użytkowników (np. tokeny JWT przekazywane w nagłówku, klucze API, czy integracja z zewnętrznym dostawcą tożsamości typu Keycloak/Auth0)?
+- Jaki jest maksymalny dopuszczalny rozmiar pojedynczego pliku (np. 10 MB, 1 GB, czy brak limitu) oraz czy przewidziano limity całkowitej przestrzeni (quota) na użytkownika?
+- Jak system powinien zachować się w przypadku przesłania pliku o nazwie, która już istnieje w katalogu użytkownika (opcje: nadpisanie istniejącego pliku, automatyczna zmiana nazwy, czy zwrócenie błędu 409 Conflict)?
+- Czy dopuszczalne jest współdzielenie plików między użytkownikami w przyszłości, czy architektura ma rygorystycznie i permanentnie uniemożliwiać dostęp komukolwiek poza właścicielem?
+- Czy system musi wspierać wersjonowanie plików, pozwalając na pobranie poprzednich stanów dokumentu po jego aktualizacji?
+- Jakie są wymagania dotyczące dostępności danych (np. czy dopuszczalne jest opóźnienie w pobieraniu plików archiwalnych, czy wszystkie muszą być dostępne natychmiastowo w trybie hot storage)?
+- Czy wymagane jest generowanie sum kontrolnych (np. MD5/SHA256) przy przesyłaniu plików w celu weryfikacji integralności danych po stronie serwera?
+- Co powinno stać się z plikami w momencie usunięcia konta użytkownika (opcje: natychmiastowe usunięcie wszystkich powiązanych obiektów, czy przeniesienie do kwarantanny na określony czas)?",,,
+R1,llama-3.1-8b,LLM-only,1,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Brak określenia sposobu uwierzytelniania użytkowników, co może powodować problemy z dostępem tylko do swoich plików.
+- Brak informacji o rodzajach plików, które mogą być przesyłane, pobierane i usuwane, co może powodować problemy z bezpieczeństwem.
+- Brak określenia, czy system powinien zapewniać kopie bezpieczeństwa plików, czy też nie.
+- Brak informacji o skalowalności systemu, co może powodować problemy z obsługą dużej liczby użytkowników.
+- Brak określenia, czy system powinien zapewniać monitorowanie i logowanie operacji na plikach.
+
+### 2. Pytania do doprecyzowania
+- Jakie metody uwierzytelniania użytkowników powinny być obsługiwane przez system (np. logowanie, autoryzacja OAuth, itd.)?
+- Jakie rodzaje plików powinny być przesyłane, pobierane i usuwane przez system (np. pliki tekstowe, pliki binarne, pliki multimedia, itd.)?
+- Czy system powinien zapewniać kopie bezpieczeństwa plików przed usunięciem?
+- Jakie są wymagania dotyczące skalowalności systemu (np. liczba użytkowników, ilość danych, itd.)?
+- Jakie metody monitorowania i logowania operacji na plikach powinny być obsługiwane przez system (np. dzienniki, raporty, itd.)?
+- Czy system powinien zapewniać ograniczenia dostępu do plików na podstawie ich zawartości (np. filtracja treści, itd.)?
+- Czy system powinien zapewniać powiadomienia o zmianach w plikach (np. powiadomienia e-mail, powiadomienia push, itd.)?",,,
+R1,gpt-5.4,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Nie zdefiniowano mechanizmu uwierzytelniania i autoryzacji użytkowników, więc nie da się zweryfikować, jak system ma egzekwować zasadę dostępu wyłącznie do własnych plików.
+- Nie określono, czy ""użytkownik"" oznacza wyłącznie pojedyncze konto, czy także role techniczne, administratorów lub konta serwisowe, co wpływa na model uprawnień i wyjątki od reguły dostępu.
+- Nie wiadomo, jak identyfikowana jest własność pliku, więc istnieje ryzyko niespójności lub obejścia kontroli dostępu przy operacjach pobierania i usuwania.
+- Nie określono, czy API ma umożliwiać listowanie plików użytkownika, a bez tego nie jest jasne, jak użytkownik ma odnaleźć plik do pobrania lub usunięcia.
+- Brakuje definicji identyfikatora pliku i sposobu jego przekazywania, co uniemożliwia ocenę ryzyka zgadywania identyfikatorów i nieautoryzowanego dostępu.
+- Nie sprecyzowano ograniczeń dotyczących typów, rozmiaru i liczby plików, więc nie da się ocenić wymagań wydajnościowych, kosztowych ani zabezpieczeń przed nadużyciami.
+- Nie wiadomo, czy przesyłanie plików ma być obsługiwane synchronicznie czy asynchronicznie, co ma istotny wpływ na skalowalność i zachowanie systemu dla dużych plików.
+- Nie określono oczekiwanego zachowania przy przerwanym lub częściowo udanym uploadzie, więc nie wiadomo, jak system ma zapewnić spójność danych i sprzątanie niekompletnych plików.
+- Brakuje informacji o wersjonowaniu lub nadpisywaniu plików o tej samej nazwie, co prowadzi do niejednoznaczności biznesowej przy ponownym przesłaniu pliku.
+- Nie zdefiniowano semantyki usuwania pliku, więc nie wiadomo, czy chodzi o usunięcie logiczne, fizyczne, natychmiastowe czy opóźnione.
+- Nie określono wymagań dotyczących trwałości danych i kopii zapasowych, więc nie da się ocenić ryzyka utraty plików ani oczekiwanego poziomu niezawodności.
+- Pojęcie ""bezpieczny"" jest zbyt ogólne i nie wskazuje konkretnych wymagań dotyczących szyfrowania, ochrony przed malware, audytu czy odporności na nadużycia.
+- Nie wiadomo, czy pliki mogą zawierać dane wrażliwe lub regulowane prawnie, co wpływa na wymagania bezpieczeństwa, retencji i zgodności.
+- Nie określono wymagań dotyczących szyfrowania danych w tranzycie i w spoczynku, mimo że system przechowuje i udostępnia pliki użytkowników.
+- Brakuje wymagań dotyczących logowania i audytowalności operacji na plikach, więc nie wiadomo, jak wykrywać incydenty i rozliczać działania użytkowników.
+- Nie sprecyzowano limitów wywołań ani mechanizmów ochrony przed nadużyciami API, co jest istotne dla bezpieczeństwa i skalowalności.
+- ""Skalowalny"" nie zostało przełożone na mierzalne wymagania niefunkcjonalne, więc nie wiadomo, jaki wolumen użytkowników, plików i ruchu system ma obsłużyć.
+- Nie określono oczekiwanej spójności danych w środowisku skalowanym poziomo, co może prowadzić do problemów przy natychmiastowym pobieraniu lub usuwaniu świeżo zapisanych plików.
+- Brakuje definicji kodów błędów i zachowania API w przypadkach brzegowych, takich jak brak pliku, brak uprawnień czy duplikat żądania.
+- Nie wiadomo, czy usunięcie ma być idempotentne oraz jak system ma reagować na wielokrotne identyczne żądania, co wpływa na poprawność integracji klientów.
+
+### 2. Pytania do doprecyzowania
+- Jak użytkownicy mają się uwierzytelniać do API: token JWT/OAuth2, klucze API, sesje czy inny mechanizm?
+- Jakie role lub typy podmiotów mają korzystać z systemu: tylko zwykli użytkownicy, czy także administratorzy i konta serwisowe z szerszym dostępem?
+- W jaki sposób ma być definiowana i przechowywana własność pliku: przez identyfikator właściciela przypisany przy uploadzie po stronie serwera czy przekazywany przez klienta?
+- Czy API ma udostępniać operację listowania plików użytkownika, czy zakładamy wyłącznie dostęp po znanym identyfikatorze pliku?
+- Jaki format identyfikatora pliku ma być używany: losowy UUID/ULID czy inny identyfikator; czy identyfikator ma być globalnie unikalny?
+- Czy nazwa pliku ma być unikalna w obrębie użytkownika; jeśli nie, to co ma się stać przy przesłaniu kolejnego pliku o tej samej nazwie: nadpisanie, nowa wersja czy błąd?
+- Jakie są maksymalne rozmiary pojedynczego pliku oraz limity łącznej przestrzeni na użytkownika lub tenant: brak limitu, stały limit globalny czy plan zależny od klienta?
+- Jakie typy plików są dozwolone: dowolne binaria czy tylko wybrane MIME types/rozszerzenia?
+- Czy upload dużych plików ma być realizowany jako pojedyncze żądanie, upload wieloczęściowy/chunked czy proces asynchroniczny?
+- Jak system ma się zachować przy przerwanym uploadzie: automatyczne wznowienie, możliwość ręcznego dokończenia czy usunięcie częściowych danych po czasie?
+- Czy po udanym uploadzie plik ma być natychmiast dostępny do pobrania we wszystkich instancjach systemu, czy dopuszczalna jest chwilowa niespójność?
+- Co dokładnie oznacza usunięcie pliku: trwałe fizyczne usunięcie od razu, soft delete z możliwością odzyskania czy oznaczenie do późniejszego purge?
+- Czy operacja usuwania ma być idempotentna; jeśli plik już nie istnieje lub nie należy do użytkownika, to API powinno zwracać 204/404/403?
+- Jakie są wymagania dotyczące retencji danych i kopii zapasowych: brak backupu, backup z możliwością odtworzenia awaryjnego czy pełne odzyskiwanie pojedynczych plików?
+- Czy system będzie przechowywał dane wrażliwe lub objęte regulacjami; jeśli tak, to jakimi wymaganiami zgodności mamy się kierować?
+- Jakie konkretne wymagania bezpieczeństwa kryją się pod hasłem ""bezpieczny"": TLS obowiązkowy, szyfrowanie at-rest, skanowanie antywirusowe, podpisane URL-e, audit logi?
+- Czy wszystkie operacje na plikach mają być logowane audytowo; jeśli tak, to jaki zakres danych logować i jak długo je przechowywać?
+- Jakie limity ruchu i mechanizmy ochrony przed nadużyciami są wymagane: rate limiting per user/IP/klient aplikacyjny, quota dzienna czy brak limitów?
+- Jakie mierzalne cele skalowalności mamy przyjąć: liczba użytkowników, RPS dla upload/download/delete, liczba plików oraz wolumen danych?
+- Jak API powinno raportować błędy i przypadki brzegowe: jaki standard odpowiedzi błędów oraz jakie kody dla braku uprawnień, braku pliku, przekroczenia limitu i błędnego formatu?",,,
+R1,claude-sonnet-4-6,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji mechanizmu uwierzytelniania i autoryzacji – opis stwierdza, że użytkownicy mają mieć dostęp tylko do swoich plików, ale nie określa, w jaki sposób system ma weryfikować tożsamość użytkownika (np. tokeny JWT, klucze API, sesje).
+- Nieokreślona własność pliku – brak wyjaśnienia, co oznacza ""swój plik"": czy plik należy do użytkownika, który go przesłał, czy własność może być przenoszona, a jeśli tak, to w jaki sposób.
+- Brak reguł dotyczących limitów i walidacji przesyłanych plików – nie określono maksymalnego rozmiaru pliku, dozwolonych typów MIME ani liczby plików na użytkownika, co uniemożliwia zaprojektowanie bezpiecznego i skalowalnego systemu.
+- Niejednoznaczność operacji ""usuwania"" – nie wiadomo, czy usunięcie jest operacją trwałą (hard delete) czy logiczną (soft delete), co ma krytyczne znaczenie dla możliwości odtworzenia danych i zgodności z regulacjami.
+- Brak specyfikacji zachowania przy współbieżnych operacjach – opis nie definiuje, co powinno się stać, gdy dwóch użytkowników (lub ten sam użytkownik) jednocześnie operuje na tym samym zasobie (np. nadpisanie pliku w trakcie pobierania).
+- Nieokreślona semantyka ""pobierania"" pliku – nie wiadomo, czy API zwraca bezpośrednio zawartość pliku, czy generuje tymczasowy URL (np. presigned URL), co ma istotne implikacje dla bezpieczeństwa i skalowalności.
+- Brak wymagań dotyczących zgodności z regulacjami prawnymi – dla systemu przechowującego pliki użytkowników kluczowe są kwestie RODO/GDPR (prawo do usunięcia danych, lokalizacja przechowywania), a opis całkowicie je pomija.
+- Pojęcie ""skalowalności"" jest niezmierzalne – opis nie definiuje żadnych konkretnych parametrów wydajnościowych (liczba użytkowników, wolumen danych, czas odpowiedzi), przez co wymaganie jest niesprawdzalne.
+
+### 2. Pytania do doprecyzowania
+
+- Jaki mechanizm uwierzytelniania ma być stosowany: tokeny JWT, klucze API, OAuth 2.0, czy inny – i czy system zarządza tożsamościami samodzielnie, czy integruje się z zewnętrznym dostawcą (np. Auth0, Azure AD)?
+- Czy własność pliku jest przypisana wyłącznie do użytkownika przesyłającego i nigdy nie może być zmieniona, czy przewiduje się scenariusze współdzielenia lub przenoszenia własności pliku między użytkownikami?
+- Jakie są dopuszczalne typy plików (np. tylko dokumenty, dowolne pliki binarne) oraz jaki jest maksymalny rozmiar pojedynczego pliku i łączny limit przestrzeni dyskowej na użytkownika?
+- Czy operacja usunięcia pliku ma być trwała i natychmiastowa (hard delete), czy logiczna z możliwością odtworzenia w określonym czasie (soft delete z retention period)?
+- Czy API ma zwracać zawartość pliku bezpośrednio w odpowiedzi HTTP, czy generować tymczasowe, podpisane URL-e (presigned URLs) do pobierania z zewnętrznego storage'u (np. S3)?
+- Jakie są wymagania dotyczące skanowania przesyłanych plików pod kątem złośliwego oprogramowania – czy każdy plik ma być weryfikowany przed udostępnieniem, czy dopuszczalne jest podejście asynchroniczne?
+- Czy system musi spełniać konkretne regulacje prawne (np. RODO/GDPR) i czy istnieją wymagania co do geograficznej lokalizacji przechowywania danych?
+- Jakie są oczekiwane parametry skalowalności: ile równoczesnych użytkowników, jaki wolumen danych (GB/TB), jaki akceptowalny czas odpowiedzi dla operacji przesyłania i pobierania?
+- Czy pliki mają być szyfrowane w spoczynku (at rest) i/lub w tranzycie (in transit), a jeśli tak, kto zarządza kluczami szyfrowania – system centralnie czy każdy użytkownik indywidualnie?
+- Co powinno się stać z plikami użytkownika w przypadku usunięcia jego konta – czy pliki są automatycznie usuwane, archiwizowane, czy przekazywane innemu podmiotowi?",,,
+R1,gemini-3-flash-preview,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Brak definicji mechanizmu uwierzytelniania i autoryzacji użytkowników. Bez określenia sposobu identyfikacji podmiotów nie można zaimplementować logicznej izolacji plików przypisanych do konkretnego właściciela.
+- Brak specyfikacji ograniczeń technicznych dla przesyłanych plików, takich jak maksymalny rozmiar pojedynczego obiektu czy dozwolone typy rozszerzeń. Brak tych danych uniemożliwia zaprojektowanie infrastruktury zdolnej do obsługi dużych wolumenów danych oraz zabezpieczenie przed złośliwym oprogramowaniem.
+- Niejasna definicja skalowalności w kontekście wydajnościowym i pojemnościowym. Brak określenia docelowej liczby użytkowników oraz przewidywanej liczby operacji na sekundę uniemożliwia dobór odpowiedniej architektury bazy danych i magazynu plików.
+- Brak określenia polityki retencji i cyklu życia danych. Nie wiadomo, czy usunięcie pliku ma być nieodwracalne (hard delete), czy system powinien wspierać wersjonowanie lub mechanizm przywracania plików z kosza.
+- Brak wymagań dotyczących integralności i poufności danych w spoczynku (at rest). Samo stwierdzenie, że system ma być ""bezpieczny"", nie precyzuje, czy pliki muszą być szyfrowane na poziomie systemu plików, czy wymagane jest szyfrowanie kluczami specyficznymi dla użytkownika.
+- Brak definicji zachowania systemu w sytuacjach konfliktowych i brzegowych. Nie określono, jak API ma reagować na próby nadpisania istniejącego pliku o tej samej nazwie lub jednoczesne żądania pobierania i usuwania tego samego zasobu.
+
+### 2. Pytania do doprecyzowania
+- W jaki sposób system ma weryfikować tożsamość użytkownika: czy poprzez integrację z istniejącym dostawcą tożsamości (np. Azure AD, Auth0), czy poprzez własny mechanizm tokenów JWT/OAuth2?
+- Jakie są graniczne parametry wydajnościowe: jaka jest maksymalna waga pojedynczego pliku (np. 100MB vs 10GB) oraz ile operacji zapisu/odczytu system musi obsłużyć w ciągu minuty?
+- Czy dopuszczalne jest współdzielenie plików między użytkownikami (np. poprzez linki publiczne lub nadawanie uprawnień innym ID), czy dostęp ma być bezwzględnie ograniczony tylko do właściciela?
+- Jakie są wymagania dotyczące trwałości danych: czy system musi zapewniać redundancję geograficzną (multi-region), czy wystarczy replikacja w obrębie jednego centrum danych?
+- Czy system powinien przechowywać metadane plików (np. oryginalna nazwa, suma kontrolna MD5, data wygaśnięcia), czy API ma operować wyłącznie na surowych strumieniach danych?
+- Jaki poziom logowania zdarzeń jest wymagany: czy system musi rejestrować każdą próbę dostępu do pliku (audit log) na potrzeby zgodności z regulacjami takimi jak RODO/GDPR?
+- Jak system powinien reagować na wyczerpanie limitów: czy planowane są limity (quota) na przestrzeń dyskową dla poszczególnych użytkowników?",,,
+R1,llama-3.1-8b,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Brak określenia sposobu autoryzacji użytkowników, co może powodować problemy z dostępem do plików.
+- Niejasne jest, czy system powinien obsługiwać tylko pliki binarne, czy również pliki tekstowe.
+- Brak informacji o rodzajach plików, które powinny być obsługiwane przez system.
+- Niejasne jest, czy system powinien zapewniać dostęp do plików tylko dla użytkowników, którzy są zalogowani, czy również dla użytkowników anonimowych.
+- Brak informacji o wymaganiach dotyczących skalowalności systemu, co może powodować problemy z jego rozwojem.
+
+### 2. Pytania do doprecyzowania
+- Jakie rodzaje plików powinny być obsługiwane przez system (np. pliki binarne, pliki tekstowe, pliki multimedia)?
+- Czy system powinien zapewniać dostęp do plików tylko dla użytkowników, którzy są zalogowani, czy również dla użytkowników anonimowych?
+- Jakie są wymagania dotyczące skalowalności systemu (np. liczba użytkowników, ilość danych)?
+- Jak powinny być autoryzowane użytkownicy w systemie (np. logowanie, autoryzacja bazodanowa)?
+- Czy system powinien zapewniać dostęp do plików tylko dla użytkowników, którzy mają uprawnienia do nich, czy również dla użytkowników, którzy mają dostęp do systemu?",,,
+R1,gpt-5.4,LLM-only,3,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Nie zdefiniowano mechanizmu uwierzytelniania i autoryzacji, więc nie da się zweryfikować, jak system ma egzekwować zasadę dostępu wyłącznie do własnych plików.
+- Pojęcie „użytkownik” jest niejednoznaczne, bo nie wiadomo, czy chodzi o pojedyncze konto, tenant, aplikację kliencką czy inny podmiot tożsamości.
+- Nie określono modelu własności pliku, więc nie wiadomo, kto jest właścicielem pliku przesłanego np. przez konto techniczne lub w imieniu innego użytkownika.
+- Brakuje zasad dostępu do plików współdzielonych lub przekazanych, a zapis „tylko do swoich plików” może być z nimi sprzeczny.
+- Nie wiadomo, czy pobieranie i usuwanie dotyczy wyłącznie plików wcześniej przesłanych przez tego samego użytkownika, co pozostawia lukę w logice autoryzacyjnej.
+- Nie określono, czy usunięcie pliku ma być logiczne czy fizyczne, co wpływa na zgodność danych, odzyskiwanie i bezpieczeństwo.
+- Brakuje informacji o wersjonowaniu i nadpisywaniu plików, więc nie wiadomo, co ma się stać przy ponownym przesłaniu pliku o tej samej nazwie lub identyfikatorze.
+- Nie zdefiniowano identyfikacji plików, więc nie wiadomo, czy operacje mają używać nazw, ścieżek, UUID czy innych kluczy i jak uniknąć kolizji.
+- Nie określono ograniczeń rozmiaru, typu i liczby plików, co uniemożliwia ocenę skalowalności oraz zabezpieczenie przed nadużyciami.
+- Wymaganie „skalowalny” jest zbyt ogólne, bo nie wskazuje oczekiwanego wolumenu danych, liczby użytkowników ani charakterystyki ruchu.
+- Wymaganie „bezpieczny” jest nieprecyzyjne, bo nie wiadomo, jakie konkretne standardy i poziomy ochrony mają być spełnione.
+- Nie określono wymagań dotyczących szyfrowania danych w tranzycie i w spoczynku, mimo że system przetwarza pliki potencjalnie wrażliwe.
+- Brakuje informacji o walidacji i skanowaniu przesyłanych plików, co tworzy ryzyko malware, niedozwolonych formatów lub złośliwych treści.
+- Nie opisano polityki retencji i trwałości danych, więc nie wiadomo, jak długo pliki mają być przechowywane i czy usunięcie jest nieodwracalne.
+- Nie określono wymagań dotyczących spójności operacji, np. co ma się stać przy przerwanym uploadzie lub równoczesnym usuwaniu i pobieraniu tego samego pliku.
+- Brakuje definicji błędów i kodów odpowiedzi API, więc nie wiadomo, jak odróżnić brak uprawnień od braku zasobu lub błędu technicznego.
+- Nie wiadomo, czy API ma umożliwiać listowanie plików użytkownika, a bez tego pobieranie/usuwanie może być praktycznie niewykonalne lub wymagać znajomości identyfikatorów spoza systemu.
+- Nie określono wymagań audytowych i śledzenia operacji na plikach, co utrudnia wykrywanie nadużyć oraz analizę incydentów bezpieczeństwa.
+- Brakuje informacji o limitach żądań i ochronie przed nadużyciami, co jest istotne dla bezpieczeństwa i skalowalności publicznego API.
+- Nie zdefiniowano przepływu danych do systemów zewnętrznych ani lokalizacji przechowywania danych, co może mieć wpływ na zgodność regulacyjną i izolację danych użytkowników.
+
+### 2. Pytania do doprecyzowania
+- Jak użytkownik ma się uwierzytelniać do API: token JWT/OAuth2, klucz API, sesja czy inny mechanizm?
+- Jaki dokładnie podmiot oznacza „użytkownik”: osoba fizyczna, konto systemowe, aplikacja kliencka czy tenant organizacyjny?
+- Jak definiowana jest własność pliku: przez identyfikator uwierzytelnionego użytkownika w momencie uploadu czy według innej reguły biznesowej?
+- Czy system dopuszcza jakąkolwiek formę współdzielenia plików między użytkownikami, czy zasada „tylko do swoich plików” ma być absolutna bez wyjątków?
+- Czy pobrać/usunąć można wyłącznie pliki należące do aktualnie uwierzytelnionego użytkownika, a jeśli tak, to jak system ma reagować na próbę dostępu do cudzego pliku: 403 czy ukrywanie istnienia zasobu przez 404?
+- Czy usunięcie pliku ma być fizyczne i natychmiastowe, logiczne (soft delete), czy realizowane po okresie retencji?
+- Co ma się stać przy ponownym przesłaniu pliku o tej samej nazwie lub tym samym kluczu: nadpisanie, utworzenie nowej wersji czy odrzucenie operacji?
+- Jak pliki mają być identyfikowane w API: unikalnym ID generowanym przez system, nazwą pliku, ścieżką czy kombinacją tych pól?
+- Jakie są maksymalne rozmiary plików, dozwolone typy MIME/rozszerzenia oraz limity liczby plików na użytkownika?
+- Jakie konkretne cele skalowalności mają być spełnione: liczba równoczesnych uploadów/downloadów, liczba użytkowników, całkowity wolumen danych czy SLA czasów odpowiedzi?
+- Co biznes rozumie przez „bezpieczny”: zgodność z konkretnymi standardami (np. ISO 27001), obowiązkowe szyfrowanie, audyt operacji, ochrona przed malware czy wszystkie te elementy?
+- Czy dane mają być szyfrowane w tranzycie i w spoczynku; jeśli tak, to czy są wymagania dotyczące zarządzania kluczami i rotacji?
+- Czy przesyłane pliki mają być walidowane lub skanowane antywirusowo; jeśli tak, to czy upload ma być blokowany synchronicznie czy oznaczany do późniejszej kwarantanny/weryfikacji?
+- Jak długo pliki mają być przechowywane i czy istnieją reguły retencji zależne od typu użytkownika lub rodzaju pliku?
+- Jak system ma obsługiwać przerwany upload: wznowienie transferu, automatyczne czyszczenie częściowych danych czy pozostawienie stanu pośredniego?
+- Jakie zachowanie jest oczekiwane przy konfliktach współbieżnych operacji na tym samym pliku, np. jednoczesnym pobieraniu i usuwaniu?
+- Jakie kody błędów i komunikaty API mają być zwracane dla typowych przypadków: brak autoryzacji, brak uprawnień, brak pliku, konflikt stanu i przekroczenie limitu?
+- Czy API ma udostępniać listowanie/metadane plików użytkownika; jeśli nie, to skąd klient ma znać identyfikatory potrzebne do pobrania lub usunięcia?
+- Czy wymagany jest audyt operacji na plikach (kto/co/kiedy/skąd), a jeśli tak, to jak długo logi mają być przechowywane?
+- Czy API ma mieć limity żądań lub quota per użytkownik/aplikacja; jeśli tak, to jakie działania mają następować po ich przekroczeniu?
+- Gdzie fizycznie mają być przechowywane dane i czy istnieją wymagania regulacyjne dotyczące regionu przetwarzania lub separacji danych między klientami?",,,
+R1,claude-sonnet-4-6,LLM-only,3,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji mechanizmu uwierzytelniania i autoryzacji – opis stwierdza, że użytkownicy mają mieć dostęp tylko do swoich plików, ale nie określa, w jaki sposób system ma weryfikować tożsamość użytkownika (np. tokeny JWT, klucze API, sesje).
+- Nieokreślona definicja ""właściciela"" pliku – nie wiadomo, czy plik należy do użytkownika, który go przesłał, czy własność może być przenoszona lub współdzielona, co tworzy lukę w logice kontroli dostępu.
+- Brak specyfikacji dozwolonych typów i rozmiarów plików – bez tych ograniczeń system jest podatny na przesyłanie złośliwych plików lub wyczerpanie zasobów dyskowych.
+- Nieokreślone zachowanie przy usuwaniu pliku – opis nie precyzuje, czy usunięcie jest natychmiastowe i trwałe (hard delete), czy pliki trafiają do kosza (soft delete) z możliwością odzyskania.
+- Brak polityki dotyczącej duplikatów plików – nie wiadomo, co się dzieje, gdy użytkownik przesyła plik o tej samej nazwie: nadpisanie, wersjonowanie czy odrzucenie.
+- Nieokreślony model skalowania w kontekście spójności danych – ""skalowalność"" jest wymieniona jako cel, ale bez wskazania, czy system musi gwarantować silną spójność (strong consistency) czy dopuszcza spójność ostateczną (eventual consistency), co ma krytyczne znaczenie dla operacji odczytu po zapisie.
+- Brak określenia, co dzieje się z plikami po usunięciu konta użytkownika – opis nie definiuje, czy pliki są automatycznie usuwane, archiwizowane, czy przekazywane administratorowi.
+- Nieokreślone wymagania dotyczące szyfrowania danych – ""bezpieczeństwo"" jest wymienione ogólnie, bez rozróżnienia na szyfrowanie w tranzycie (TLS) i szyfrowanie w spoczynku (at rest).
+- Brak definicji limitów przechowywania per użytkownik – nieograniczone przechowywanie jest sprzeczne z założeniem skalowalności i może prowadzić do nadużyć.
+- Nieokreślony zakres operacji API – opis wymienia przesyłanie, pobieranie i usuwanie, ale pomija kluczowe operacje takie jak listowanie plików użytkownika, co jest niezbędne do funkcjonalności systemu.
+
+### 2. Pytania do doprecyzowania
+
+- Jaki mechanizm uwierzytelniania ma być stosowany: tokeny JWT, klucze API, OAuth 2.0, czy inny – i czy system zarządza tożsamościami samodzielnie, czy integruje się z zewnętrznym dostawcą (np. SSO)?
+- Czy własność pliku może być przenoszona na innego użytkownika lub współdzielona z innymi użytkownikami, czy dostęp ma być ściśle prywatny (tylko właściciel)?
+- Jakie typy plików są dozwolone (np. tylko obrazy, dokumenty, dowolne) i czy istnieje maksymalny rozmiar pojedynczego pliku oraz łączny limit przestrzeni dyskowej per użytkownik?
+- Jak ma działać operacja usunięcia pliku: natychmiastowe i trwałe usunięcie (hard delete), przeniesienie do kosza z możliwością odzyskania przez określony czas, czy archiwizacja?
+- Co powinno się stać, gdy użytkownik prześle plik o nazwie identycznej z już istniejącym: nadpisać poprzedni plik, utworzyć nową wersję (wersjonowanie), czy zwrócić błąd i wymagać potwierdzenia?
+- Czy system musi gwarantować silną spójność danych (użytkownik natychmiast widzi przesłany plik), czy dopuszczalna jest spójność ostateczna (eventual consistency) w zamian za wyższą dostępność?
+- Co powinno się stać z plikami użytkownika w momencie usunięcia jego konta: automatyczne usunięcie wszystkich plików, archiwizacja przez określony czas, czy przekazanie administratorowi?
+- Czy dane muszą być szyfrowane w spoczynku (at rest), czy wystarczy szyfrowanie wyłącznie w tranzycie (TLS/HTTPS) – i czy istnieją wymagania regulacyjne (np. RODO, HIPAA) wpływające na tę decyzję?
+- Czy API ma udostępniać operację listowania plików należących do zalogowanego użytkownika, a jeśli tak – czy wymagane jest filtrowanie, sortowanie lub paginacja wyników?
+- Czy administratorzy systemu mają mieć dostęp do plików użytkowników (np. w celach moderacji lub wsparcia technicznego), a jeśli tak – czy taki dostęp musi być logowany i audytowalny?",,,
+R1,gemini-3-flash-preview,LLM-only,3,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Brak definicji mechanizmu uwierzytelniania i autoryzacji: Opis nie precyzuje, w jaki sposób system ma identyfikować użytkowników i weryfikować ich prawo własności do konkretnych plików.
+- Brak specyfikacji limitów dla przesyłanych danych: Nie określono maksymalnej wielkości pojedynczego pliku ani całkowitego limitu przestrzeni na użytkownika, co uniemożliwia zaprojektowanie bezpiecznej infrastruktury.
+- Niejasna logika obsługi kolizji nazw plików: System nie definiuje zachowania w sytuacji, gdy użytkownik próbuje przesłać plik o nazwie, która już istnieje w jego zasobach.
+- Brak wymagań dotyczących trwałości i usuwania danych: Nie określono, czy operacja usunięcia ma być nieodwracalna (hard delete), czy system powinien wspierać mechanizm retencji lub kosza.
+- Brak definicji parametrów skalowalności i wydajności: Termin ""skalowalny"" jest zbyt ogólny, by określić, czy system ma obsługiwać dużą liczbę małych plików, czy rzadkie transfery plików o ogromnych rozmiarach.
+- Brak wymagań dotyczących integralności i bezpieczeństwa danych w spoczynku: Nie wskazano, czy pliki muszą być szyfrowane po stronie serwera oraz czy system powinien weryfikować sumy kontrolne przesyłanych obiektów.
+
+### 2. Pytania do doprecyzowania
+- Jaki standard uwierzytelniania i autoryzacji powinien zostać zaimplementowany (np. OAuth2/OpenID Connect, klucze API, czy integracja z zewnętrznym dostawcą tożsamości)?
+- Jakie limity techniczne należy nałożyć na pliki (np. maksymalny rozmiar 100MB na plik, blokowanie określonych rozszerzeń, czy całkowity limit 10GB na użytkownika)?
+- Jak system powinien reagować na próbę przesłania pliku o nazwie, która już istnieje (np. automatyczne nadpisanie, zwrócenie błędu 409 Conflict, czy utworzenie nowej wersji pliku)?
+- Czy wymagane jest wsparcie dla wersjonowania plików, czy użytkownik ma mieć dostęp wyłącznie do ostatniej przesłanej kopii?
+- Jakie są konkretne cele wydajnościowe (np. obsługa 1000 równoległych transferów, czy gwarantowany czas odpowiedzi API poniżej 200ms)?
+- Czy usunięcie pliku powinno być natychmiastowe i fizyczne, czy wymagany jest mechanizm ""miękkiego usuwania"" (soft delete) z możliwością przywrócenia danych przez określony czas?
+- Czy system powinien generować logi audytowe dla każdej operacji na pliku (kto, kiedy i z jakiego adresu IP pobrał lub usunął dany zasób)?",,,
+R1,llama-3.1-8b,LLM-only,3,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System udostępnia API do przesyłania, pobierania i usuwania plików. Użytkownicy powinni mieć dostęp tylko do swoich plików. System powinien być skalowalny i bezpieczny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Brak definicji użytkownika: Nie jest jasne, czy użytkownik oznacza osobę fizyczną, firmę lub inną jednostkę, która może mieć dostęp do systemu.
+- Brak opisu mechanizmu autoryzacji: Nie jest wskazane, jak system będzie sprawdzał, czy użytkownik ma dostęp do plików.
+- Brak informacji o skali systemu: Nie jest jasne, jaka jest maksymalna liczba użytkowników lub plików, które system powinien obsługiwać.
+- Brak opisu bezpieczeństwa danych: Nie jest wskazane, jak system będzie chronił dane użytkowników przed nieuprawnionym dostępem lub kradzieżą.
+- Brak informacji o przepływie danych: Nie jest jasne, jak system będzie przesyłał, pobierał i usuwał pliki.
+
+### 2. Pytania do doprecyzowania
+- Jakie są rodzaje użytkowników, którzy będą mieć dostęp do systemu (osoby fizyczne, firmy, inne jednostki)?
+- Jak system będzie sprawdzał, czy użytkownik ma dostęp do plików (autoryzacja oparta na loginie i hasłach, certyfikaty, inne)?
+- Jaką skalę system powinien obsługiwać (maksymalna liczba użytkowników, plików, innych parametrów)?
+- Jak system będzie chronił dane użytkowników przed nieuprawnionym dostępem lub kradzieżą (kryptografia, autoryzacja, inne)?
+- Jak system będzie przesyłał, pobierał i usuwał pliki (protokół komunikacji, format danych, inne)?
+- Czy system powinien mieć możliwość konfiguracji przez administratora (np. ustawianie uprawnień użytkowników)?
+- Czy system powinien mieć możliwość integracji z innymi systemami (np. systemami CRM, ERP)?",,,
+R1,claude-sonnet-4-6,LLM-only,1,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji ""konfliktu rezerwacji"" – nie wiadomo, czy dotyczy tylko nakładania się czasowego, czy też uwzględnia przerwy między wizytami, limity dzienne specjalisty lub inne ograniczenia.
+- Nieokreślony model dostępności specjalisty – opis nie precyzuje, czy specjalista definiuje dostępność jako bloki czasowe, pojedyncze sloty, czy system generuje sloty automatycznie na podstawie zadeklarowanych godzin pracy.
+- Brak zasad anulowania rezerwacji – nie określono, czy istnieje deadline na anulowanie (np. 24h przed wizytą), kto może anulować (tylko użytkownik, tylko specjalista, obie strony) i jakie są konsekwencje anulowania.
+- Niezdefiniowane role użytkowników – wzmianka o ""różnych rolach"" jest niewystarczająca; brak listy ról i przypisanych do nich uprawnień uniemożliwia zaprojektowanie modelu autoryzacji.
+- Brak mechanizmu powiadomień – nie wiadomo, czy system ma informować strony o rezerwacji, anulowaniu lub zbliżającej się wizycie, co jest krytyczne dla niezawodności procesu.
+- Nieokreślona granularność i długość slotu – brak informacji o tym, czy wizyty mają stały czas trwania, czy jest on konfigurowalny per specjalista lub per typ wizyty, co bezpośrednio wpływa na logikę wykrywania konfliktów.
+- Brak obsługi sytuacji współbieżnych rezerwacji – opis nie definiuje mechanizmu blokowania slotu w trakcie procesu rezerwacji (race condition), co może prowadzić do podwójnych bookingów mimo deklarowanego zapobiegania konfliktom.
+- Nieokreślony zakres widoczności grafiku – nie wiadomo, czy użytkownik widzi pełny grafik specjalisty, tylko dostępne sloty, czy dostępność jest filtrowana według dodatkowych kryteriów (np. typ wizyty, lokalizacja).
+- Brak polityki dotyczącej danych historycznych – opis nie precyzuje, co dzieje się z rezerwacją po jej odbyciu (archiwizacja, dostęp użytkownika do historii, retencja danych).
+- Nieznany kontekst wielodostępności – nie wiadomo, czy jeden specjalista może prowadzić wizyty równolegle (np. kilka gabinetów), co zmienia logikę wykrywania konfliktów.
+
+### 2. Pytania do doprecyzowania
+
+- Jakie role użytkowników ma obsługiwać system – czy są to wyłącznie: pacjent/klient, specjalista i administrator, czy przewiduje się dodatkowe role (np. recepcjonista, menedżer kliniki)?
+- W jaki sposób specjalista definiuje dostępność: (A) ręcznie dodaje pojedyncze sloty, (B) definiuje okna czasowe, z których system automatycznie generuje sloty o stałej długości, czy (C) inaczej?
+- Czy długość wizyty jest stała dla całego systemu, konfigurowana per specjalista, per typ wizyty, czy ustalana indywidualnie przy każdej rezerwacji?
+- Czy anulowanie rezerwacji jest dozwolone w dowolnym momencie, czy obowiązuje minimalny czas wyprzedzenia (np. 2h, 24h, 48h) – i czy zasada ta różni się dla użytkownika i specjalisty?
+- Kto może anulować rezerwację: (A) tylko użytkownik który ją złożył, (B) tylko specjalista, (C) obie strony, (D) również administrator?
+- Czy system ma wysyłać powiadomienia (e-mail, SMS, push) o potwierdzeniu rezerwacji, anulowaniu i/lub przypomnieniu przed wizytą – jeśli tak, do której strony i w jakim wyprzedzeniu?
+- Jak system ma rozwiązywać sytuację, gdy dwóch użytkowników jednocześnie próbuje zarezerwować ten sam slot: (A) blokada optymistyczna z komunikatem o błędzie, (B) kolejkowanie i przydział pierwszemu, (C) lista oczekujących?
+- Czy użytkownik powinien mieć dostęp do historii swoich rezerwacji (w tym anulowanych i odbytych), a jeśli tak, przez jaki okres?
+- Czy specjalista może prowadzić wizyty równolegle (np. w kilku gabinetach lub z asystentem), co wymagałoby modelowania zasobów niezależnie od osoby specjalisty?
+- Jakie informacje o specjaliście i wizycie są widoczne dla użytkownika przed rezerwacją (np. typ wizyty, lokalizacja, cena, czas trwania) i czy któreś z nich wpływają na logikę dostępności slotów?",,,
+R1,claude-sonnet-4-6,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji ""konfliktu rezerwacji"" – nie wiadomo, czy system blokuje tylko dokładnie nakładające się terminy, czy też uwzględnia bufory czasowe między wizytami (np. czas na przygotowanie gabinetu).
+- Nieokreślony model dostępności specjalisty – opis nie precyzuje, czy specjalista definiuje dostępność jako otwarte okna czasowe (które system dzieli na sloty), czy jako konkretne, z góry zdefiniowane terminy do zatwierdzenia.
+- Brak reguł anulowania rezerwacji – nie określono żadnych ograniczeń czasowych (np. zakaz anulowania na mniej niż 24h przed wizytą), co jest kluczowe dla logiki biznesowej i potencjalnych kar umownych.
+- Niejednoznaczne ""różne role użytkowników"" – opis wymienia użytkowników i specjalistów, ale nie definiuje, czy istnieje rola administratora, recepcjonisty lub innego pośrednika, co bezpośrednio wpływa na model uprawnień.
+- Brak określenia, kto może dokonać rezerwacji – nie wiadomo, czy rezerwacji może dokonać wyłącznie sam użytkownik (pacjent), czy również specjalista lub administrator w jego imieniu.
+- Nieokreślony stan rezerwacji po anulowaniu przez specjalistę – opis wspomina, że specjaliści zarządzają grafikiem, ale nie definiuje, co dzieje się z istniejącymi rezerwacjami, gdy specjalista usunie lub zmodyfikuje zajęty termin.
+- Brak mechanizmu powiadomień – nie wiadomo, czy system ma obowiązek informować strony o potwierdzeniu, anulowaniu lub zbliżającej się wizycie, co jest fundamentalne dla niezawodności procesu.
+- Nieokreślony model potwierdzania rezerwacji – nie wiadomo, czy rezerwacja jest natychmiastowo potwierdzona (automatycznie), czy wymaga akceptacji ze strony specjalisty, co tworzy dwa zupełnie różne przepływy biznesowe.
+- Brak zasad dotyczących historii i danych archiwalnych – nie określono, czy użytkownicy i specjaliści mają dostęp do przeszłych wizyt oraz jak długo dane są przechowywane.
+- Nieokreślona granularność i jednostka slotów czasowych – brak informacji, czy czas trwania wizyty jest stały dla całego systemu, definiowany przez specjalistę, czy negocjowany per rezerwacja, co jest podstawą dla logiki wykrywania konfliktów.
+
+### 2. Pytania do doprecyzowania
+
+- Jak definiujemy ""konflikt rezerwacji"" – czy chodzi wyłącznie o nakładające się terminy, czy system ma również wymuszać minimalny bufor czasowy między wizytami? Jeśli tak, kto go definiuje: administrator systemu czy każdy specjalista indywidualnie?
+- Jak specjalista definiuje swoją dostępność: (A) tworzy otwarte okna czasowe, które system automatycznie dzieli na sloty o stałej długości, czy (B) ręcznie dodaje konkretne, dostępne terminy jeden po drugim?
+- Kto i w jakim czasie może anulować rezerwację? Czy obowiązują limity czasowe (np. zakaz anulowania na mniej niż X godzin przed wizytą) i czy różnią się one w zależności od roli (użytkownik vs. specjalista)?
+- Jakie role użytkowników musi obsługiwać system – czy poza ""użytkownikiem"" (pacjentem) i ""specjalistą"" istnieje rola administratora systemu lub recepcjonisty mogącego zarządzać rezerwacjami w imieniu innych?
+- Czy rezerwacja jest potwierdzana automatycznie w momencie jej złożenia, czy wymaga jawnej akceptacji przez specjalistę? Jeśli wymagana jest akceptacja, co dzieje się z terminem w czasie oczekiwania – czy jest blokowany dla innych użytkowników?
+- Co dzieje się z istniejącymi, potwierdzonymi rezerwacjami, gdy specjalista modyfikuje lub usuwa dany termin ze swojego grafiku: (A) rezerwacje są automatycznie anulowane z powiadomieniem, (B) specjalista jest blokowany przed edycją zajętych terminów, czy (C) wymagana jest ręczna obsługa konfliktu?
+- Czy system ma wysyłać powiadomienia (e-mail, SMS, push) i w jakich zdarzeniach: potwierdzenie rezerwacji, anulowanie, przypomnienie przed wizytą? Kto jest adresatem każdego z tych powiadomień?
+- Czy czas trwania wizyty jest: (A) stały dla całego systemu, (B) definiowany przez każdego specjalistę dla swojego grafiku, czy (C) może być różny dla każdego terminu z osobna?
+- Czy użytkownik (pacjent) może posiadać wiele aktywnych rezerwacji jednocześnie, w tym u tego samego specjalisty w nakładających się lub bliskich terminach?
+- Czy system wymaga przechowywania historii wizyt (zakończonych i anulowanych), a jeśli tak, kto ma do niej dostęp i przez jaki okres musi być ona przechowywana (np. ze względów prawnych lub regulacyjnych)?",,,
+R1,claude-sonnet-4-6,LLM-only,3,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji ról użytkowników i ich uprawnień – opis wspomina o „różnych rolach"", ale nie precyzuje, jakie role istnieją (np. pacjent, specjalista, administrator, recepcjonista) ani co każda z nich może robić w systemie.
+- Nieokreślony mechanizm zarządzania grafikiem przez specjalistę – nie wiadomo, czy specjalista definiuje dostępność jako bloki czasowe, pojedyncze sloty, cykliczne wzorce, czy w inny sposób, co jest fundamentalne dla logiki rezerwacji.
+- Brak zasad anulowania rezerwacji – opis dopuszcza anulowanie, ale nie określa, kto może anulować (tylko użytkownik, specjalista, administrator?), w jakim terminie przed wizytą i jakie są konsekwencje (np. kary, zwroty, powiadomienia).
+- Niejednoznaczność pojęcia „konflikt rezerwacji"" – nie wiadomo, czy system ma zapobiegać tylko podwójnej rezerwacji tego samego slotu, czy też uwzględniać bufory czasowe między wizytami, nakładające się grafiki specjalistów lub limity równoczesnych rezerwacji użytkownika.
+- Brak określenia przepływu potwierdzenia rezerwacji – nie wiadomo, czy rezerwacja jest natychmiastowo potwierdzona, czy wymaga akceptacji ze strony specjalisty, co bezpośrednio wpływa na logikę dostępności terminów.
+- Brak informacji o powiadomieniach – system rezerwacji bez mechanizmu przypomnień i potwierdzeń jest niekompletny funkcjonalnie, a opis całkowicie pomija ten aspekt.
+- Nieokreślony zakres widoczności danych – nie wiadomo, jakie informacje o specjaliście i użytkowniku są widoczne dla poszczególnych ról, co rodzi poważne implikacje dla prywatności i zgodności z RODO.
+- Brak obsługi sytuacji wyjątkowych po stronie specjalisty – opis nie definiuje, co dzieje się z istniejącymi rezerwacjami, gdy specjalista zablokuje termin, odwoła dostępność lub usunie konto.
+- Nieokreślony horyzont czasowy dostępności terminów – brak informacji, z jakim wyprzedzeniem użytkownik może przeglądać i rezerwować terminy, co jest kluczowe dla logiki biznesowej systemu.
+- Brak definicji jednostki czasu wizyty – nie wiadomo, czy czas trwania wizyty jest stały, definiowany przez specjalistę per typ wizyty, czy negocjowany z użytkownikiem.
+
+### 2. Pytania do doprecyzowania
+
+- Jakie role użytkowników musi obsługiwać system i jakie są ich uprawnienia? Czy wystarczą role: Pacjent/Klient, Specjalista i Administrator, czy potrzebne są dodatkowe role (np. Recepcjonista, Asystent specjalisty)?
+- W jaki sposób specjalista definiuje swoją dostępność: (a) ręcznie dodaje pojedyncze sloty, (b) definiuje okna dostępności, z których system automatycznie generuje sloty, (c) korzysta z cyklicznych wzorców tygodniowych, czy (d) kombinacja powyższych?
+- Jaki jest model potwierdzenia rezerwacji: (a) rezerwacja jest natychmiast potwierdzona bez udziału specjalisty, (b) specjalista musi ją ręcznie zaakceptować lub odrzucić, czy (c) istnieje wstępna rezerwacja z limitem czasowym na potwierdzenie?
+- Kto może anulować rezerwację i w jakim terminie? Czy obowiązują różne zasady dla anulowania przez użytkownika (np. min. 24h przed wizytą) i przez specjalistę?
+- Co powinno się stać z istniejącymi rezerwacjami, gdy specjalista zablokuje lub usunie termin: (a) rezerwacje są automatycznie anulowane z powiadomieniem użytkownika, (b) specjalista musi ręcznie obsłużyć każdy konflikt, czy (c) system blokuje możliwość usunięcia zajętego terminu?
+- Czy system ma wysyłać powiadomienia (e-mail, SMS, push), a jeśli tak, to dla jakich zdarzeń: potwierdzenie rezerwacji, anulowanie, przypomnienie przed wizytą?
+- Jakie dane osobowe specjalisty są widoczne dla niezalogowanego użytkownika, a jakie dopiero po dokonaniu rezerwacji? Czy system musi być zgodny z RODO i kto jest administratorem danych?
+- Czy czas trwania wizyty jest: (a) jednakowy dla wszystkich wizyt w systemie, (b) definiowany przez specjalistę (globalnie lub per typ wizyty), czy (c) wybierany przez użytkownika podczas rezerwacji?
+- Z jakim maksymalnym wyprzedzeniem użytkownik może zarezerwować wizytę i jak daleko wstecz specjalista może przeglądać historię rezerwacji?
+- Czy jeden użytkownik może mieć wiele aktywnych rezerwacji jednocześnie (u tego samego lub różnych specjalistów), czy obowiązuje jakiś limit?",,,
+R1,claude-sonnet-4-6,LLM-only,1,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System do zarządzania zgłoszeniami użytkowników. Użytkownicy mogą tworzyć zgłoszenia, które są obsługiwane przez agentów. Zgłoszenia mają statusy i mogą być przypisywane do różnych osób. System powinien umożliwiać śledzenie historii oraz komunikację między użytkownikiem a agentem.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji modelu uprawnień i ról – opis wymienia „użytkowników"" i „agentów"", ale nie określa, czy istnieją inne role (np. administrator, supervisor), ani jakie dokładnie operacje może wykonać każda z ról.
+- Nieokreślony zestaw statusów i dozwolonych przejść między nimi – brak informacji o tym, jakie statusy istnieją (np. nowe, w toku, zamknięte), kto może je zmieniać i czy istnieją ograniczenia co do kolejności przejść (np. czy można ponownie otworzyć zamknięte zgłoszenie).
+- Niejednoznaczność pojęcia „przypisywanie do różnych osób"" – nie wiadomo, czy zgłoszenie może być przypisane do wielu agentów jednocześnie, czy tylko do jednego, oraz kto ma prawo dokonywać przypisania (użytkownik, agent, system automatycznie).
+- Brak definicji „historii"" – opis nie precyzuje, co dokładnie jest śledzone w historii (zmiany statusów, edycje treści, zmiany przypisania, komunikaty), ani kto ma do niej dostęp.
+- Nieokreślony model komunikacji – nie wiadomo, czy komunikacja jest asynchroniczna (wiadomości w wątku), synchroniczna (czat), czy oparta na powiadomieniach e-mail, co ma fundamentalne znaczenie dla architektury systemu.
+- Brak zasad dotyczących własności i widoczności zgłoszeń – opis nie określa, czy użytkownik widzi tylko swoje zgłoszenia, czy wszystkie, oraz czy agenci widzą zgłoszenia przypisane tylko do nich, czy całą pulę.
+- Niewyjaśniony cykl życia zgłoszenia po jego zamknięciu – brak informacji o tym, czy zamknięte zgłoszenia mogą być usuwane, archiwizowane lub ponownie otwierane, i przez kogo.
+- Brak określenia reguł eskalacji i priorytetyzacji – opis nie wspomina, czy zgłoszenia mają priorytety, terminy realizacji (SLA) ani co się dzieje, gdy zgłoszenie nie jest obsługiwane przez określony czas.
+- Nieokreślona polityka modyfikacji zgłoszenia po jego utworzeniu – nie wiadomo, czy użytkownik może edytować treść zgłoszenia po jego wysłaniu, a jeśli tak, to w jakich statusach i czy agent jest o tym powiadamiany.
+
+### 2. Pytania do doprecyzowania
+
+- Jakie role użytkowników musi obsługiwać system – czy wystarczą dwie role (użytkownik zgłaszający, agent), czy potrzebne są dodatkowe role, takie jak supervisor (nadzorujący agentów) lub administrator systemu?
+- Jaki jest pełny zestaw statusów zgłoszenia i dozwolone przejścia między nimi – np. Nowe → W toku → Oczekuje na odpowiedź użytkownika → Rozwiązane → Zamknięte, i czy użytkownik może samodzielnie zamknąć lub ponownie otworzyć zgłoszenie?
+- Czy zgłoszenie może być przypisane do więcej niż jednego agenta jednocześnie, czy zawsze do dokładnie jednego, oraz kto inicjuje przypisanie – agent sam je przejmuje, supervisor przydziela ręcznie, czy system przydziela automatycznie według jakiejś reguły?
+- Co dokładnie ma być rejestrowane w historii zgłoszenia – czy tylko zmiany statusów i przypisań, czy również pełna historia edycji treści i wszystkich wiadomości, i czy historia jest widoczna zarówno dla użytkownika, jak i agenta?
+- Jaki model komunikacji ma być zastosowany – wiadomości tekstowe w wątku zgłoszenia (asynchroniczne), powiadomienia e-mail, czy coś innego, i czy załączniki (pliki, zrzuty ekranu) muszą być obsługiwane?
+- Czy użytkownik zgłaszający widzi tylko własne zgłoszenia, a agent widzi wszystkie zgłoszenia w systemie czy tylko przypisane do niego – jaki jest model widoczności danych?
+- Czy zgłoszenia mają priorytety (np. niski, średni, wysoki, krytyczny) i czy system musi obsługiwać SLA (umowne czasy reakcji i rozwiązania), a jeśli tak, co się dzieje po ich przekroczeniu – eskalacja automatyczna czy ręczna?
+- Czy użytkownik może edytować treść zgłoszenia po jego utworzeniu – jeśli tak, to w jakich statusach jest to dozwolone i czy agent powinien otrzymać powiadomienie o takiej zmianie?
+- Co dzieje się z zamkniętym zgłoszeniem – czy jest trwale archiwizowane i tylko do odczytu, czy może zostać usunięte, i przez kogo (użytkownik, agent, administrator)?",,,
+R1,claude-sonnet-4-6,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System do zarządzania zgłoszeniami użytkowników. Użytkownicy mogą tworzyć zgłoszenia, które są obsługiwane przez agentów. Zgłoszenia mają statusy i mogą być przypisywane do różnych osób. System powinien umożliwiać śledzenie historii oraz komunikację między użytkownikiem a agentem.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+
+- Brak definicji modelu uprawnień i ról – opis wymienia ""użytkowników"" i ""agentów"", ale nie określa, czy istnieją inne role (np. administrator, supervisor), ani jakie dokładnie operacje może wykonać każda z ról.
+- Nieokreślony zestaw statusów i dozwolonych przejść między nimi – brak informacji, jakie statusy istnieją (np. nowe, w toku, zamknięte) oraz czy przejścia między nimi są swobodne, czy podlegają ograniczeniom biznesowym.
+- Niejednoznaczność pojęcia ""przypisywanie do różnych osób"" – nie wiadomo, czy zgłoszenie może być przypisane do wielu agentów jednocześnie, czy tylko do jednego, oraz kto ma uprawnienie do (re)przypisania.
+- Brak definicji ""historii"" – nie określono, co dokładnie jest śledzone (zmiany statusów, zmiany przypisania, edycje treści, komunikaty), co uniemożliwia zaprojektowanie modelu danych.
+- Nieokreślony model komunikacji – opis mówi o ""komunikacji między użytkownikiem a agentem"", ale nie precyzuje, czy jest to wewnętrzny czat, komentarze do zgłoszenia, e-mail, czy kombinacja tych kanałów.
+- Brak reguł dotyczących cyklu życia zgłoszenia – nie wiadomo, co dzieje się ze zgłoszeniem po jego zamknięciu (czy można je ponownie otworzyć, archiwizować, usunąć) ani kto może to zainicjować.
+- Nieznana polityka dostępu do danych – nie określono, czy użytkownik widzi tylko swoje zgłoszenia, czy agent widzi wszystkie zgłoszenia w systemie, czy obowiązuje podział na zespoły/kolejki.
+- Brak wymagań dotyczących powiadomień – nie wiadomo, czy i w jaki sposób strony są informowane o zmianach stanu zgłoszenia lub nowych wiadomościach.
+- Niejednoznaczność pojęcia ""użytkownik"" – nie określono, czy użytkownik tworzący zgłoszenie to zawsze podmiot zewnętrzny (klient), czy może nim być również pracownik wewnętrzny, co wpływa na model uwierzytelniania i izolacji danych.
+
+### 2. Pytania do doprecyzowania
+
+- Jakie role użytkowników musi obsługiwać system – czy wystarczą dwie role (użytkownik, agent), czy potrzebne są dodatkowe, takie jak administrator systemu lub supervisor z uprawnieniami do nadzoru nad agentami?
+- Jaki jest pełny zestaw statusów zgłoszenia i czy przejścia między nimi są dowolne, czy ściśle zdefiniowane (np. tylko agent może zamknąć zgłoszenie, użytkownik może jedynie je ponownie otworzyć)?
+- Czy zgłoszenie może być przypisane do więcej niż jednego agenta jednocześnie, czy obowiązuje model jeden agent – jedno zgłoszenie? Kto ma prawo do przypisania i przepisania: agent samodzielnie, supervisor, czy system automatycznie?
+- Co dokładnie ma być rejestrowane w historii zgłoszenia – czy tylko zmiany statusu i przypisania, czy również edycje treści zgłoszenia, każda wiadomość w komunikacji, a może wszystkie powyższe?
+- Jaki model komunikacji ma być zastosowany – (a) komentarze/wątki wewnątrz zgłoszenia, (b) integracja z e-mailem, (c) czat w czasie rzeczywistym, czy (d) kombinacja wybranych opcji?
+- Czy po zamknięciu zgłoszenia możliwe jest jego ponowne otwarcie – jeśli tak, to przez kogo (użytkownik, agent, oboje) i czy istnieje limit czasu na taką operację?
+- Jaki jest zakres widoczności zgłoszeń – czy użytkownik widzi wyłącznie swoje zgłoszenia, a agent widzi wszystkie, czy obowiązuje podział na kolejki/zespoły, do których agent ma przypisany dostęp?
+- Czy system ma wysyłać powiadomienia o zdarzeniach (zmiana statusu, nowa wiadomość, przypisanie) – jeśli tak, to jakim kanałem: e-mail, powiadomienie push, SMS, czy powiadomienie wewnątrz aplikacji?
+- Kim jest ""użytkownik"" tworzący zgłoszenie – czy jest to wyłącznie klient zewnętrzny (z osobnym procesem rejestracji), czy może nim być również pracownik wewnętrzny firmy, co determinuje wymagania dotyczące uwierzytelniania i izolacji danych?",,,
+R1,gpt-5.4,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System do zarządzania zgłoszeniami użytkowników. Użytkownicy mogą tworzyć zgłoszenia, które są obsługiwane przez agentów. Zgłoszenia mają statusy i mogą być przypisywane do różnych osób. System powinien umożliwiać śledzenie historii oraz komunikację między użytkownikiem a agentem.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Nie zdefiniowano ról i uprawnień użytkowników, więc nie wiadomo, kto może tworzyć, przeglądać, edytować, przypisywać i zamykać zgłoszenia.
+- Pojęcie „użytkownik” jest niejednoznaczne, ponieważ nie wiadomo, czy obejmuje wyłącznie zgłaszających, czy także agentów i inne role wewnętrzne.
+- Nie określono pełnego modelu statusów zgłoszenia, więc nie da się ustalić dozwolonych przejść i reguł biznesowych cyklu życia zgłoszenia.
+- Brakuje zasad przypisywania zgłoszeń, przez co nie wiadomo, czy zgłoszenie może być przypisane do jednej osoby, wielu osób, kolejki lub pozostawać nieprzypisane.
+- Nie wiadomo, kto ma prawo zmieniać status i przypisanie zgłoszenia, co rodzi ryzyko niespójności procesu i nadużyć.
+- „Śledzenie historii” nie zostało zdefiniowane, więc nie wiadomo, jakie zdarzenia mają być audytowane i czy historia ma być niemodyfikowalna.
+- „Komunikacja między użytkownikiem a agentem” jest zbyt ogólna, ponieważ nie określa kanału, widoczności wiadomości ani tego, czy komunikacja jest powiązana wyłącznie z konkretnym zgłoszeniem.
+- Nie określono zasad dostępu do zgłoszeń i komunikacji, więc nie wiadomo, czy użytkownik widzi tylko własne zgłoszenia, a agent wszystkie czy tylko przypisane.
+- Brakuje informacji o wymaganych danych zgłoszenia, przez co nie da się ocenić kompletności rekordu ani warunków jego utworzenia.
+- Nie wiadomo, czy zgłoszenie może być edytowane po utworzeniu i przez kogo, co wpływa na integralność danych oraz interpretację historii zmian.
+- Nie określono reguł zamknięcia i ponownego otwarcia zgłoszenia, więc cykl obsługi pozostaje logicznie niepełny.
+- Brakuje informacji o współbieżności zmian, np. co się dzieje, gdy dwóch agentów jednocześnie zmienia status lub przypisanie tego samego zgłoszenia.
+- Nie wiadomo, czy system ma obsługiwać załączniki w komunikacji lub zgłoszeniu, co jest istotne dla przepływu danych i bezpieczeństwa.
+- Nie określono wymagań dotyczących powiadomień o zmianach w zgłoszeniu lub nowych wiadomościach, więc proces obsługi może być operacyjnie nieskuteczny.
+- Brakuje zasad retencji i usuwania danych historycznych oraz komunikacji, co ma znaczenie dla zgodności prawnej i audytowalności.
+- Nie określono wymagań bezpieczeństwa dla treści zgłoszeń i komunikacji, np. kontroli dostępu, logowania działań czy ochrony danych wrażliwych.
+- Nie wiadomo, czy agent może komunikować się wewnętrznie z innymi agentami w ramach zgłoszenia, co wpływa na model widoczności historii i wiadomości.
+- Nie określono relacji między historią a komunikacją, więc nie wiadomo, czy wiadomości są częścią historii zdarzeń czy odrębnym bytem.
+
+### 2. Pytania do doprecyzowania
+- Jakie role mają istnieć w systemie i jakie uprawnienia ma każda z nich: zgłaszający, agent, administrator czy inne?
+- Czy termin „użytkownik” oznacza wyłącznie klienta/zgłaszającego, czy każdą osobę korzystającą z systemu, w tym agentów?
+- Jakie dokładnie statusy ma mieć zgłoszenie i jakie przejścia między nimi są dozwolone?
+- Kto może zmieniać status zgłoszenia: tylko agent przypisany do sprawy, dowolny agent, administrator czy także zgłaszający w określonych przypadkach?
+- Czy zgłoszenie może być przypisane do jednej osoby, wielu osób, zespołu/kolejki czy ma wspierać wszystkie te warianty?
+- Kto może przypisywać i przepisywać zgłoszenia: system automatycznie, agent ręcznie, administrator czy kombinacja tych opcji?
+- Czy dopuszczalne jest istnienie zgłoszeń nieprzypisanych i jeśli tak, to w jakich statusach?
+- Jakie pola są obowiązkowe przy tworzeniu zgłoszenia: temat, opis, kategoria, priorytet, załączniki czy inne?
+- Czy użytkownik może edytować treść zgłoszenia po utworzeniu; jeśli tak, to które pola i do jakiego momentu?
+- Jakie zdarzenia mają być zapisywane w historii: utworzenie, zmiana statusu, zmiana przypisania, edycja treści, wiadomości, logowanie działań administracyjnych?
+- Czy historia ma być niemodyfikowalnym audytem technicznym, czy zwykłym rejestrem biznesowym możliwym do korekty przez uprawnione osoby?
+- Czy komunikacja ma odbywać się wyłącznie w ramach konkretnego zgłoszenia, czy także poza nim?
+- Jaki model komunikacji jest wymagany: publiczne wiadomości widoczne dla zgłaszającego i agenta, notatki wewnętrzne tylko dla agentów, czy oba warianty?
+- Kto widzi jakie zgłoszenia: użytkownik tylko własne, agent tylko przypisane, agent wszystkie w swoim zespole, administrator wszystkie?
+- Kto widzi historię zmian i pełną komunikację: tylko agenci obsługujący sprawę, wszyscy agenci, administratorzy czy także zgłaszający w ograniczonym zakresie?
+- Jakie są reguły zamknięcia zgłoszenia: kto może zamknąć sprawę i jakie warunki muszą być spełnione?
+- Czy zamknięte zgłoszenie można ponownie otworzyć; jeśli tak, to kto może to zrobić i w jakim czasie?
+- Jak system ma zachować się przy jednoczesnej edycji tego samego zgłoszenia przez dwie osoby: blokada rekordu, wykrywanie konfliktu przy zapisie czy zasada „ostatni zapis wygrywa”?
+- Czy system ma obsługiwać załączniki; jeśli tak, to jakie typy plików, limity rozmiaru oraz zasady skanowania i dostępu są wymagane?
+- Czy mają być wysyłane powiadomienia o utworzeniu zgłoszenia, zmianie statusu, przypisaniu i nowych wiadomościach; jeśli tak, do kogo i jakim kanałem?
+- Jak długo mają być przechowywane zgłoszenia, historia i komunikacja oraz czy przewidziano archiwizację lub usuwanie danych?
+- Czy w treści zgłoszeń i wiadomości mogą pojawiać się dane wrażliwe; jeśli tak, jakie mechanizmy ochrony i ograniczenia dostępu są wymagane?
+- Czy działania użytkowników i agentów mają być logowane na potrzeby bezpieczeństwa i audytu; jeśli tak, jaki poziom szczegółowości jest wymagany?
+- Czy agenci mają mieć możliwość prowadzenia wewnętrznej komunikacji dotyczącej zgłoszenia bez widoczności dla zgłaszającego?",,,
+R1,gpt-5.4,LLM-only,2,"Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od ""- "" (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy","### 1. Lista problemów
+- Nie jest zdefiniowane, jakie dokładnie role użytkowników istnieją i jakie mają uprawnienia, więc nie da się ocenić poprawności autoryzacji i zakresu dostępu do danych.
+- Nie wiadomo, czy użytkownik może rezerwować wizyty wyłącznie dla siebie, czy także dla innych osób, co wpływa na model danych i kontrolę uprawnień.
+- Pojęcie „specjalista” obejmuje różne typy usług (np. lekarz, konsultant), ale opis nie określa, czy obowiązują je te same reguły rezerwacji i anulacji.
+- Nie zdefiniowano, czym dokładnie jest „dostępny termin” i z czego wynika jego dostępność, więc logika wyznaczania wolnych slotów jest niejednoznaczna.
+- Brakuje informacji, czy wizyty mają stałą długość, czy czas trwania zależy od specjalisty lub typu usługi, co uniemożliwia jednoznaczne wykrywanie konfliktów.
+- Nie określono, czy jedna rezerwacja dotyczy konkretnej usługi/specjalizacji, czy tylko czasu u specjalisty, co wpływa na sposób prezentacji i walidacji terminów.
+- Opis mówi o zapobieganiu konfliktom rezerwacji, ale nie precyzuje, jak system ma zachować się przy równoczesnych próbach rezerwacji tego samego terminu.
+- Nie wiadomo, czy specjalista może modyfikować grafik także wtedy, gdy istnieją już powiązane rezerwacje, co rodzi konflikt między zarządzaniem grafikiem a integralnością wizyt.
+- Brakuje zasad anulowania rezerwacji, w szczególności kto może anulować wizytę i do kiedy jest to dozwolone.
+- Nie określono, czy anulowanie zwalnia termin natychmiast do ponownej rezerwacji oraz jak obsługiwane są sytuacje graniczne blisko czasu rozpoczęcia wizyty.
+- Nie wiadomo, czy system ma obsługiwać strefy czasowe, co jest krytyczne przy prezentacji terminów i unikaniu błędów czasowych.
+- Nie zdefiniowano statusów wizyty (np. zarezerwowana, anulowana), więc przepływ życia rezerwacji jest niepełny i podatny na niespójności.
+- Brakuje informacji o wymaganej identyfikacji i uwierzytelnieniu użytkowników, mimo że system operuje na rolach i potencjalnie wrażliwych danych.
+- Nie wiadomo, jaki minimalny zakres danych osobowych jest przetwarzany przy rezerwacji, co uniemożliwia ocenę wymagań bezpieczeństwa i zgodności danych.
+- Nie określono, czy użytkownik może mieć wiele aktywnych rezerwacji nakładających się czasowo u różnych specjalistów, co wpływa na reguły walidacyjne.
+- Nie wiadomo, czy specjalista może mieć równoległe dostępności dla różnych typów usług lub zasobów, co może prowadzić do ukrytych konfliktów harmonogramu.
+- Brakuje informacji o tym, czy system przewiduje blokady techniczne/przerwy w grafiku specjalisty niezwiązane z wizytami, co wpływa na definicję dostępności.
+- Nie określono źródła prawdy dla grafiku specjalisty ani tego, czy zmiany są ręczne, cykliczne czy jednorazowe, co utrudnia ocenę spójności danych w czasie.
+
+### 2. Pytania do doprecyzowania
+- Jakie dokładnie role mają istnieć w systemie i jakie operacje może wykonywać każda z nich: np. użytkownik końcowy, specjalista, administrator?
+- Czy użytkownik może rezerwować wizyty tylko dla siebie, czy również dla innych osób (np. członka rodziny lub klienta)?
+- Czy wszystkie typy specjalistów podlegają tym samym zasadom rezerwacji i anulacji, czy reguły mają zależeć od rodzaju specjalisty lub usługi?
+- Co dokładnie oznacza „dostępny termin”: wolny slot w grafiku specjalisty, slot przypisany do konkretnej usługi, czy jeszcze inna jednostka planowania?
+- Czy długość wizyty jest stała dla całego systemu, zależna od specjalisty, czy zależna od rodzaju usługi?
+- Czy rezerwacja dotyczy wyłącznie przedziału czasu u specjalisty, czy musi też wskazywać konkretną usługę/specjalizację?
+- Jak system ma obsługiwać równoczesne próby rezerwacji tego samego terminu: zasada „kto pierwszy zapisze”, czasowa blokada slotu podczas procesu rezerwacji, czy inny mechanizm?
+- Czy specjalista może zmieniać lub usuwać dostępność terminu, jeśli istnieje już aktywna rezerwacja: nigdy, tylko przed określonym czasem, czy zawsze z wymuszoną anulacją/przeniesieniem?
+- Kto może anulować wizytę: tylko użytkownik rezerwujący, także specjalista, administrator, czy wszystkie te role?
+- Czy obowiązuje okno czasowe anulowania: np. bez ograniczeń, do X godzin przed wizytą albo zależne od typu specjalisty/usługi?
+- Czy po anulowaniu termin ma wracać natychmiast do puli dostępnych terminów, czy dopiero po dodatkowej walidacji lub po upływie określonego czasu?
+- Czy system ma obsługiwać jedną strefę czasową, strefę lokalną specjalisty, strefę użytkownika, czy wiele stref jednocześnie?
+- Jakie statusy ma posiadać wizyta w cyklu życia: np. utworzona/zarezerwowana/anulowana/zrealizowana/no-show?
+- Czy korzystanie z systemu wymaga logowania dla wszystkich operacji, czy np. przeglądanie terminów może być publiczne?
+- Jakie dane są wymagane przy tworzeniu rezerwacji i które z nich są obowiązkowe dla każdego typu wizyty?
+- Czy użytkownik może posiadać kilka aktywnych rezerwacji nakładających się czasowo u różnych specjalistów: tak bez ograniczeń, nie wcale, czy tylko w określonych przypadkach?
+- Czy specjalista może oferować równoległe terminy dla różnych usług lub zasobów, czy zawsze może obsłużyć tylko jedną wizytę naraz?
+- Czy grafik specjalisty ma uwzględniać także blokady niedostępności (np. przerwy, urlopy), a jeśli tak to kto i jak nimi zarządza?
+- W jaki sposób definiowany jest grafik specjalisty: ręcznie jako pojedyncze sloty, jako powtarzalne reguły kalendarza, czy obiema metodami?",,,

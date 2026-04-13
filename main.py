@@ -19,7 +19,7 @@ def main(model_req, task_req, case_study):
         "gemini" : (get_gemini_response, "gemini-3-flash-preview"),
         "claude" : (get_claude_response, "claude-sonnet-4-6"),
         "gpt" : (get_openai_response, "gpt-5.4"),
-        "llama" : (get_llama_response, "llama-3.1:8b")
+        "llama" : (get_llama_response, "llama-3.1-8b")
     }
     
     tasks = {

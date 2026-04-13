@@ -1,0 +1,110 @@
+{
+  "system_goal": "System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzaj",
+  "roles": [
+    {
+      "name": "Użytkownik",
+      "permissions": [
+        "rezerwacja",
+        "przegladanieTerminow"
+      ]
+    },
+    {
+      "name": "Specjalista",
+      "permissions": [
+        "zarzadzanieGrafikiem",
+        "anulowanieRezerwacji"
+      ]
+    },
+    {
+      "name": "Administrator",
+      "permissions": [
+        "zarzadzanieUzytkownikami",
+        "zarzadzanieRezerwacjami"
+      ]
+    }
+  ],
+  "functional_requirements": [
+    {
+      "id": "FR1",
+      "description": "Użytkownicy mogą przeglądać dostępne terminy."
+    },
+    {
+      "id": "FR2",
+      "description": "Użytkownicy mogą dokonywać rezerwacji."
+    },
+    {
+      "id": "FR3",
+      "description": "Użytkownicy mogą anulować rezerwacje."
+    },
+    {
+      "id": "FR4",
+      "description": "Specjaliści mogą zarządzać swoim grafikiem."
+    },
+    {
+      "id": "FR5",
+      "description": "System powinien zapobiegać konfliktom rezerwacji."
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "id": "NFR1",
+      "description": "System powinien być dostępny przez 8 godzin w ciągu dnia."
+    },
+    {
+      "id": "NFR2",
+      "description": "System powinien być dostępny przez 5 dni w tygodniu."
+    },
+    {
+      "id": "NFR3",
+      "description": "System powinien mieć szybkość ładowania strony poniżej 2 sekund."
+    }
+  ],
+  "user_stories": [
+    {
+      "id": "US1",
+      "description": "Jako użytkownik chcę móc przeglądać dostępne terminy, aby móc wybrać odpowiedni termin wizyty."
+    },
+    {
+      "id": "US2",
+      "description": "Jako specjalista chcę móc zarządzać swoim grafikiem, aby móc wyznaczać dostępne terminy wizyt."
+    },
+    {
+      "id": "US3",
+      "description": "Jako administrator chcę móc zarządzać użytkownikami, aby móc dodawać lub usuwać użytkowników z systemu."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "Użytkownik jest zalogowany do systemu",
+      "when": "Użytkownik klika przycisk 'Przeglądaj terminy'",
+      "then": "System wyświetla dostępne terminy wizyt"
+    },
+    {
+      "id": "AC2",
+      "given": "Specjalista jest zalogowany do systemu",
+      "when": "Specjalista klika przycisk 'Zarządzaj grafikiem'",
+      "then": "System pozwala specjaliście wyznaczać dostępne terminy wizyt"
+    },
+    {
+      "id": "AC3",
+      "given": "Administrator jest zalogowany do systemu",
+      "when": "Administrator klika przycisk 'Zarządzaj użytkownikami'",
+      "then": "System pozwala administratorowi dodawać lub usuwać użytkowników z systemu"
+    }
+  ],
+  "metadata": {
+    "version": "llm",
+    "case_study": "appointment-booking",
+    "model_used": "llama-3.1-8b",
+    "prompt_log": "[SYSTEM]\nJesteś analitykiem wymagań. Odpowiadaj WYŁĄCZNIE poprawnym JSON.\nŻadnego Markdown ani komentarzy.\n\n[KROK1]\nOpis systemu: System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.\n\nWygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:\n{\n  \"roles\": [\n    {\"name\": \"NazwaRoli\", \"permissions\": [\"uprawnienie1\", \"uprawnienie2\"]}\n  ],\n  \"functional_requirements\": [\n    {\"id\": \"FR1\", \"description\": \"Treść wymagania.\"}\n  ]\n}\n\n[KROK2]\nOpis systemu: System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.\nWygenerowane FR: {\"roles\": [{\"name\": \"Użytkownik\", \"permissions\": [\"przeglądanie_terminów\", \"dokonywanie_rezerwacji\"]}, {\"name\": \"Specjalista\", \"permissions\": [\"zarządzanie_grafikiem\", \"anulowanie_rezerwacji\"]}, {\"name\": \"Administrator\", \"permissions\": [\"zarządzanie_rolami\", \"zarządzanie_wymaganiami\"]}], \"functional_requirements\": [{\"id\": \"FR1\", \"description\": \"Użytkownicy mogą przeglądać dostępne terminy.\"}, {\"id\": \"FR2\", \"description\": \"Użytkownicy mogą dokonywać rezerwacji wizyt u specjalistów.\"}, {\"id\": \"FR3\", \"description\": \"Specjaliści mogą zarządzać swoim grafikiem.\"}, {\"id\": \"FR4\", \"description\": \"System powinien zapobiegać konfliktom rezerwacji.\"}, {\"id\": \"FR5\", \"description\": \"System powinien obsługiwać różne role użytkowników.\"}]}\n\nWygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:\n{\n  \"non_functional_requirements\": [\n    {\"id\": \"NFR1\", \"description\": \"Treść wymagania.\"}\n  ],\n  \"user_stories\": [\n    {\"id\": \"US1\", \"description\": \"Jako X chcę Y, aby Z.\"}\n  ]\n}\n\n[KROK3]\nUser stories: [{\"id\": \"US1\", \"description\": \"Jako użytkownik chcę móc przeglądać dostępne terminy, aby móc dokonać rezerwacji wizyty.\"}]\n\nWygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:\n{\n  \"acceptance_criteria\": [\n    {\n      \"id\": \"AC1\",\n      \"given\": \"warunek wstępny\",\n      \"when\": \"akcja użytkownika\",\n      \"then\": \"oczekiwany rezultat\"\n    }\n  ]\n}",
+    "human_changes": null,
+    "score": {
+        "correctness": 1,
+        "completeness": 1,
+        "consistency": 2,
+        "clarity": 2,
+        "maintainability": 1
+    }
+  }
+}

@@ -63,13 +63,16 @@ Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
     log_experiment_to_csv("r2-results.csv", "R2-krok3", model_name, "LLM-only", iteration, user_prompt_3, raw_response_3)
 
     # Złożenie całości
+    prompt_log = f"[SYSTEM]\n{system_prompt}\n\n[KROK1]\n{user_prompt_1}\n\n[KROK2]\n{user_prompt_2}\n\n[KROK3]\n{user_prompt_3}"
+
     raw = {
         "system_goal": system_description[:200],
         **r1, **r2, **r3,
         "metadata": {
             "version": "llm",
-            "case_study": "appointment-booking",
-            "model_used": model_name
+            "case_study": case_study,
+            "model_used": model_name,
+            "prompt_log": prompt_log
         }
     }
 
