@@ -1,0 +1,205 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{SDLC-LLM Benchmark}
+\lhead{Zadanie R3 -- Conflict Detection}
+\rfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+\definecolor{metabg}{gray}{0.93}
+\definecolor{promptbg}{RGB}{235,245,255}
+\definecolor{gptcolor}{RGB}{16,163,127}
+\definecolor{claudecolor}{RGB}{210,105,30}
+\definecolor{llamacolor}{RGB}{100,100,180}
+\definecolor{score3}{RGB}{220,240,220}
+\definecolor{score2}{RGB}{255,243,205}
+\definecolor{score1}{RGB}{255,220,200}
+\definecolor{score0}{RGB}{255,200,200}
+
+\newcommand{\scorebox}[1]{%
+  \ifnum#1=3\colorbox{score3}{\textbf{3}}%
+  \else\ifnum#1=2\colorbox{score2}{\textbf{2}}%
+  \else\ifnum#1=1\colorbox{score1}{\textbf{1}}%
+  \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
+}
+
+\begin{document}
+
+% ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Zadanie R3 -- Conflict Detection}\\[0.5em]
+  {\large Wykrywanie i rozwiązywanie konfliktów logicznych w opisie systemu}\\[1em]
+  {\large Case study: Appointment Booking System}\\[0.3em]
+  {\large Tryb: LLM-only \quad }\\[0.3em]
+  {\large Modele: \texttt{gpt-5.4} \quad \texttt{claude-sonnet-4-6} \quad \texttt{llama-3.1-8b}}
+\end{center}
+
+\vspace{1em}\hrule\vspace{1.5em}
+
+% ─── PROMPT ─────────────────────────────────────────────────────────
+\section{Prompt}
+
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{System prompt:}\\
+\small Jesteś Doświadczonym Analitykiem Wymagań (Senior Business Analyst). Twoją specjalnością jest krytyczna weryfikacja surowych koncepcji biznesowych. Twoim zadaniem jest dogłębna analiza dostarczonego opisu systemu pod kątem wykrywania konfliktów (sytuacji, w których reguła A wyklucza regułę B lub proces nie może zostać ukończony z powodu sprzecznych założeń). Rozwiązując konflikty, operuj wyłącznie w ramach dostarczonego kontekstu. Nie dodawaj nowych, niewymienionych wcześniej modułów ani funkcjonalności.
+\end{mdframed}
+
+\vspace{0.5em}
+\begin{mdframed}[backgroundcolor=promptbg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{User prompt (struktura):}\\
+\small
+Przeanalizuj poniższy surowy opis systemu w tagach \texttt{<opis>}. Zwróć wynik w formacie Markdown z dwiema sekcjami: \textbf{(1) Lista wykrytych konfliktów} -- każdy punkt zaczyna się od \texttt{- }, bez numeracji; \textbf{(2) Poprawiona wersja} -- tekst ciągły bez wypunktowań.
+\end{mdframed}
+
+\vspace{0.5em}
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{Wejście -- opis systemu (celowo sprzeczny):}\\[0.3em]
+\small
+System rezerwacji wizyt umożliwia pacjentom (User) umawianie spotkań ze specjalistami (Specialist), nadzorowanych przez administratora (Admin). Użytkownik może mieć maks.\ 3 aktywne rezerwacje (ale opisany jako ``nielimitowany''). Platforma gwarantuje brak double booking, jednocześnie dopuszczając overbooking dla obleganych lekarzy. Specjalista ma absolutną swobodę usuwania terminów, w tym już zarezerwowanych -- jednocześnie system bezwzględnie zabrania usuwania slotów z przypisanym użytkownikiem. Użytkownik może anulować wizytę w dowolnym momencie, ale aplikacja blokuje anulowanie na mniej niż 24h przed wizytą. Po anulowaniu slot jest bezpowrotnie usunięty i jednocześnie wraca do puli. Cykl życia zawiera statusy AVAILABLE, BOOKED, COMPLETED -- ale nie CANCELLED, który wcześniej opisano jako wynik anulowania.
+\end{mdframed}
+
+% ─── WYNIKI PER MODEL ───────────────────────────────────────────────
+\section{Wyniki}
+
+% ════════════════════════════════════════════
+\subsection{\textcolor{gptcolor}{GPT-5.4} \quad {\normalfont\small czas odpowiedzi: 30.7s}}
+
+\subsubsection{Lista wykrytych konfliktów}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+  \item Jednoczesna gwarancja braku double booking i dopuszczenie overbookingu dla tego samego terminu.
+  \item Absolutna swoboda specjalisty usuwania terminów vs.\ bezwzględny zakaz usuwania slotów z przypisanym użytkownikiem.
+  \item Możliwość anulowania ``w dowolnym momencie'' vs.\ blokada anulowania na mniej niż 24h przed wizytą.
+  \item Slot po anulowaniu ``bezpowrotnie usunięty'' i jednocześnie ``wraca do puli'' -- wzajemnie wykluczające się skutki.
+  \item Status CANCELLED opisany jako wynik anulowania, ale nieujęty w cyklu życia (AVAILABLE, BOOKED, COMPLETED).
+  \item Możliwość usuwania przez specjalistę zarezerwowanych wizyt stoi w sprzeczności z deklaracją spójności danych.
+\end{itemize}
+
+\subsubsection{Poprawiona wersja (fragment)}
+\small
+Każdy użytkownik może rezerwować kolejne terminy, jednak nie może posiadać więcej niż 3 aktywnych rezerwacji. Platforma działa w oparciu o sztywne 30-minutowe sloty i nie dopuszcza podwójnych rezerwacji. Specjalista może usuwać wyłącznie wolne terminy -- slotów z istniejącą rezerwacją usunąć nie można. Użytkownik może anulować rezerwację wyłącznie do momentu, gdy do spotkania pozostało co najmniej 24h; po skutecznym anulowaniu status zmienia się na CANCELLED, a slot wraca do puli. Cykl życia: AVAILABLE, BOOKED, COMPLETED, CANCELLED.
+\normalsize
+
+\vspace{0.5em}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Metryka} & \textbf{Ocena} & & \textbf{Uzasadnienie} \\
+\midrule
+M1 Correctness    & \scorebox{3} && Wszystkie 6 konfliktów wykryte poprawnie, poprawiona wersja spójna. \\
+M2 Completeness   & \scorebox{3} && Żaden z kluczowych konfliktów nie został pominięty. \\
+M3 Consistency    & \scorebox{3} && Poprawiona wersja eliminuje wszystkie wykryte sprzeczności. \\
+M4 Clarity        & \scorebox{3} && Konflikty opisane zwięźle, poprawiona wersja czytelna. \\
+M5 Maintainability & \scorebox{3} && Wynik gotowy do użycia jako wejście dla kolejnego etapu. \\
+\bottomrule
+\end{tabular}
+
+\vspace{1.5em}
+
+% ════════════════════════════════════════════
+\subsection{\textcolor{claudecolor}{Claude Sonnet 4.6} \quad {\normalfont\small czas odpowiedzi: 16.54s}}
+
+\subsubsection{Lista wykrytych konfliktów}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+  \item Gwarancja braku double booking jednocześnie z dopuszczeniem overbookingu -- bezpośrednia sprzeczność logiczna.
+  \item Absolutna swoboda specjalisty vs.\ bezwzględny zakaz usuwania slotów z przypisanym użytkownikiem.
+  \item Slot po anulowaniu ``bezpowrotnie usunięty'' i jednocześnie ``wraca do puli''.
+  \item Status CANCELLED wynika z anulowania, ale nie figuruje wśród statusów cyklu życia (AVAILABLE, BOOKED, COMPLETED).
+  \item ``Nielimitowana liczba terminów'' sprzeczna z twardym limitem 3 aktywnych rezerwacji.
+\end{itemize}
+
+\subsubsection{Poprawiona wersja (fragment)}
+\small
+Każdy użytkownik może rezerwować kolejne terminy bez odgórnego limitu łącznej liczby wizyt, pod warunkiem że w danym momencie nie posiada więcej niż 3 aktywnych rezerwacji o statusie BOOKED. System nie dopuszcza overbookingu -- jeden 30-minutowy slot może zajmować wyłącznie jeden pacjent. Specjalista może usunąć lub zmodyfikować wyłącznie sloty bez przypisanego pacjenta. Anulowanie jest możliwe tylko gdy do wizyty pozostało co najmniej 24h; po anulowaniu slot wraca do puli ze statusem AVAILABLE. Cykl życia: AVAILABLE, BOOKED, CANCELLED, COMPLETED.
+\normalsize
+
+\vspace{0.5em}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Metryka} & \textbf{Ocena} & & \textbf{Uzasadnienie} \\
+\midrule
+M1 Correctness    & \scorebox{3} && Wykryte konflikty merytorycznie poprawne, w tym subtelny konflikt ``nielimitowana vs.\ limit 3''. \\
+M2 Completeness   & \scorebox{2} && Pominięty konflikt dot.\ usuwania zarezerwowanych wizyt przez specjalistę (6. punkt GPT). \\
+M3 Consistency    & \scorebox{3} && Poprawiona wersja w pełni spójna, dobrze wyjaśnia statusy cyklu życia. \\
+M4 Clarity        & \scorebox{3} && Najczytelniejsza z trzech odpowiedzi, cykl życia opisany z definicjami. \\
+M5 Maintainability & \scorebox{3} && Wynik gotowy do użycia, poprawiona wersja szczegółowa i precyzyjna. \\
+\bottomrule
+\end{tabular}
+
+\vspace{1.5em}
+
+% ════════════════════════════════════════════
+\subsection{\textcolor{llamacolor}{Llama 3.1 8B} \quad {\normalfont\small czas odpowiedzi: 1.88s}}
+
+\subsubsection{Lista wykrytych konfliktów}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+  \item Co dzieje się ze slotem gdy użytkownik anuluje rezerwację -- brak wyjaśnienia. \textit{(niejednoznaczność, nie konflikt)}
+  \item Co dzieje się ze slotem gdy użytkownik nie przychodzi i nie anuluje. \textit{(niejednoznaczność, nie konflikt)}
+  \item Czy anulowanie w ciągu 24h powinno być możliwe. \textit{(pytanie, nie wykryty konflikt)}
+  \item Co dzieje się gdy użytkownik próbuje przekroczyć limit 3 rezerwacji. \textit{(niejednoznaczność, nie konflikt)}
+  \item Co dzieje się gdy specjalista usuwa kilka rezerwacji naraz. \textit{(edge case, nie konflikt)}
+\end{itemize}
+
+\textit{Uwaga: model nie wykrył żadnego rzeczywistego konfliktu logicznego. Zamiast tego sformułował pytania o niejednoznaczności i edge cases. Kluczowe sprzeczności (double booking vs.\ overbooking, slot usunięty vs.\ wraca do puli, CANCELLED poza cyklem życia) zostały całkowicie pominięte.}
+
+\subsubsection{Poprawiona wersja (fragment)}
+\small
+Model w sekcji 2 przepisał opis niemal identycznie z wejściem, zachowując wszystkie oryginalne konflikty (w tym overbooking, absolutną swobodę specjalisty, slot bezpowrotnie usunięty). Dodał jedynie zdanie o możliwości usunięcia slotu przez specjalistę po anulowaniu przez użytkownika lub niestawieniu się pacjenta -- co stanowi nową funkcjonalność, której dodawania prompt zabraniał.
+\normalsize
+
+\vspace{0.5em}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Metryka} & \textbf{Ocena} & & \textbf{Uzasadnienie} \\
+\midrule
+M1 Correctness    & \scorebox{0} && Model nie wykrył żadnego rzeczywistego konfliktu -- wszystkie punkty to pytania o niejednoznaczności. \\
+M2 Completeness   & \scorebox{0} && Żaden z 5--6 kluczowych konfliktów nie został zidentyfikowany. \\
+M3 Consistency    & \scorebox{1} && Poprawiona wersja zachowuje oryginalne konflikty, dodaje nową funkcjonalność wbrew instrukcji. \\
+M4 Clarity        & \scorebox{1} && Struktura formalna zachowana, ale treść nie realizuje celu zadania. \\
+M5 Maintainability & \scorebox{0} && Wynik bezużyteczny jako wejście dla kolejnego etapu -- konflikty pozostają nierozwiązane. \\
+\bottomrule
+\end{tabular}
+
+% ─── TABELA PORÓWNAWCZA ─────────────────────────────────────────────
+\section{Porównanie modeli}
+
+\begin{tabular}{lccccc|c}
+\toprule
+\textbf{Model} & \textbf{M1} & \textbf{M2} & \textbf{M3} & \textbf{M4} & \textbf{M5} & \textbf{Suma} \\
+\midrule
+GPT-5.4            & \scorebox{3} & \scorebox{3} & \scorebox{3} & \scorebox{3} & \scorebox{3} & \textbf{15} \\
+Claude Sonnet 4.6  & \scorebox{3} & \scorebox{2} & \scorebox{3} & \scorebox{3} & \scorebox{3} & \textbf{14} \\
+Llama 3.1 8B       & \scorebox{0} & \scorebox{0} & \scorebox{1} & \scorebox{1} & \scorebox{0} & \textbf{2}  \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.5em}
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=6pt, innerbottommargin=6pt]
+\small
+\textbf{Czas odpowiedzi:} GPT-5.4: 30.7s \quad Claude: 16.54s \quad Llama: 1.88s\\
+Llama odpowiedziała najszybciej, ale wynik jest bezużyteczny. GPT i Claude osiągnęły porównywalną jakość, przy czym GPT wykrył o jeden konflikt więcej, a Claude lepiej opisał cykl życia statusów.
+\end{mdframed}
+
+\end{document}
