@@ -1,0 +1,193 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{SDLC-LLM Benchmark}
+\lhead{Zadanie R3 -- Conflict Detection}
+\rfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+\definecolor{metabg}{gray}{0.93}
+\definecolor{promptbg}{RGB}{235,245,255}
+\definecolor{gptcolor}{RGB}{16,163,127}
+\definecolor{claudecolor}{RGB}{210,105,30}
+\definecolor{llamacolor}{RGB}{100,100,180}
+\definecolor{score3}{RGB}{220,240,220}
+\definecolor{score2}{RGB}{255,243,205}
+\definecolor{score1}{RGB}{255,220,200}
+\definecolor{score0}{RGB}{255,200,200}
+
+\newcommand{\scorebox}[1]{%
+  \ifnum#1=3\colorbox{score3}{\textbf{3}}%
+  \else\ifnum#1=2\colorbox{score2}{\textbf{2}}%
+  \else\ifnum#1=1\colorbox{score1}{\textbf{1}}%
+  \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
+}
+
+\begin{document}
+
+% ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Requirements Artifact}\\[1.5em]
+  {\large \textbf{Case study:} Appointment Booking System}\\[0.3em]
+  {\large \textbf{Model:} gemini-3-flash-preview \quad }\\[0.3em]
+  {\large \textbf{Tryb:} LLM-only \quad }\\[0.3em]
+
+\end{center}
+
+\vspace{1em}\hrule\vspace{1.5em}
+
+% ─── PROMPT ─────────────────────────────────────────────────────────
+\section{Prompt}
+
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{System prompt (simplified):}\\
+\small Jesteś doświadczonym analitykiem wymagań. Odpowiadaj WYŁĄCZNIE czystym, w pełni poprawnym kodem JSON. Nie dodawaj żadnych znaczników Markdown.
+
+[KROK 1] 
+Na podstawie opisu systemu wygeneruj role i wymagania funkcjonalne.
+
+[KROK 2] 
+Na podstawie opisu i wygenerowanych FR wygeneruj NFR i user stories.
+
+[KROK 3] 
+Na podstawie user stories wygeneruj acceptance criteria w formacie Given/When/Then.
+
+\end{mdframed}
+
+
+\section{Cel systemu}
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.
+
+\section{Role}
+\begin{imtemize}
+    \item \textbf{Użytkownik} - przeglądanie\_terminów, rezerwacja\_wizyty, anulowanie\_własnej\_rezerwacji
+    \item \textbf{Specjalista} - zarządzanie\_grafikiem, podgląd\_rezerwacji, anulowanie\_wizyty\_pacjenta
+    \item \textbf{Administrator} - zarządzanie\_użytkownikami, konfiguracja\_systemu, raportowanie
+\end{imtemize}
+
+
+\section{Wymagania funkcjonalne}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[FR1] System musi umożliwiać użytkownikom wyszukiwanie i przeglądanie dostępnych terminów u wybranych specjalistów.
+    \item[FR2] System musi umożliwiać użytkownikom dokonanie rezerwacji wybranego wolnego terminu.
+    \item[FR3] System musi umożliwiać użytkownikom anulowanie istniejącej rezerwacji zgodnie z polityką anulowań.
+    \item[FR4] System musi umożliwiać specjalistom definiowanie, edytowanie i usuwanie dostępnych slotów czasowych w ich grafiku.
+    \item[FR5] System musi automatycznie blokować termin w momencie potwierdzenia rezerwacji, uniemożliwiając podwójne zapisy na tę samą godzinę.
+    \item[FR6] System musi wymuszać autoryzację i weryfikację uprawnień dla każdej operacji zgodnie z przypisaną rolą użytkownika.
+\end{description}
+
+\section{Wymagania niefunkcjonalne}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[NFR1] System musi zapewniać czas odpowiedzi na zapytanie o dostępność terminów nie przekraczający 2 sekund przy 1000 równoczesnych użytkownikach.
+    \item[NFR2] Wszystkie dane osobowe oraz dane o wizytach muszą być szyfrowane zgodnie ze standardem AES-256 oraz spełniać wymogi RODO.
+    \item[NFR3] System musi charakteryzować się dostępnością na poziomie 99,9\% w skali miesiąca.
+    \item[NFR4] Interfejs użytkownika musi być w pełni responsywny (RWD), zapewniając poprawną obsługę na urządzeniach mobilnych i desktopowych.
+    \item[NFR5] System musi automatycznie wylogować użytkownika po 15 minutach nieaktywności w celu zapewnienia bezpieczeństwa sesji.
+\end{description}
+
+\section{User stories}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[US1] Jako Użytkownik chcę wyszukać specjalistę po nazwisku lub specjalizacji, aby szybko znaleźć odpowiednią osobę na wizytę.
+    \item[US2] Jako Użytkownik chcę otrzymać potwierdzenie rezerwacji na e-mail, aby mieć pewność, że proces zakończył się sukcesem.
+    \item[US3] Jako Specjalista chcę blokować wybrane dni w grafiku (np. urlop), aby pacjenci nie mogli zapisywać się w czasie mojej nieobecności.
+    \item[US4] Jako Specjalista chcę widzieć powód wizyty podany przez pacjenta, aby móc lepiej przygotować się do konsultacji.
+    \item[US5] Jako Administrator chcę generować raporty miesięczne dotyczące liczby zrealizowanych wizyt, aby analizować obłożenie systemu.
+\end{description}
+
+\section{Acceptance criteria}
+
+\begin{description}[leftmargin=1.5cm, labelwidth=1cm, labelsep=0.5cm]
+\textbf{AC1 -- wyszukiwanie specjalistów}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik znajduje się na stronie wyszukiwania specjalistów
+    \item \textbf{When} użytkownik wprowadzi nazwisko lub specjalizację w pole wyszukiwania i zatwierdzi wybór
+    \item \textbf{Then} system wyświetla listę specjalistów pasujących do wpisanych kryteriów
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{AC2 -- potwierdzenie rezerwacji}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik pomyślnie przeszedł proces rezerwacji wizyty
+    \item \textbf{When} rezerwacja zostanie zatwierdzona w bazie danych
+    \item \textbf{Then} system wysyła wiadomość e-mail z potwierdzeniem terminu na adres użytkownika
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{AC3 -- blokowanie dni w grafiku}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} specjalista jest zalogowany i widzi swój kalendarz pracy
+    \item \textbf{When} specjalista zaznaczy wybrany zakres dni jako niedostępny i zapisze zmiany
+    \item \textbf{Then} system blokuje możliwość zapisu pacjentów na wizyty w wyznaczonym terminie
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{AC4 -- podgląd szczegółów wizyty}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} specjalista przegląda szczegóły nadchodzącej wizyty w swoim panelu
+    \item \textbf{When} specjalista otworzy kartę konkretnej wizyty
+    \item \textbf{Then} system wyświetla pole z opisem powodu wizyty wprowadzonym przez pacjenta
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{AC5 -- raportowanie obłożenia}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} administrator jest zalogowany w module analitycznym
+    \item \textbf{When} administrator wybierze miesiąc i wygeneruje raport obłożenia
+    \item \textbf{Then} system tworzy zestawienie zawierające sumaryczną liczbę zrealizowanych wizyt w wybranym okresie
+\end{itemize}
+\end{description}
+
+
+\section{Metadane i ocena}
+
+\begin{table}[h]
+\begin{tabular}{ll}
+\toprule
+\textbf{Pole} & \textbf{Wartość} \\
+\midrule
+Model & \texttt{gemini-3-flash-preview} \\
+Tryb & LLM-only \\
+Case study & appointment-booking \\
+Czas łącznie & 150.4s \\
+\midrule
+\textit{Ocena (0--3)} & \\
+\midrule
+Correctness (M1) & 2 \\
+Completeness (M2) & 1 \\
+Consistency (M3) & 2 \\
+Clarity (M4) & 3 \\
+Maintainability (M5) & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\end{document}

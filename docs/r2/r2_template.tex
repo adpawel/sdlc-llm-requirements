@@ -1,0 +1,152 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{SDLC-LLM Benchmark}
+\lhead{Zadanie R3 -- Conflict Detection}
+\rfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+\definecolor{metabg}{gray}{0.93}
+\definecolor{promptbg}{RGB}{235,245,255}
+\definecolor{gptcolor}{RGB}{16,163,127}
+\definecolor{claudecolor}{RGB}{210,105,30}
+\definecolor{llamacolor}{RGB}{100,100,180}
+\definecolor{score3}{RGB}{220,240,220}
+\definecolor{score2}{RGB}{255,243,205}
+\definecolor{score1}{RGB}{255,220,200}
+\definecolor{score0}{RGB}{255,200,200}
+
+\newcommand{\scorebox}[1]{%
+  \ifnum#1=3\colorbox{score3}{\textbf{3}}%
+  \else\ifnum#1=2\colorbox{score2}{\textbf{2}}%
+  \else\ifnum#1=1\colorbox{score1}{\textbf{1}}%
+  \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
+}
+
+\begin{document}
+
+% ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Requirements Artifact}\\[1.5em]
+  {\large \textbf{Case study:} Appointment Booking System}\\[0.3em]
+  {\large \textbf{Model:}  \quad }\\[0.3em]
+  {\large \textbf{Tryb:} LLM-only \quad }\\[0.3em]
+
+\end{center}
+
+\vspace{1em}\hrule\vspace{1.5em}
+
+% ─── PROMPT ─────────────────────────────────────────────────────────
+\section{Prompt}
+
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{System prompt (simplified):}\\
+\small Jesteś doświadczonym analitykiem wymagań. Odpowiadaj WYŁĄCZNIE czystym, w pełni poprawnym kodem JSON. Nie dodawaj żadnych znaczników Markdown.
+
+[KROK 1] 
+Na podstawie opisu systemu wygeneruj role i wymagania funkcjonalne.
+
+[KROK 2] 
+Na podstawie opisu i wygenerowanych FR wygeneruj NFR i user stories.
+
+[KROK 3] 
+Na podstawie user stories wygeneruj acceptance criteria w formacie Given/When/Then.
+
+\end{mdframed}
+
+
+\section{Cel systemu}
+
+\section{Role}
+\begin{imtemize}
+    \item \textbf{Użytkownik} - 
+    \item \textbf{Specjalista} - 
+    \item \textbf{Administrator} - 
+\end{imtemize}
+
+
+\section{Wymagania funkcjonalne}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[FR1]
+\end{description}
+
+\section{Wymagania niefunkcjonalne}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[NFR1]
+\end{description}
+
+\section{User stories}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[US1] 
+\end{description}
+
+\section{Acceptance criteria}
+
+\begin{description}[leftmargin=1.5cm, labelwidth=1cm, labelsep=0.5cm]
+\textbf{AC1 -- }
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given}
+    \item \textbf{When}
+    \item \textbf{Then}
+\end{itemize}
+
+\vspace{0.5cm}
+
+\end{description}
+
+\section{Pytania uznane za rozstrzygnięte}
+W tej wersji artefaktu model przyjął następujące założenia:
+\begin{itemize}
+    \item 
+\end{itemize}
+
+\newpage   
+\section{Metadane i ocena}
+
+\begin{table}[h]
+\begin{tabular}{ll}
+\toprule
+\textbf{Pole} & \textbf{Wartość} \\
+\midrule
+Model & \texttt{} \\
+Tryb & LLM-only \\
+Case study & appointment-booking \\
+Czas łącznie &  \\
+\midrule
+\textit{Ocena (0--3)} & \\
+\midrule
+Correctness (M1) & \\
+Completeness (M2) & \\
+Consistency (M3) & \\
+Clarity (M4) & \\
+Maintainability (M5) & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\end{document}

@@ -2,7 +2,7 @@
   "system_goal": "System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzaj",
   "roles": [
     {
-      "name": "Użytkownik",
+      "name": " ",
       "permissions": [
         "przeglądanie_terminów",
         "rezerwacja_wizyty",

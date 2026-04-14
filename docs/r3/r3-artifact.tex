@@ -15,6 +15,7 @@
 \usepackage{multirow}
 \usepackage{array}
 \usepackage{longtable}
+\usepackage{xfp}
 
 \geometry{margin=2.5cm}
 
@@ -35,6 +36,7 @@
 \definecolor{gptcolor}{RGB}{16,163,127}
 \definecolor{claudecolor}{RGB}{210,105,30}
 \definecolor{llamacolor}{RGB}{100,100,180}
+\definecolor{geminicolor}{RGB}{0,200,180}
 \definecolor{score3}{RGB}{220,240,220}
 \definecolor{score2}{RGB}{255,243,205}
 \definecolor{score1}{RGB}{255,220,200}
@@ -47,6 +49,22 @@
   \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
 }
 
+\newcommand{\fonescorebox}[1]{%
+    \ifnum\fpeval{#1 >= 0.8} = 1
+        \colorbox{score3}{\textbf{#1}}% <--- TUTAJ JEST ZMIANA
+    \else
+        \ifnum\fpeval{#1 >= 0.6} = 1
+            \colorbox{score2}{\textbf{#1}}% <--- I TUTAJ
+        \else
+            \ifnum\fpeval{#1 >= 0.4} = 1
+                \colorbox{score1}{\textbf{#1}}% <--- I TUTAJ
+            \else
+                \colorbox{score0}{\textbf{#1}}% <--- I TUTAJ
+            \fi
+        \fi
+    \fi
+}
+
 \begin{document}
 
 % ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
@@ -55,7 +73,7 @@
   {\large Wykrywanie i rozwiązywanie konfliktów logicznych w opisie systemu}\\[1em]
   {\large Case study: Appointment Booking System}\\[0.3em]
   {\large Tryb: LLM-only \quad }\\[0.3em]
-  {\large Modele: \texttt{gpt-5.4} \quad \texttt{claude-sonnet-4-6} \quad \texttt{llama-3.1-8b}}
+  {\large Modele: \texttt{gpt-5.4} \quad \texttt{claude-sonnet-4-6} \quad \texttt{llama-3.1-8b}} \quad \texttt{gemini-3-flash-preview}}
 \end{center}
 
 \vspace{1em}\hrule\vspace{1.5em}
@@ -182,6 +200,41 @@ M5 Maintainability & \scorebox{0} && Wynik bezużyteczny jako wejście dla kolej
 \bottomrule
 \end{tabular}
 
+
+% ════════════════════════════════════════════
+\subsection{\textcolor{geminicolor}{Gemini 3 flash preview} \quad {\normalfont\small czas odpowiedzi: 17.27s}}
+
+\subsubsection{Lista wykrytych konfliktów}
+\begin{itemize}
+    \item[-] Trafnie zidentyfikowana sprzeczność, która prowadziła do overbookingu dla niektórych lekarzy.
+    
+    \item[-] Model zwrócił uwagę, że przyznanie specjalistom absolutnej swobody w usuwaniu dowolnych terminów koliduje z bezwzględnym zakazem usuwania okienek czasowych, do których przypisano już użytkownika.
+    
+    \item[-] Model wykrył powszechny konflikt wymagań, w którym obietnica pełnej elastyczności dla użytkownika jest negowana przez twardy warunek brzegowy (24 godziny).
+    
+    \item[-] Informacja o bezpowrotnym usunięciu slotu z kalendarza po anulowaniu wyklucza się z założeniem, że wraca on do ogólnodostępnej puli dla innych pacjentów
+    
+    \item[-] Odpowiedź modelu zawiera wychwycony błąd w definicji maszyny stanów; status przypisywany w jednym procesie (CANCELLED) nie istnieje w ogólnej definicji cyklu życia wizyty.
+\end{itemize}
+
+
+\subsubsection{Poprawiona wersja (fragment)}
+\small
+Model sprawnie wyeliminował błędy logiczne, stawiając na rygorystyczną spójność systemu. Utrzymał limit trzech aktywnych rezerwacji i odrzucił overbooking na rzecz sztywnych, 30-minutowych slotów. Zablokował specjalistom możliwość usuwania zajętych terminów oraz wprowadził 24-godzinne ograniczenie czasowe na rezygnację. Proces anulowania został ujednolicony: rezerwacja zmienia status na CANCELLED , a slot czasowy powraca do puli jako AVAILABLE.
+\normalsize
+
+\vspace{0.5em}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Metryka} & \textbf{Ocena} & & \textbf{Uzasadnienie} \\
+\midrule
+M1 Correctness    & \scorebox{3} && Model wykrył wszystkie sprzeczności zawarte w krótkim opisie systemu. \\
+R1 F1-score   & \fonescorebox{1} && Wartość zarówno współczynnika precision jak i recall jest równe 1. \\
+M3 Consistency    & \scorebox{3} && Poprawiona wersja w pełni spójna, dobrze wyjaśnia statusy cyklu życia. \\
+\bottomrule
+\end{tabular}
+
+
 % ─── TABELA PORÓWNAWCZA ─────────────────────────────────────────────
 \section{Porównanie modeli}
 
@@ -192,14 +245,15 @@ M5 Maintainability & \scorebox{0} && Wynik bezużyteczny jako wejście dla kolej
 GPT-5.4            & \scorebox{3} & \scorebox{3} & \scorebox{3} & \scorebox{3} & \scorebox{3} & \textbf{15} \\
 Claude Sonnet 4.6  & \scorebox{3} & \scorebox{2} & \scorebox{3} & \scorebox{3} & \scorebox{3} & \textbf{14} \\
 Llama 3.1 8B       & \scorebox{0} & \scorebox{0} & \scorebox{1} & \scorebox{1} & \scorebox{0} & \textbf{2}  \\
+Gemini 3 Flash Preview & \scorebox{3} & \fonescorebox{1} & \scorebox{3} & \scorebox{0} & \scorebox{0} & \textbf{7} \\
 \bottomrule
 \end{tabular}
 
 \vspace{0.5em}
 \begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=6pt, innerbottommargin=6pt]
 \small
-\textbf{Czas odpowiedzi:} GPT-5.4: 30.7s \quad Claude: 16.54s \quad Llama: 1.88s\\
-Llama odpowiedziała najszybciej, ale wynik jest bezużyteczny. GPT i Claude osiągnęły porównywalną jakość, przy czym GPT wykrył o jeden konflikt więcej, a Claude lepiej opisał cykl życia statusów.
+\textbf{Czas odpowiedzi:} GPT-5.4: 30.7s \quad Claude: 16.54s \quad Llama: 1.88s \quad Gemini: 17.27s\\
+Llama odpowiedziała najszybciej, ale wynik jest bezużyteczny. Zarówno Gemini jak i GPT osiągnęły porównywalną jakość oraz wykryli maksymalną liczbę konfliktów, a Claude nie zidentyfikował jednej sprzeczności, jednakże lepiej opisał cykl życia statusów.
 \end{mdframed}
 
 \end{document}

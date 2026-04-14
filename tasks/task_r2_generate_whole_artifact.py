@@ -80,7 +80,7 @@ Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
     artifact = None
     try:
         artifact = RequirementsArtifact.model_validate(raw)
-        save_artifact(artifact.model_dump(), f"artifact_r2_{model_name}.json")
+        save_artifact(artifact.model_dump(), f"artifact_r2_{model_name.split("-")[0]}_{case_study}.json")
         print("-> Walidacja OK")
     except ValidationError as e:
         print(f"[ERROR] Walidacja Pydantic:\n{e}")

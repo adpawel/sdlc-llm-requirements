@@ -1,0 +1,264 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{SDLC-LLM Benchmark}
+\lhead{Zadanie R3 -- Conflict Detection}
+\rfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+\definecolor{metabg}{gray}{0.93}
+\definecolor{promptbg}{RGB}{235,245,255}
+\definecolor{gptcolor}{RGB}{16,163,127}
+\definecolor{claudecolor}{RGB}{210,105,30}
+\definecolor{llamacolor}{RGB}{100,100,180}
+\definecolor{score3}{RGB}{220,240,220}
+\definecolor{score2}{RGB}{255,243,205}
+\definecolor{score1}{RGB}{255,220,200}
+\definecolor{score0}{RGB}{255,200,200}
+
+\newcommand{\scorebox}[1]{%
+  \ifnum#1=3\colorbox{score3}{\textbf{3}}%
+  \else\ifnum#1=2\colorbox{score2}{\textbf{2}}%
+  \else\ifnum#1=1\colorbox{score1}{\textbf{1}}%
+  \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
+}
+
+\begin{document}
+
+% ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Requirements Artifact}\\[1.5em]
+  {\large \textbf{Case study:} Appointment Booking System}\\[0.3em]
+  {\large \textbf{Model:} gpt-5.4 \quad }\\[0.3em]
+  {\large \textbf{Tryb:} LLM-only \quad }\\[0.3em]
+
+\end{center}
+
+\vspace{1em}\hrule\vspace{1.5em}
+
+% ─── PROMPT ─────────────────────────────────────────────────────────
+\section{Prompt}
+
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{System prompt (simplified):}\\
+\small Jesteś doświadczonym analitykiem wymagań. Odpowiadaj WYŁĄCZNIE czystym, w pełni poprawnym kodem JSON. Nie dodawaj żadnych znaczników Markdown.
+
+[KROK 1] 
+Na podstawie opisu systemu wygeneruj role i wymagania funkcjonalne.
+
+[KROK 2] 
+Na podstawie opisu i wygenerowanych FR wygeneruj NFR i user stories.
+
+[KROK 3] 
+Na podstawie user stories wygeneruj acceptance criteria w formacie Given/When/Then.
+
+\end{mdframed}
+
+
+\section{Cel systemu}
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji i obsługiwać różne role użytkowników.
+
+
+\section{Role}
+\begin{imtemize}
+    \item \textbf{Użytkownik} - przeglądanie dostępnych terminów, dokonywanie rezerwacji wizyt, anulowanie własnych rezerwacji.
+    \item \textbf{Specjalista} - zarządzanie własnym grafikiem, przeglądanie swoich rezerwacji, udostępnianie dostępnych terminów.
+    \item \textbf{Administrator} - zarządzanie rolami użytkowników, nadzór nad rezerwacjami, zarządzanie kontami użytkowników i specjalistów.
+\end{imtemize}
+
+
+\section{Wymagania funkcjonalne}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[FR1] System musi umożliwiać użytkownikom przeglądanie dostępnych terminów wizyt u specjalistów.
+    \item[FR2] System musi umożliwiać użytkownikom dokonywanie rezerwacji wizyt na dostępne terminy.
+    \item[FR3] System musi umożliwiać użytkownikom anulowanie własnych rezerwacji.
+    \item[FR4] System musi umożliwiać specjalistom zarządzanie własnym grafikiem, w tym dodawanie, edytowanie i usuwanie dostępnych terminów.
+    \item[FR5] System musi zapobiegać konfliktom rezerwacji poprzez blokowanie możliwości zarezerwowania tego samego terminu przez więcej niż jednego użytkownika.
+    \item[FR6] System musi obsługiwać różne role użytkowników oraz przypisane do nich uprawnienia dostępu.
+    \item[FR7] System musi umożliwiać specjalistom przeglądanie zarezerwowanych wizyt przypisanych do ich grafiku.
+\end{description}
+
+\section{Wymagania niefunkcjonalne}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[NFR1] System powinien zapewniać spójność danych rezerwacji w czasie rzeczywistym, tak aby równoczesne próby rezerwacji tego samego terminu nie prowadziły do niespójności.
+    \item[NFR2] System powinien być dostępny dla użytkowników przez co najmniej 99,5\% czasu w skali miesiąca, z wyłączeniem planowanych prac serwisowych.
+    \item[NFR3] System powinien odpowiadać na żądania przeglądania dostępnych terminów w czasie nie dłuższym niż 2 sekundy dla 95\% zapytań[cite: 45, 46].
+    \item[NFR4] System powinien zapewniać bezpieczeństwo danych użytkowników i rezerwacji poprzez uwierzytelnianie, autoryzację oraz szyfrowanie transmisji danych[cite: 47, 48].
+    \item[NFR5] System powinien rejestrować operacje związane z rezerwacją, anulowaniem wizyt oraz zmianami w grafiku specjalistów w celu zapewnienia audytowalności.
+    \item[NFR6] Interfejs systemu powinien być czytelny i intuicyjny dla użytkowników o różnych rolach, umożliwiając wykonanie podstawowych operacji bez potrzeby szkolenia.
+    \item[NFR7] System powinien być skalowalny i umożliwiać obsługę rosnącej liczby użytkowników, specjalistów oraz rezerwacji bez istotnego pogorszenia wydajności.
+\end{description}
+
+\section{User stories}
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm]
+    \item[US1] Jako użytkownik chcę przeglądać dostępne terminy wizyt, aby wybrać dogodny czas spotkania.
+    \item[US2] Jako użytkownik chcę zarezerwować dostępny termin wizyty, aby umówić się do wybranego specjalisty.
+    \item[US3] Jako użytkownik chcę anulować własną rezerwację, aby móc zrezygnować z wizyty, gdy nie mogę się na nią stawić.
+    \item[US4] Jako specjalista chcę zarządzać swoim grafikiem, aby udostępniać i aktualizować terminy wizyt.
+    \item[US5] Jako specjalista chcę przeglądać swoje zarezerwowane wizyty, aby planować swoją pracę.
+    \item[US6] Jako administrator chcę zarządzać rolami i uprawnieniami użytkowników, aby kontrolować dostęp do funkcji systemu.
+    \item[US7] Jako administrator chcę nadzorować rezerwacje i konta użytkowników, aby zapewnić poprawne działanie systemu.
+\end{description}
+
+\section{Acceptance criteria}
+
+\begin{description}[leftmargin=1.5cm, labelwidth=1cm, labelsep=0.5cm]
+\textbf{AC1 -- przeglądanie dostępnych terminów}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik jest na ekranie przeglądania terminów wizyt i w systemie istnieją dostępne terminy
+    \item \textbf{When} użytkownik wybiera specjalistę lub zakres dat do przeglądania
+    \item \textbf{Then} system wyświetla listę dostępnych terminów wizyt zgodnych z wybranymi kryteriami
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC2 -- brak dostępnych terminów}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik przegląda terminy wizyt i brak dostępnych terminów dla wybranych kryteriów
+    \item \textbf{When} użytkownik uruchamia wyszukiwanie terminów
+    \item \textbf{Then} system informuje, że nie znaleziono dostępnych terminów
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC3 -- udana rezerwacja terminu}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik jest zalogowany i wybrany termin wizyty jest dostępny
+    \item \textbf{When} użytkownik potwierdza rezerwację wybranego terminu
+    \item \textbf{Then} system zapisuje rezerwację i oznacza termin jako zarezerwowany
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC4 -- próba rezerwacji zajętego terminu}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik próbuje zarezerwować termin, który został już zajęty przez inną osobę
+    \item \textbf{When} użytkownik zatwierdza rezerwację
+    \item \textbf{Then} system odrzuca rezerwację i informuje, że termin nie jest już dostępny
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC5 -- anulowanie własnej rezerwacji}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik jest zalogowany i posiada aktywną rezerwację wizyty
+    \item \textbf{When} użytkownik wybiera opcję anulowania własnej rezerwacji i potwierdza operację
+    \item \textbf{Then} system anuluje rezerwację i ponownie oznacza termin jako dostępny
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC6 -- próba anulowania rezerwacji innej osoby}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik jest zalogowany, ale próbuje anulować rezerwację należącą do innego użytkownika
+    \item \textbf{When} użytkownik wybiera opcję anulowania tej rezerwacji
+    \item \textbf{Then} system blokuje operację i informuje o braku uprawnień
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC7 -- dodawanie nowego terminu przez specjalistę}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} specjalista jest zalogowany i znajduje się w widoku zarządzania grafikiem
+    \item \textbf{When} specjalista dodaje nowy dostępny termin wizyty
+    \item \textbf{Then} system zapisuje termin w grafiku specjalisty i udostępnia go użytkownikom do rezerwacji
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC8 -- edycja lub usuwanie niezarezerwowanego terminu}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} specjalista jest zalogowany i posiada istniejący termin w swoim grafiku, który nie został zarezerwowany
+    \item \textbf{When} specjalista edytuje lub usuwa ten termin
+    \item \textbf{Then} system aktualizuje grafik zgodnie z wprowadzoną zmianą
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC9 -- przeglądanie zarezerwowanych wizyt przez specjalistę}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} specjalista jest zalogowany i posiada zarezerwowane wizyty w systemie
+    \item \textbf{When} specjalista otwiera listę swoich wizyt
+    \item \textbf{Then} system wyświetla wszystkie zarezerwowane wizyty przypisane do tego specjalisty
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC10 -- zmiana roli lub uprawnień przez administratora}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} administrator jest zalogowany i ma dostęp do zarządzania użytkownikami
+    \item \textbf{When} administrator zmienia rolę lub uprawnienia wybranego użytkownika
+    \item \textbf{Then} system zapisuje zmiany i stosuje nowe uprawnienia do konta użytkownika
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC11 -- brak dostępu do panelu administratora}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} użytkownik bez uprawnień administratora próbuje uzyskać dostęp do funkcji zarządzania rolami i uprawnieniami
+    \item \textbf{When} użytkownik otwiera moduł administracyjny lub wykonuje operację administracyjną
+    \item \textbf{Then} system odmawia dostępu i informuje o braku odpowiednich uprawnień
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{AC12 -- przeglądanie rezerwacji i kont przez administratora}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Given} administrator jest zalogowany i znajduje się w panelu nadzoru systemu
+    \item \textbf{When} administrator przegląda rezerwacje lub konta użytkowników
+    \item \textbf{Then} system wyświetla aktualne dane o rezerwacjach oraz kontach użytkowników
+\end{itemize}
+
+\vspace{0.5cm}
+
+\end{description}
+
+\section{Metadane i ocena}
+
+\begin{table}[h]
+\begin{tabular}{ll}
+\toprule
+\textbf{Pole} & \textbf{Wartość} \\
+\midrule
+Model & \texttt{gpt-5.4} \\
+Tryb & LLM-only \\
+Case study & appointment-booking \\
+Czas łącznie & 186.4s \\
+\midrule
+\textit{Ocena (0--3)} & \\
+\midrule
+Correctness (M1) & 2 \\
+Completeness (M2) & 1 \\
+Consistency (M3) & 3 \\
+Clarity (M4) & 3 \\
+Maintainability (M5) & 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\end{document}
