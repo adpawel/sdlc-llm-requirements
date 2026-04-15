@@ -22,3 +22,4 @@ outputs/*
 !outputs/r1-inconsistencies.csv
 !outputs/r2-results.csv
 !outputs/r3-conflict_detection.csv
+!outputs/r3-conflict_detection-v2.csv
