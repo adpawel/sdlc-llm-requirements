@@ -4,7 +4,7 @@ import time
 
 
 def run_task_r3(model_func, model_name, case_study, iteration=1):
-    with open('inputs/descriptions_r3_v2.json', 'r', encoding='utf-8') as f:
+    with open('inputs/descriptions_r3_gold_ver2.json', 'r', encoding='utf-8') as f:
         system_description = json.load(f)[case_study]
 
     system_prompt = """Jesteś Doświadczonym Analitykiem Wymagań (Senior Business Analyst). Twoją specjalnością jest krytyczna weryfikacja surowych koncepcji biznesowych.
@@ -41,5 +41,5 @@ def run_task_r3(model_func, model_name, case_study, iteration=1):
     print(llm_response)
     print("========================\n")
     
-    log_experiment_to_csv("r3-conflict_detection-v2.csv", "R3", model_name, "LLM-only", iteration, user_prompt, llm_response, elapsed)
+    log_experiment_to_csv("r3-conflict_detection_gold_ver2.csv", "R3", model_name, "LLM-only", iteration, user_prompt, llm_response, elapsed)
     print(f"-> Zapisano wyniki R3 dla modelu {model_name} (czas: {elapsed}s)")

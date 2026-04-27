@@ -1,0 +1,59 @@
+ID_Zadania,Model,Tryb,Iteracja,Czas_Odpowiedzi_s,Wejscie_Prompt,Odpowiedz_LLM,Ocena_Merytoryczna_1,Ocena_Merytoryczna_2,Ocena_Merytoryczna_3
+R3,gpt-5.4,LLM-only,1,28.89,"Przeanalizuj poniższy surowy opis systemu:
+
+        <opis>
+        System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny. 
+        </opis>
+
+        Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+        ### 1. Lista wykrytych konfliktów
+        Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+        ### 2. Poprawiona wersja
+        Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+        WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+        - W sekcji 1 każdy punkt MUSI zaczynać się od ""- "" (myślnik + spacja).
+        - W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+        - Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+        - Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.","### 1. Lista wykrytych konfliktów
+- Wymaganie „system powinien zapobiegać konfliktom rezerwacji” stoi w sprzeczności z zapisem, że „w niektórych przypadkach dopuszczalne są wyjątki”, ponieważ nie określono, kiedy konflikt jest blokowany, a kiedy akceptowany.
+- Użytkownik „może anulować wizytę w uzasadnionych przypadkach”, ale jednocześnie „anulowanie może być ograniczone czasowo”, co tworzy konflikt decyzyjny, gdy uzasadniony przypadek wystąpi po upływie limitu czasu.
+- Specjalista „może modyfikować swój grafik, także dla już istniejących rezerwacji”, co koliduje z celem stabilnej rezerwacji użytkownika, ponieważ zmiana grafiku może unieważnić wcześniej potwierdzony termin.
+- Możliwość modyfikacji grafiku dla istniejących rezerwacji pozostaje w konflikcie z wymaganiem zapobiegania konfliktom rezerwacji, ponieważ przesunięcie lub usunięcie slotu może wygenerować kolizję lub brak możliwości realizacji wizyty.
+- System „powinien obsługiwać różne role użytkowników”, ale opis nie rozstrzyga granic uprawnień między użytkownikiem a specjalistą, co prowadzi do konfliktów odpowiedzialności za rezerwację, anulowanie i zmiany w grafiku.
+
+### 2. Poprawiona wersja
+System umożliwia użytkownikom przeglądanie dostępnych terminów u specjalistów, dokonywanie rezerwacji wizyt oraz ich anulowanie zgodnie z obowiązującymi zasadami. Specjaliści zarządzają swoim grafikiem i mogą wprowadzać zmiany wyłącznie w sposób, który nie narusza już potwierdzonych rezerwacji. System zapobiega konfliktom rezerwacji poprzez niedopuszczanie do nakładania się terminów dla tego samego specjalisty i tego samego przedziału czasowego. Anulowanie wizyty przez użytkownika jest możliwe tylko wtedy, gdy mieści się w określonym limicie czasowym oraz spełnia warunki uznawane przez system za dopuszczalne. Role użytkowników są rozdzielone w taki sposób, że użytkownicy odpowiadają za przeglądanie terminów, tworzenie i anulowanie własnych rezerwacji, a specjaliści odpowiadają za zarządzanie dostępnością swojego grafiku. System ma wspierać wiele ról użytkowników oraz zachowywać skalowalność przy rosnącej liczbie użytkowników, specjalistów i rezerwacji.",,,
+R3,claude-sonnet-4-6,LLM-only,1,15.33,"Przeanalizuj poniższy surowy opis systemu:
+
+        <opis>
+        System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny. 
+        </opis>
+
+        Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+        ### 1. Lista wykrytych konfliktów
+        Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+        ### 2. Poprawiona wersja
+        Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+        WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+        - W sekcji 1 każdy punkt MUSI zaczynać się od ""- "" (myślnik + spacja).
+        - W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+        - Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+        - Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.","### 1. Lista wykrytych konfliktów
+
+- System deklaruje zapobieganie konfliktom rezerwacji, jednocześnie dopuszczając nieokreślone „wyjątki"", co tworzy sprzeczność – nie wiadomo, kiedy ochrona przed konfliktem obowiązuje, a kiedy nie.
+- Użytkownik może anulować wizytę „w uzasadnionych przypadkach"", ale jednocześnie anulowanie jest „ograniczone czasowo"" – oba warunki mogą wzajemnie się wykluczać (np. uzasadniony przypadek pojawia się po upływie dozwolonego czasu).
+- Specjalista może modyfikować grafik dla już istniejących rezerwacji, co stoi w sprzeczności z celem systemu polegającym na zapobieganiu konfliktom rezerwacji – modyfikacja może jednostronnie unieważnić potwierdzoną rezerwację użytkownika bez jego zgody.
+- Brak definicji „uzasadnionych przypadków"" dla anulowania przez użytkownika powoduje konflikt z regułą ograniczenia czasowego – system nie może jednocześnie egzekwować limitu czasowego i honorować nieokreślonych wyjątków od tej reguły.
+- Specjalista może modyfikować grafik bez wskazania, co dzieje się z kolidującymi rezerwacjami, co uniemożliwia ukończenie procesu rezerwacji w sposób spójny.
+
+### 2. Poprawiona wersja
+
+System umożliwia użytkownikom rezerwację wizyt u specjalistów, takich jak lekarze lub konsultanci. Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować wyłącznie do określonego momentu przed planowaną wizytą, zdefiniowanego jako nieprzekraczalny limit czasowy anulowania. Po upływie tego limitu anulowanie przez użytkownika nie jest możliwe, niezależnie od okoliczności. System bezwzględnie zapobiega konfliktom rezerwacji, nie dopuszczając podwójnych rezerwacji tego samego terminu u danego specjalisty. Specjaliści zarządzają swoim grafikiem i mogą modyfikować dostępne terminy, jednak zmiana terminu, który jest już objęty potwierdzoną rezerwacją, jest możliwa wyłącznie po uprzednim powiadomieniu użytkownika i uzyskaniu jego akceptacji lub po anulowaniu danej rezerwacji przez specjalistę z jednoczesnym poinformowaniem użytkownika o konieczności dokonania nowej rezerwacji. System obsługuje różne role użytkowników, w tym co najmniej rolę pacjenta/klienta oraz rolę specjalisty, i jest zaprojektowany z myślą o skalowalności, umożliwiającej obsługę rosnącej liczby użytkowników i specjalistów.",,,
