@@ -6,7 +6,7 @@ from pydantic import ValidationError
 import time
 
 def run_task_r2_generate_whole_artifact(model_func, model_name, case_study, iteration=1):
-    with open('inputs/descriptions_r2.json', 'r', encoding='utf-8') as f:
+    with open('inputs/descriptions_r2_gold_ver2.json', 'r', encoding='utf-8') as f:
         system_description = json.load(f)[case_study]
 
     system_prompt = """Jesteś analitykiem wymagań. Odpowiadaj WYŁĄCZNIE poprawnym JSON.
@@ -17,6 +17,7 @@ def run_task_r2_generate_whole_artifact(model_func, model_name, case_study, iter
 
 Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
 {{
+  "system_goal": "Zwięzły, spójny opis celu systemu (1-3 zdania).",
   "roles": [
     {{"name": "NazwaRoli", "permissions": ["uprawnienie1", "uprawnienie2"]}}
   ],
@@ -26,7 +27,7 @@ Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
 }}"""
 
     r1, raw_response_1, time_1 = _call_and_parse(model_func, model_name, system_prompt, user_prompt_1, step=1)
-    log_experiment_to_csv("r2-results.csv", "R2-krok1", model_name, "LLM-only", iteration, user_prompt_1, raw_response_1, time_1)
+    log_experiment_to_csv("r2-gold-ver2-results.csv", "R2-krok1", model_name, "LLM-only", iteration, user_prompt_1, raw_response_1, time_1)
 
     # Krok 2 – NFR + user stories
     user_prompt_2 = f"""Opis systemu: {system_description}
@@ -43,7 +44,7 @@ Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
 }}"""
 
     r2, raw_response_2, time_2 = _call_and_parse(model_func, model_name, system_prompt, user_prompt_2, step=2)
-    log_experiment_to_csv("r2-results.csv", "R2-krok2", model_name, "LLM-only", iteration, user_prompt_2, raw_response_2, time_2)
+    log_experiment_to_csv("r2-gold-ver2-results.csv", "R2-krok2", model_name, "LLM-only", iteration, user_prompt_2, raw_response_2, time_2)
 
     # Krok 3 – AC
     user_prompt_3 = f"""User stories: {json.dumps(r2.get('user_stories', []), ensure_ascii=False)}
@@ -61,13 +62,12 @@ Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
 }}"""
 
     r3, raw_response_3, time_3 = _call_and_parse(model_func, model_name, system_prompt, user_prompt_3, step=3)
-    log_experiment_to_csv("r2-results.csv", "R2-krok3", model_name, "LLM-only", iteration, user_prompt_3, raw_response_3, time_3)
+    log_experiment_to_csv("r2-gold-ver2-results.csv", "R2-krok3", model_name, "LLM-only", iteration, user_prompt_3, raw_response_3, time_3)
 
     # Złożenie całości
     prompt_log = f"[SYSTEM]\n{system_prompt}\n\n[KROK1]\n{user_prompt_1}\n\n[KROK2]\n{user_prompt_2}\n\n[KROK3]\n{user_prompt_3}"
 
     raw = {
-        "system_goal": system_description[:200],
         **r1, **r2, **r3,
         "metadata": {
             "version": "llm",
