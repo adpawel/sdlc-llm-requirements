@@ -1,0 +1,176 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{SDLC-LLM Benchmark}
+\lhead{Zadanie R3 -- Conflict detection}
+\rfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+\definecolor{metabg}{gray}{0.93}
+\definecolor{promptbg}{RGB}{235,245,255}
+\definecolor{score3}{RGB}{220,240,220}
+\definecolor{score2}{RGB}{255,243,205}
+\definecolor{score1}{RGB}{255,220,200}
+\definecolor{score0}{RGB}{255,200,200}
+\definecolor{tpcolor}{RGB}{220,240,220}
+\definecolor{fpcolor}{RGB}{255,220,200}
+\definecolor{fncolor}{RGB}{255,243,205}
+
+\newcommand{\scorebox}[1]{%
+  \ifnum#1=3\colorbox{score3}{\textbf{3}}%
+  \else\ifnum#1=2\colorbox{score2}{\textbf{2}}%
+  \else\ifnum#1=1\colorbox{score1}{\textbf{1}}%
+  \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
+}
+\newcommand{\tp}[1]{\colorbox{tpcolor}{\small #1}}
+\newcommand{\fp}[1]{\colorbox{fpcolor}{\small #1}}
+\newcommand{\fn}[1]{\colorbox{fncolor}{\small #1}}
+
+\begin{document}
+
+% ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Requirements Artifact}\\[1.5em]
+  {\large \textbf{Case study:} Appointment Booking System}\\[0.3em]
+  {\large \textbf{Model:} \texttt{gpt-5.4}}\\[0.3em]
+  {\large \textbf{Tryb:} LLM-only}\\[0.3em]
+  {\large \textbf{Wejście:} Surowy opis (challenging -- celowe konflikty)}
+\end{center}
+
+\vspace{1em}\hrule\vspace{1.5em}
+
+% ─── PROMPT ─────────────────────────────────────────────────────────
+\section{Prompt}
+
+\begin{mdframed}[backgroundcolor=promptbg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{User prompt:}\\[0.3em]
+\small
+Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+System umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny.
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+### 1. Lista wykrytych konfliktów
+Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+### 2. Poprawiona wersja
+Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+- W sekcji 1 każdy punkt MUSI zaczynać się od "- " (myślnik + spacja).
+- W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+- Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+- Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.
+\end{mdframed}
+
+% ─── WYKRYTE KONFLIKTY ──────────────────────────────────────────────
+\section{Lista wykrytych konfliktów}
+
+\begin{itemize}[leftmargin=1.5em, label={-}]
+  \item Wymaganie „system powinien zapobiegać konfliktom rezerwacji” stoi w sprzeczności z zapisem, że „w niektórych przypadkach dopuszczalne są wyjątki”, ponieważ nie określono, kiedy konflikt jest blokowany, a kiedy akceptowany.
+  \item Użytkownik „może anulować wizytę w uzasadnionych przypadkach”, ale jednocześnie „anulowanie może być ograniczone czasowo”, co tworzy konflikt decyzyjny, gdy uzasadniony przypadek wystąpi po upływie limitu czasu.
+  \item Specjalista „może modyfikować swój grafik, także dla już istniejących rezerwacji”, co koliduje z celem stabilnej rezerwacji użytkownika, ponieważ zmiana grafiku może unieważnić wcześniej potwierdzony termin.
+  \item Możliwość modyfikacji grafiku dla istniejących rezerwacji pozostaje w konflikcie z wymaganiem zapobiegania konfliktom rezerwacji, ponieważ przesunięcie lub usunięcie slotu może wygenerować kolizję lub brak możliwości realizacji wizyty.
+  \item System „powinien obsługiwać różne role użytkowników”, ale opis nie rozstrzyga granic uprawnień między użytkownikiem a specjalistą, co prowadzi do konfliktów odpowiedzialności za rezerwację, anulowanie i zmiany w grafiku.
+\end{itemize}
+
+% ─── POPRAWIONA WERSJA ──────────────────────────────────────────────
+\section{Poprawiona wersja}
+
+System umożliwia użytkownikom przeglądanie dostępnych terminów u specjalistów, dokonywanie rezerwacji wizyt oraz ich anulowanie zgodnie z obowiązującymi zasadami. Specjaliści zarządzają swoim grafikiem i mogą wprowadzać zmiany wyłącznie w sposób, który nie narusza już potwierdzonych rezerwacji. System zapobiega konfliktom rezerwacji poprzez niedopuszczanie do nakładania się terminów dla tego samego specjalisty i tego samego przedziału czasowego. Anulowanie wizyty przez użytkownika jest możliwe tylko wtedy, gdy mieści się w określonym limicie czasowym oraz spełnia warunki uznawane przez system za dopuszczalne. Role użytkowników są rozdzielone w taki sposób, że użytkownicy odpowiadają za przeglądanie terminów, tworzenie i anulowanie własnych rezerwacji, a specjaliści odpowiadają za zarządzanie dostępnością swojego grafiku. System ma wspierać wiele ról użytkowników oraz zachowywać skalowalność przy rosnącej liczbie użytkowników, specjalistów i rezerwacji.
+
+\newpage
+
+% ─── METRYKI VS GOLD ────────────────────────────────────────────────
+\section{Metryki porównawcze względem zdefiniowanych konfliktów}
+
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\small
+\textbf{Legenda:} \tp{TP} = trafnie wykryty konflikt \quad \fp{FP} = halucynacja / nadinterpretacja \quad \fn{FN} = przeoczenie celowo wprowadzonego problemu\\[0.3em]
+Tabela weryfikuje zdolność modelu do wykrycia 6 celowo wprowadzonych problemów w tekście źródłowym.
+\end{mdframed}
+
+\vspace{0.8em}
+
+\begin{tabular}{p{7cm} p{6cm} l}
+\toprule
+\textbf{Celowo wprowadzony problem (Gold)} & \textbf{Identyfikacja modelu} & \textbf{Status} \\
+\midrule
+Brak definicji „uzasadnionych przypadków” & Wykryto (punkt 2) & \tp{TP} \\
+Brak jednoznacznej reguły anulowania & Wykryto (punkt 2) & \tp{TP} \\
+Konflikt: zapobieganie vs dopuszczanie konfliktów & Wykryto (punkt 1) & \tp{TP} \\
+Brak definicji zachowania przy zmianie grafiku & Wykryto (punkty 3 i 4) & \tp{TP} \\
+Brak reguł overbooking & Przeoczono & \fn{FN} \\
+Brak informacji o równoczesnych operacjach & Przeoczono & \fn{FN} \\
+\midrule
+\textit{Dodatkowe znaleziska (poza Gold)} & Konflikt granic uprawnień (punkt 5) & \fp{FP} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+\begin{tabular}{lrrrr}
+\toprule
+& \textbf{TP} & \textbf{FP} & \textbf{FN} & \\
+\midrule
+Wykryte konflikty & 4 & 1 & 2 & \\
+\midrule
+\textbf{Precision} & \multicolumn{4}{l}{$4 / (4+1) = \mathbf{0{,}80}$} \\
+\textbf{Recall}    & \multicolumn{4}{l}{$4 / (4+2) = \mathbf{0{,}67}$} \\
+\textbf{F1 Score}  & \multicolumn{4}{l}{$2 \times 0{,}80 \times 0{,}67 / (0{,}80+0{,}67) = \mathbf{0{,}73}$} \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.5em}
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=6pt, innerbottommargin=6pt]
+\small\textbf{Komentarz do analizy:} GPT-5.4 bardzo dobrze zidentyfikował błędy biznesowe. Oprócz celowo wprowadzonych błędów, wskazał konflikt kompetencyjny w rolach (Punkt 5). Mimo że uwaga ta jest merytorycznie trafna, w ścisłej ewaluacji względem 6 wytycznych Gold Standard została sklasyfikowana jako False Positive, co obniżyło metrykę Precision do 0.80. Podobnie jak Claude, model przeoczył problemy związane ze współbieżnością operacji i overbookingiem (Recall = 0.67).
+\end{mdframed}
+
+% ─── METADANE I OCENA ───────────────────────────────────────────────
+\section{Metadane i ocena}
+\begin{table}[h]
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Pole} & \textbf{Wartość} \\
+\midrule
+Model & \texttt{gpt-5.4} \\
+Tryb & LLM-only \\
+Iteracja & 1 \\
+Czas łącznie & 28,89s \\
+\midrule
+\multicolumn{2}{l}{\textit{Ocena (0--3)}} \\
+\midrule
+Correctness (M1)     & \scorebox{3} \quad wykryte konflikty (wraz z dodatkowym o uprawnieniach) są bardzo trafne \\
+Completeness (M2)    & \scorebox{2} \quad pominięto problemy inżynieryjne (współbieżność/overbooking) \\
+Consistency (M3)     & \scorebox{3} \quad "Poprawiona wersja" rzetelnie adresuje wszystkie wymienione punkty \\
+Clarity (M4)         & \scorebox{3} \quad idealne zastosowanie się do narzuconych reguł formatowania \\
+Maintainability (M5) & \scorebox{3} \quad tekst jest spójny, poprawny biznesowo i gotowy do dalszych faz SDLC \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}
