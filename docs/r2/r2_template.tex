@@ -64,17 +64,18 @@
 \section{Prompt}
 
 \begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
-\textbf{System prompt (simplified):}\\
-\small Jesteś doświadczonym analitykiem wymagań. Odpowiadaj WYŁĄCZNIE czystym, w pełni poprawnym kodem JSON. Nie dodawaj żadnych znaczników Markdown.
+\textbf{System prompt:}\\
+\small Jesteś analitykiem wymagań. Odpowiadaj WYŁĄCZNIE poprawnym JSON. Żadnego Markdown ani komentarzy.
+\end{mdframed}
 
-[KROK 1] 
-Na podstawie opisu systemu wygeneruj role i wymagania funkcjonalne.
-
-[KROK 2] 
-Na podstawie opisu i wygenerowanych FR wygeneruj NFR i user stories.
-
-[KROK 3] 
-Na podstawie user stories wygeneruj acceptance criteria w formacie Given/When/Then.
+\vspace{0.5em}
+\begin{mdframed}[backgroundcolor=promptbg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\textbf{User prompt (3-krokowy):}\\[0.3em]
+\small
+\texttt{[KROK 1]} Na podstawie opisu systemu wygeneruj \texttt{system\_goal}, role i wymagania funkcjonalne.\\
+\texttt{[KROK 2]} Na podstawie opisu i wygenerowanych FR wygeneruj NFR i user stories.\\
+\texttt{[KROK 3]} Na podstawie user stories wygeneruj acceptance criteria w formacie Given/When/Then.\\[0.3em]
+\textbf{Opis systemu (wejście):}\\
 
 \end{mdframed}
 
