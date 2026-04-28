@@ -1,0 +1,336 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{SDLC-LLM Benchmark}
+\lhead{Zadanie R2 -- Refinement (Hybrid)}
+\rfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+\definecolor{metabg}{gray}{0.93}
+\definecolor{promptbg}{RGB}{235,245,255}
+\definecolor{claudecolor}{RGB}{210,105,30}
+\definecolor{score3}{RGB}{220,240,220}
+\definecolor{score2}{RGB}{255,243,205}
+\definecolor{score1}{RGB}{255,220,200}
+\definecolor{score0}{RGB}{255,200,200}
+\definecolor{tpcolor}{RGB}{220,240,220}
+\definecolor{fpcolor}{RGB}{255,220,200}
+\definecolor{fncolor}{RGB}{255,243,205}
+
+\newcommand{\scorebox}[1]{%
+  \ifnum#1=3\colorbox{score3}{\textbf{3}}%
+  \else\ifnum#1=2\colorbox{score2}{\textbf{2}}%
+  \else\ifnum#1=1\colorbox{score1}{\textbf{1}}%
+  \else\colorbox{score0}{\textbf{0}}\fi\fi\fi
+}
+\newcommand{\tp}[1]{\colorbox{tpcolor}{\small #1}}
+\newcommand{\fp}[1]{\colorbox{fpcolor}{\small #1}}
+\newcommand{\fn}[1]{\colorbox{fncolor}{\small #1}}
+
+\begin{document}
+
+% ─── STRONA TYTUŁOWA ────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Requirements Artifact}\\[1.5em]
+  {\large \textbf{Case study:} Appointment Booking System}\\[0.3em]
+  {\large \textbf{Model:} \texttt{claude-sonnet-4-6}}\\[0.3em]
+  {\large \textbf{Tryb:} \textbf{Hybrid} (LLM + Human-in-the-loop)}\\[0.3em]
+  {\large \textbf{Wejście:} Gold ver2 (challenging -- celowe niejednoznaczności)}
+\end{center}
+
+\vspace{1em}\hrule\vspace{1.5em}
+
+% ─── WPROWADZONE ZMIANY (HUMAN CHANGES) ─────────────────────────────
+\section{Interwencja analityka (Human Changes)}
+
+\begin{mdframed}[backgroundcolor=promptbg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\small
+\textbf{Changelog z przeglądu manualnego:}\\
+FR4: usunięto ogólne sformułowanie 'w dozwolonym oknie czasowym', dodano sztywny limit 'do 24 godzin przed terminem'. 
+FR5: usunięto możliwość modyfikacji terminów dla już aktywnych rezerwacji. 
+FR6: zastąpiono stary punkt wymaganiem o historii i dodano dokładną listę statusów (AVAILABLE, BOOKED, CANCELLED, COMPLETED, BLOCKED). 
+FR7: dodano wymóg ograniczający liczbę rezerwacji do 3 aktywnych na użytkownika. 
+FR9: dodano wymóg obsługi równoczesnych prób rezerwacji (współbieżność). 
+FR ogólne: usunięto stare FR6, FR7, FR8, FR12 (dotyczące powiadomień SMS/e-mail, zarządzania interfejsem ról oraz raportów administracyjnych), przenumerowano pozostałe. 
+NFR4: usunięto wymóg uwierzytelniania MFA, dodano wymóg spójności stanu końcowego przy równoczesnych operacjach. 
+NFR ogólne: usunięto NFR7, NFR9, NFR10, NFR11, NFR12 (dotyczące WCAG 2.1, SLA dla powiadomień, backupów, testów 80\% i OWASP), przenumerowano NFR8 na NFR7. 
+US ogólne: usunięto US5, US6, US10, US13, US14, US15 (raporty i uprawnienia), skrócono listę z 15 do 10. 
+AC ogólne: zachowano podstawowe przepływy (AC1-AC6), usunięto stare AC7-AC10, AC12-AC16, AC19-AC23 (kryteria dla powiadomień, weryfikacji historii, uprawnień i raportowania), redukując całkowitą liczbę AC z 23 do 9.
+\end{mdframed}
+
+% ─── CEL SYSTEMU ────────────────────────────────────────────────────
+\section{Cel systemu}
+
+System umożliwia rezerwację wizyt u specjalistów, zapewniając użytkownikom możliwość przeglądania dostępnych terminów, dokonywania i anulowania rezerwacji. Specjaliści zarządzają swoim grafikiem, a system zapobiega konfliktom rezerwacji przy zachowaniu skalowalności i obsłudze wielu ról użytkowników.
+
+% ─── ROLE ───────────────────────────────────────────────────────────
+\section{Role}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Użytkownik} -- przeglądanie dostępnych terminów, dokonywanie rezerwacji wizyty, anulowanie własnej rezerwacji w dozwolonym oknie czasowym, przeglądanie historii własnych rezerwacji.
+  \item \textbf{Specjalista} -- zarządzanie własnym grafikiem dostępności, modyfikowanie terminów istniejących rezerwacji, przeglądanie listy własnych rezerwacji, blokowanie wybranych terminów, anulowanie rezerwacji pacjenta z podaniem przyczyny.
+  \item \textbf{Administrator} -- zarządzanie kontami użytkowników i specjalistów, przeglądanie wszystkich rezerwacji w systemie, konfigurowanie reguł anulowania rezerwacji, konfigurowanie wyjątków od reguł konfliktów rezerwacji, generowanie raportów systemowych, zarządzanie rolami i uprawnieniami.
+\end{itemize}
+
+% ─── WYMAGANIA FUNKCJONALNE ─────────────────────────────────────────
+\section{Wymagania funkcjonalne}
+
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm, style=nextline]
+  \item[FR1] System umożliwia użytkownikom przeglądanie dostępnych terminów wizyt u specjalistów z możliwością filtrowania według specjalizacji, daty i godziny.
+  \item[FR2] System umożliwia użytkownikowi dokonanie rezerwacji wybranego terminu u specjalisty, po czym termin ten staje się niedostępny dla innych użytkowników.
+  \item[FR3] System zapobiega konfliktom rezerwacji, uniemożliwiając zarezerwowanie tego samego terminu przez więcej niż jednego użytkownika, chyba że administrator skonfigurował wyjątek.
+  \item[FR4] Użytkownik może anulować własną rezerwację wyłącznie do 24 godzin przed terminem wizyty. Po upływie tego czasu anulowanie jest zablokowane lub wymaga uzasadnienia.
+  \item[FR5] Specjalista może zarządzać swoim grafikiem dostępności, dodając, modyfikując lub usuwając dostępne terminy.
+  \item[FR6] System przechowuje historię rezerwacji dla każdego użytkownika i specjalisty, umożliwiając przeglądanie przeszłych wizyt oraz ich statusów (AVAILABLE, BOOKED, CANCELLED, COMPLETED, BLOCKED).
+  \item[FR7] Jeden użytkownik może mieć maksymalnie 3 aktywne rezerwacje. Administrator może w uzasadnionych przypadkach zezwolić na przekroczenie tego limitu.
+  \item[FR8] Administrator może konfigurować reguły anulowania rezerwacji, w tym minimalny czas przed wizytą wymagany do anulowania oraz warunki dopuszczalnych wyjątków.
+  \item[FR9] System powinien obsługiwać równoczesne próby rezerwacji i anulowania, zapewniając możliwie spójny stan danych, jednak szczegóły mechanizmu nie są jednoznacznie określone.
+  \item[FR10] System jest zaprojektowany w sposób skalowalny, umożliwiający obsługę rosnącej liczby użytkowników, specjalistów i rezerwacji bez degradacji wydajności.
+\end{description}
+
+% ─── WYMAGANIA NIEFUNKCJONALNE ──────────────────────────────────────
+\section{Wymagania niefunkcjonalne}
+
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm, style=nextline]
+  \item[NFR1] System powinien obsługiwać co najmniej 10\,000 jednoczesnych użytkowników bez spadku czasu odpowiedzi poniżej 2 sekund dla operacji przeglądania i rezerwacji terminów.
+  \item[NFR2] Dostępność systemu powinna wynosić co najmniej 99,9\% w skali miesiąca, z wyłączeniem zaplanowanych okien serwisowych.
+  \item[NFR3] Wszystkie dane osobowe muszą być przechowywane zgodnie z RODO, z szyfrowaniem AES-256 w spoczynku i TLS 1.2+ w tranzycie.
+  \item[NFR4] System powinien zapewniać spójność stanu końcowego w przypadku równoczesnych operacji rezerwacji tego samego terminu.
+  \item[NFR5] Czas odpowiedzi na operację rezerwacji lub anulowania wizyty nie powinien przekraczać 3 sekund w 95. percentylu przy normalnym obciążeniu systemu.
+  \item[NFR6] System powinien być zaprojektowany w architekturze umożliwiającej horyzontalne skalowanie komponentów backendowych.
+  \item[NFR7] System powinien rejestrować wszystkie operacje krytyczne (rezerwacje, anulowania, modyfikacje grafiku) w niemodyfikowalnym logu audytowym z dokładnością do sekundy.
+\end{description}
+
+% ─── USER STORIES ───────────────────────────────────────────────────
+\section{User stories}
+
+\begin{description}[leftmargin=1.8cm, labelwidth=1.3cm, labelsep=0.5cm, style=nextline]
+  \item[US1] Jako użytkownik chcę przeglądać dostępne terminy wizyt z możliwością filtrowania, aby szybko znaleźć odpowiadający mi termin.
+  \item[US2] Jako użytkownik chcę zarezerwować wybrany termin wizyty u specjalisty, aby mieć pewność, że nikt inny nie zajmie tego terminu.
+  \item[US3] Jako użytkownik chcę anulować własną rezerwację w dozwolonym oknie czasowym, aby zrezygnować z wizyty bez ponoszenia konsekwencji.
+  \item[US4] Jako użytkownik chcę przeglądać historię moich rezerwacji wraz z ich statusami.
+  \item[US5] Jako specjalista chcę dodawać, modyfikować i usuwać dostępne terminy w moim grafiku, aby elastycznie zarządzać swoją dostępnością.
+  \item[US6] Jako administrator chcę konfigurować wyjątki od reguł konfliktów rezerwacji, aby umożliwić obsługę szczególnych przypadków.
+  \item[US7] Jako specjalista chcę przeglądać listę wszystkich moich nadchodzących rezerwacji.
+  \item[US8] Jako specjalista chcę blokować wybrane terminy w moim grafiku, aby uniemożliwić rezerwację w czasie, gdy jestem niedostępny.
+  \item[US9] Jako administrator chcę konfigurować reguły anulowania rezerwacji, w tym minimalny czas przed wizytą.
+  \item[US10] Jako administrator chcę konfigurować wyjątki od reguł konfliktów rezerwacji dla wybranych specjalistów lub terminów.
+\end{description}
+
+% ─── ACCEPTANCE CRITERIA ────────────────────────────────────────────
+\section{Acceptance criteria}
+
+\textbf{AC1}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} użytkownik jest zalogowany i widzi dostępny termin wizyty
+  \item \textbf{When} użytkownik klika przycisk rezerwacji wybranego terminu i potwierdza
+  \item \textbf{Then} system tworzy rezerwację, zmienia status terminu na BOOKED i wyświetla potwierdzenie
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC2}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} dwóch użytkowników jednocześnie próbuje zarezerwować ten sam termin
+  \item \textbf{When} obaj użytkownicy klikają przycisk rezerwacji w tym samym czasie
+  \item \textbf{Then} system przyznaje rezerwację tylko jednemu użytkownikowi, zapewniając spójność danych
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC3}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} użytkownik posiada aktywną rezerwację, a do wizyty pozostało więcej niż 24 godziny
+  \item \textbf{When} użytkownik wybiera opcję anulowania rezerwacji
+  \item \textbf{Then} system anuluje rezerwację, zwalnia termin (AVAILABLE) i wyświetla potwierdzenie anulowania
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC4}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} użytkownik posiada aktywną rezerwację, a do wizyty pozostało mniej niż 24 godziny
+  \item \textbf{When} użytkownik próbuje anulować rezerwację
+  \item \textbf{Then} system blokuje anulowanie i wyświetla komunikat informujący o przekroczeniu dozwolonego okna czasowego
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC5}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} użytkownik posiada już 3 aktywne rezerwacje
+  \item \textbf{When} próbuje zarezerwować kolejny termin
+  \item \textbf{Then} operacja zostaje odrzucona przez system ze względu na przekroczenie limitu
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC6}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} specjalista jest zalogowany i zarządza swoim grafikiem
+  \item \textbf{When} specjalista wybiera termin i ustawia blokadę
+  \item \textbf{Then} system oznacza wybrany termin jako BLOCKED i uniemożliwia jego rezerwację przez użytkowników
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC7}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} specjalista jest zalogowany i znajduje się w panelu zarządzania grafikiem
+  \item \textbf{When} specjalista dodaje nowy termin podając datę, godzinę i czas trwania
+  \item \textbf{Then} system zapisuje nowy termin jako dostępny i wyświetla go użytkownikom w wynikach wyszukiwania
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC8}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} administrator jest zalogowany i znajduje się w panelu konfiguracji
+  \item \textbf{When} administrator ustawia minimalny czas przed wizytą wymagany do anulowania
+  \item \textbf{Then} system zapisuje nowe reguły i stosuje je do przyszłych rezerwacji
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{AC9}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Given} administrator jest zalogowany i konfiguruje reguły anulowania
+  \item \textbf{When} administrator definiuje wyjątek dla konkretnego specjalisty lub terminu
+  \item \textbf{Then} system stosuje wyjątkowe reguły anulowania wyłącznie dla wskazanego przypadku
+\end{itemize}
+
+\newpage
+
+% ─── METRYKI VS GOLD ────────────────────────────────────────────────
+\section{Metryki porównawcze względem gold artifact (Wpływ trybu Hybrid)}
+
+\begin{mdframed}[backgroundcolor=metabg, linewidth=0pt, innerleftmargin=10pt, innerrightmargin=10pt, innertopmargin=8pt, innerbottommargin=8pt]
+\small
+\textbf{Wniosek z eksperymentu:} Interwencja ludzka (pruning) drastycznie zwiększyła \textbf{Precision} eliminując halucynacje LLM (tzw. over-engineering), a chirurgiczne wstrzyknięcia kluczowych reguł biznesowych z Gold Standardu podniosły \textbf{Recall}.
+\end{mdframed}
+
+\vspace{0.8em}
+
+\subsection{Wymagania funkcjonalne (FR)}
+
+\begin{tabular}{p{2.5cm} p{7cm} l}
+\toprule
+\textbf{ID Hybrid} & \textbf{Mapowanie na gold} & \textbf{Status} \\
+\midrule
+FR1 & Gold FR1 -- przeglądanie terminów & \tp{TP} \\
+FR2 & Gold FR2 -- rezerwacja dostępnego terminu & \tp{TP} \\
+FR3 & Gold FR4 -- brak podwójnej rezerwacji + wyjątki & \tp{TP} \\
+FR4 & Gold FR5 -- anulowanie (poprawione na 24h) & \tp{TP} \\
+FR5 & Gold FR7 -- zarządzanie grafikiem specjalisty & \tp{TP} \\
+FR6 & Gold FR8, FR12 -- statusy i historia (dodano statusy) & \tp{TP} \\
+FR7 & Gold FR3 -- limit 3 aktywnych rezerwacji (dodane) & \tp{TP} \\
+FR8 & brak w gold -- konfiguracja reguł anulowania przez Admina & \fp{FP} \\
+FR9 & Gold FR13 -- równoczesne operacje (dodane) & \tp{TP} \\
+FR10 & brak w gold (NFR w gold, nie FR) -- skalowalność & \fp{FP} \\
+\midrule
+\multicolumn{3}{l}{\textit{Brakujące z gold:}} \\
+-- & Gold FR6 -- zwolnienie terminu po anulowaniu & \fn{FN} \\
+-- & Gold FR9 -- dostęp do danych według ról & \fn{FN} \\
+-- & Gold FR10 -- zakaz nakładających się rezerwacji & \fn{FN} \\
+-- & Gold FR11 -- blokady slotów (BLOCKED) explicite & \fn{FN} \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.5em}
+\begin{tabular}{lrrrr}
+\toprule
+& \textbf{TP} & \textbf{FP} & \textbf{FN} & \\
+\midrule
+FR & 8 & 2 & 4 & \\
+\midrule
+\textbf{Precision} & \multicolumn{4}{l}{$8 / (8+2) = \mathbf{0{,}80}$ (wzrost z 0.62)} \\
+\textbf{Recall}    & \multicolumn{4}{l}{$8 / (8+4) = \mathbf{0{,}67}$ (wzrost z 0.62)} \\
+\textbf{F1}        & \multicolumn{4}{l}{$2 \times 0{,}80 \times 0{,}67 / (0{,}80+0{,}67) = \mathbf{0{,}73}$} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+\subsection{Wymagania niefunkcjonalne (NFR)}
+
+\begin{tabular}{lrrrr}
+\toprule
+& \textbf{TP} & \textbf{FP} & \textbf{FN} & \\
+\midrule
+NFR & 6 & 1 & 0 & \\
+\midrule
+\textbf{Precision} & \multicolumn{4}{l}{$6 / (6+1) = \mathbf{0{,}86}$ (wzrost z 0.50 po wycięciu szumu)} \\
+\textbf{Recall}    & \multicolumn{4}{l}{$6 / (6+0) = \mathbf{1{,}00}$ (wzrost po dodaniu obsługi współbieżności)} \\
+\textbf{F1}        & \multicolumn{4}{l}{$2 \times 0{,}86 \times 1{,}00 / (0{,}86+1{,}00) = \mathbf{0{,}92}$} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1em}
+\subsection{Acceptance criteria (AC)}
+
+\begin{tabular}{p{2.5cm} p{7cm} l}
+\toprule
+\textbf{ID Hybrid} & \textbf{Mapowanie na gold} & \textbf{Status} \\
+\midrule
+AC1 & Gold AC1 -- rezerwacja $\rightarrow$ BOOKED & \tp{TP} \\
+AC2 & Gold AC3 -- double booking spójność & \tp{TP} \\
+AC3--AC4 & Gold AC4 -- anulowanie $>$24h oraz $<$24h & \tp{TP} \\
+AC5 & Gold AC2 -- limit 3 rezerwacji (dodane) & \tp{TP} \\
+AC6--AC9 & brak w gold -- dodatkowe przypadki dla Specjalisty/Admina & \fp{FP} \\
+\midrule
+-- & Gold AC5 -- anulowanie graniczne (dokładnie 24h) & \fn{FN} \\
+-- & Gold AC6 -- konflikt czasowy nakładających się rezerwacji & \fn{FN} \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.5em}
+\begin{tabular}{lrrrr}
+\toprule
+& \textbf{TP} & \textbf{FP} & \textbf{FN} & \\
+\midrule
+AC & 4 & 5 & 2 & \\
+\midrule
+\textbf{Precision} & \multicolumn{4}{l}{$4 / (4+5) = \mathbf{0{,}44}$ (znaczny wzrost z 0.13 po redukcji z 23 do 9 AC)} \\
+\textbf{Recall}    & \multicolumn{4}{l}{$4 / (4+2) = \mathbf{0{,}67}$ (wzrost po uzupełnieniu logiki limitów i 24h)} \\
+\textbf{F1}        & \multicolumn{4}{l}{$2 \times 0{,}44 \times 0{,}67 / (0{,}44+0{,}67) = \mathbf{0{,}53}$} \\
+\bottomrule
+\end{tabular}
+
+% ─── METADANE I OCENA ───────────────────────────────────────────────
+\section{Metadane i ocena}
+\begin{table}[h]
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Pole} & \textbf{Wartość} \\
+\midrule
+Model & \texttt{claude-sonnet-4-6} \\
+Tryb & \textbf{Hybrid} (LLM generacja + Human-in-the-loop pruning) \\
+Case study & appointment-booking (ver2 challenging) \\
+\midrule
+\multicolumn{2}{l}{\textit{Ocena (0--3)}} \\
+\midrule
+Correctness (M1)     & \scorebox{3} \quad błędy biznesowe (24h, limit 3) zostały załatane przez człowieka \\
+Completeness (M2)    & \scorebox{3} \quad wymogi architektoniczne pokryte znacznie lepiej (współbieżność, statusy) \\
+Consistency (M3)     & \scorebox{3} \quad w pełni spójny \\
+Clarity (M4)         & \scorebox{3} \quad zachowany balans - brak "ściany tekstu" po redukcji halucynacji LLM \\
+Maintainability (M5) & \scorebox{3} \quad artefakt gotowy do przekazania do Architecture Team \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}
