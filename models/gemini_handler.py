@@ -17,11 +17,10 @@ def get_gemini_response(system_prompt: str, user_prompt: str, temperature: float
         temperature=temperature,
         top_p=0.9,
         top_k=40,
-        max_output_tokens=4096,
     )
     
     response = client.models.generate_content(
-        model='gemini-3-flash-preview',
+        model='gemini-2.5-flash',
         contents=user_prompt,
         config=config
     )

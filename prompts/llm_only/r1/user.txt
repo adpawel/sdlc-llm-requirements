@@ -1,0 +1,21 @@
+Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+${system_description}
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista problemów
+Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Pytania do doprecyzowania
+Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+Każdy punkt w obu sekcjach MUSI zaczynać się od "- " (myślnik + spacja)
+NIE używaj numeracji (1., 2., itd.)
+NIE używaj innych symboli list (np. *, •)
+Każdy punkt w osobnej linii
+Nie dodawaj żadnych dodatkowych sekcji ani komentarzy

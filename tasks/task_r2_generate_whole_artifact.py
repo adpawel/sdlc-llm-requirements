@@ -1,7 +1,11 @@
 import json
+from pathlib import Path
+
 from schemas.requirements_artifact import RequirementsArtifact
 from utils.logger import log_experiment_to_csv
 from utils.json_saver import save_artifact
+from utils.paths import get_prompt_dir
+from utils.prompt_loader import render_prompt
 from pydantic import ValidationError
 import time
 
@@ -9,57 +13,34 @@ def run_task_r2_generate_whole_artifact(model_func, model_name, case_study, iter
     with open('inputs/descriptions_r2_gold_ver2.json', 'r', encoding='utf-8') as f:
         system_description = json.load(f)[case_study]
 
-    system_prompt = """Jesteś analitykiem wymagań. Odpowiadaj WYŁĄCZNIE poprawnym JSON.
-Żadnego Markdown ani komentarzy."""
+    prompt_dir = Path(get_prompt_dir()) / "r2"
+
+    system_prompt = render_prompt(prompt_dir / "system.txt")
 
     # Krok 1 – role + FR
-    user_prompt_1 = f"""Opis systemu: {system_description}
-
-Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
-{{
-  "system_goal": "Zwięzły, spójny opis celu systemu (1-3 zdania).",
-  "roles": [
-    {{"name": "NazwaRoli", "permissions": ["uprawnienie1", "uprawnienie2"]}}
-  ],
-  "functional_requirements": [
-    {{"id": "FR1", "description": "Treść wymagania."}}
-  ]
-}}"""
+    user_prompt_1 = render_prompt(
+        prompt_dir / "step1_user.txt",
+        system_description=system_description,
+    )
 
     r1, raw_response_1, time_1 = _call_and_parse(model_func, model_name, system_prompt, user_prompt_1, step=1)
     log_experiment_to_csv("r2-gold-ver2-results.csv", "R2-krok1", model_name, "LLM-only", iteration, user_prompt_1, raw_response_1, time_1)
 
     # Krok 2 – NFR + user stories
-    user_prompt_2 = f"""Opis systemu: {system_description}
-Wygenerowane FR: {json.dumps(r1, ensure_ascii=False)}
-
-Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
-{{
-  "non_functional_requirements": [
-    {{"id": "NFR1", "description": "Treść wymagania."}}
-  ],
-  "user_stories": [
-    {{"id": "US1", "description": "Jako X chcę Y, aby Z."}}
-  ]
-}}"""
+    user_prompt_2 = render_prompt(
+        prompt_dir / "step2_user.txt",
+        system_description=system_description,
+        r1_json=json.dumps(r1, ensure_ascii=False),
+    )
 
     r2, raw_response_2, time_2 = _call_and_parse(model_func, model_name, system_prompt, user_prompt_2, step=2)
     log_experiment_to_csv("r2-gold-ver2-results.csv", "R2-krok2", model_name, "LLM-only", iteration, user_prompt_2, raw_response_2, time_2)
 
     # Krok 3 – AC
-    user_prompt_3 = f"""User stories: {json.dumps(r2.get('user_stories', []), ensure_ascii=False)}
-
-Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
-{{
-  "acceptance_criteria": [
-    {{
-      "id": "AC1",
-      "given": "warunek wstępny",
-      "when": "akcja użytkownika",
-      "then": "oczekiwany rezultat"
-    }}
-  ]
-}}"""
+    user_prompt_3 = render_prompt(
+        prompt_dir / "step3_user.txt",
+        user_stories_json=json.dumps(r2.get("user_stories", []), ensure_ascii=False),
+    )
 
     r3, raw_response_3, time_3 = _call_and_parse(model_func, model_name, system_prompt, user_prompt_3, step=3)
     log_experiment_to_csv("r2-gold-ver2-results.csv", "R2-krok3", model_name, "LLM-only", iteration, user_prompt_3, raw_response_3, time_3)

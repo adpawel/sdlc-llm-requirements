@@ -7,6 +7,7 @@ from models.gemini_handler import get_gemini_response
 from tasks.task_r1 import run_task_r1
 from tasks.task_r2_generate_whole_artifact import run_task_r2_generate_whole_artifact
 from tasks.task_r3 import run_task_r3
+from tasks.task_multi_stakeholder import run_task_multi_stakeholder
 
 def main(model_req, task_req, case_study):
     print("Starting test session SDLC-LLM Benchmark...")
@@ -25,7 +26,8 @@ def main(model_req, task_req, case_study):
     tasks = {
         "r1" : run_task_r1,
         "r2" : run_task_r2_generate_whole_artifact,
-        "r3" : run_task_r3
+        "r3" : run_task_r3,
+        "r2-ms" : run_task_multi_stakeholder
     }
 
     if model_req not in models:
@@ -60,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "task", 
         type=str, 
-        choices=["r1", "r2", "r3"],
+        choices=["r1", "r2", "r3", "r2-ms"],
         help="Choose task number"
     )
     parser.add_argument(

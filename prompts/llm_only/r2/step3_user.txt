@@ -1,0 +1,13 @@
+User stories: ${user_stories_json}
+
+Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
+{
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "warunek wstępny",
+      "when": "akcja użytkownika",
+      "then": "oczekiwany rezultat"
+    }
+  ]
+}

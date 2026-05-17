@@ -32,14 +32,23 @@ W pliku `main.py` odkomentuj fragment kodu odpowiadający modelowi, który chces
 **Windows (PowerShell):**
 ```bash
 $env:OPENAI_API_KEY="twój_klucz_tutaj"
-uv run main.py
+$env:SDLC_EXPERIMENT="llm_only"
+uv run main.py gpt r2 appointment-booking
 ```
 
 **Linux / macOS:**
 ```bash
 export OPENAI_API_KEY="twój_klucz_tutaj"
-uv run main.py
+export SDLC_EXPERIMENT="llm_only"
+uv run main.py gpt r2 appointment-booking
 ```
 
 
-Wyniki eksperymentu (prompty oraz odpowiedzi modeli) zostaną automatycznie zapisane w ustandaryzowanym formacie w pliku `outputs/r1-inconsistencies.csv`
+Wyniki eksperymentu (prompty oraz odpowiedzi modeli) są zapisywane w katalogu `outputs/<nazwa_eksperymentu>`.
+Domyślny eksperyment to `llm_only`. Aby przełączyć na nowy wariant, ustaw `SDLC_EXPERIMENT="multi_stakeholder"`.
+
+Przykladowe uruchomienie multi-stakeholder:
+```bash
+$env:SDLC_EXPERIMENT="multi_stakeholder"
+uv run main.py gpt r2-ms appointment-booking
+```

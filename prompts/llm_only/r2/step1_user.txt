@@ -1,0 +1,12 @@
+Opis systemu: ${system_description}
+
+Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
+{
+  "system_goal": "Zwięzły, spójny opis celu systemu (1-3 zdania).",
+  "roles": [
+    {"name": "NazwaRoli", "permissions": ["uprawnienie1", "uprawnienie2"]}
+  ],
+  "functional_requirements": [
+    {"id": "FR1", "description": "Treść wymagania."}
+  ]
+}

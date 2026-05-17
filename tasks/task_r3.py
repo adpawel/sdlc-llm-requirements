@@ -1,36 +1,23 @@
 import json
-from utils.logger import log_experiment_to_csv
+from pathlib import Path
 import time
+
+from utils.logger import log_experiment_to_csv
+from utils.paths import get_prompt_dir
+from utils.prompt_loader import render_prompt
 
 
 def run_task_r3(model_func, model_name, case_study, iteration=1):
     with open('inputs/descriptions_r3_gold_ver2.json', 'r', encoding='utf-8') as f:
         system_description = json.load(f)[case_study]
 
-    system_prompt = """Jesteś Doświadczonym Analitykiem Wymagań (Senior Business Analyst). Twoją specjalnością jest krytyczna weryfikacja surowych koncepcji biznesowych.
-        Twoim zadaniem jest dogłębna analiza dostarczonego opisu systemu pod kątem wykrywania konfliktów (sytuacji, w których reguła A wyklucza regułę B lub proces nie może zostać ukończony z powodu sprzecznych założeń).
-        Rozwiązując konflikty, operuj wyłącznie w ramach dostarczonego kontekstu. Nie dodawaj nowych, niewymienionych wcześniej modułów ani funkcjonalności."""
+    prompt_dir = Path(get_prompt_dir()) / "r3"
 
-    user_prompt = f"""Przeanalizuj poniższy surowy opis systemu:
-
-        <opis>
-        {system_description}
-        </opis>
-
-        Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
-
-        ### 1. Lista wykrytych konfliktów
-        Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
-
-        ### 2. Poprawiona wersja
-        Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
-
-        WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
-
-        - W sekcji 1 każdy punkt MUSI zaczynać się od "- " (myślnik + spacja).
-        - W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
-        - Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
-        - Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami."""
+    system_prompt = render_prompt(prompt_dir / "system.txt")
+    user_prompt = render_prompt(
+        prompt_dir / "user.txt",
+        system_description=system_description,
+    )
 
     print(f"[Zadanie R3] Odpytuję model {model_name}...")
     start = time.time()

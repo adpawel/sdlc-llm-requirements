@@ -1,0 +1,17 @@
+User stories:
+${user_stories_json}
+
+Ograniczenia:
+- Maksymalnie 20 elementow w liscie "acceptance_criteria".
+
+Zwracaj WYŁĄCZNIE ten fragment JSON:
+{
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "warunek wstępny",
+      "when": "akcja użytkownika",
+      "then": "przewidywany wynik"
+    }
+  ]
+}

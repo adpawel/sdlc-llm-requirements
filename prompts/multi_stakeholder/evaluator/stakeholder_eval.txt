@@ -1,0 +1,17 @@
+Opis systemu:
+${system_description}
+
+Twoj profil interesariusza:
+${stakeholder_profile}
+
+Artefakt wymagan:
+${artifact_json}
+
+Zwracaj WYŁĄCZNIE ten obiekt JSON:
+{
+  "stakeholder": "${stakeholder_name}",
+  "satisfaction_score": 0.0,
+  "satisfied_goals": ["goal1"],
+  "unsatisfied_goals": ["goal2"],
+  "comments": "short rationale"
+}

@@ -1,0 +1,16 @@
+Opis systemu:
+${system_description}
+
+Twoj profil interesariusza:
+${stakeholder_profile}
+
+Zwracaj WYŁĄCZNIE ten obiekt JSON:
+{
+  "stakeholder": "${stakeholder_name}",
+  "goals": ["goal1"],
+  "needs": ["need1"],
+  "concerns": ["concern1"],
+  "priorities": ["priority1"],
+  "constraints": ["constraint1"],
+  "tradeoffs": ["tradeoff1"]
+}

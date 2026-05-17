@@ -1,0 +1,24 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Artefakt wymagan:
+${artifact_json}
+
+Zwracaj WYŁĄCZNIE ten obiekt JSON.
+Utrzymaj zwięzly format:
+- Uzywaj tylko identyfikatorow wymagan (bez pelnych opisow).
+- Maksymalnie 5 pozycji na liste.
+- Jesli nic nie pasuje, zwroc puste listy.
+{
+  "by_requirement": {
+    "FR1": ["business: ...", "security: ..."],
+    "NFR1": ["security: ..."],
+    "US1": ["ux: ..."],
+    "AC1": ["qa: ..."]
+  },
+  "gaps": ["stakeholder: missing concern ..."],
+  "conflicts": ["conflict summary ..."]
+}
