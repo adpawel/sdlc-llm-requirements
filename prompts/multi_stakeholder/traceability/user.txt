@@ -4,21 +4,19 @@ ${system_description}
 Wejscie interesariuszy:
 ${stakeholder_inputs_json}
 
-Artefakt wymagan:
-${artifact_json}
+Podzbior wymagan (tylko te pozycje oceniaj):
+${requirements_subset_json}
 
-Zwracaj WYŁĄCZNIE ten obiekt JSON.
-Utrzymaj zwięzly format:
-- Uzywaj tylko identyfikatorow wymagan (bez pelnych opisow).
-- Maksymalnie 5 pozycji na liste.
-- Jesli nic nie pasuje, zwroc puste listy.
+Zwracaj WYLACZNIE ten obiekt JSON.
+Utrzymaj zwiezly format:
+- Uzywaj tylko identyfikatorow interesariuszy (bez uzasadnien).
+- Maksymalnie 4 interesariuszy na wymaganie.
+- Jesli nic nie pasuje, zwroc pusta liste.
 {
   "by_requirement": {
-    "FR1": ["business: ...", "security: ..."],
-    "NFR1": ["security: ..."],
-    "US1": ["ux: ..."],
-    "AC1": ["qa: ..."]
-  },
-  "gaps": ["stakeholder: missing concern ..."],
-  "conflicts": ["conflict summary ..."]
+    "FR1": ["business", "security"],
+    "NFR1": ["security"],
+    "US1": ["ux"],
+    "AC1": ["qa"]
+  }
 }

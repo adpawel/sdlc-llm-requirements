@@ -1,0 +1,306 @@
+{
+  "stakeholder_runs": [
+    {
+      "stakeholder": "business",
+      "goals": [
+        "Zwiększyć liczbę skutecznie zrealizowanych rezerwacji przy minimalizacji pustych terminów i utraconych przychodów",
+        "Dostarczyć skalowalny system rezerwacji atrakcyjny dla wielu typów specjalistów i organizacji",
+        "Zbudować przewagę konkurencyjną poprzez wygodę obsługi, elastyczne zasady wyjątków i wysoką niezawodność",
+        "Ograniczyć koszty operacyjne związane z ręcznym zarządzaniem grafikiem, konfliktami i anulacjami",
+        "Zapewnić zgodność z wymaganiami regulacyjnymi i kontraktowymi dotyczącymi danych użytkowników oraz obsługi wizyt"
+      ],
+      "needs": [
+        "Mechanizm rezerwacji i anulacji, który wspiera polityki biznesowe zależne od roli, czasu i uzasadnienia",
+        "Konfigurowalne reguły wyjątków od konfliktów rezerwacji dla wybranych scenariuszy biznesowych",
+        "Obsługa wielu ról użytkowników z możliwością różnicowania uprawnień i ofert",
+        "Możliwość modyfikacji grafiku przez specjalistę z kontrolowanym wpływem na istniejące rezerwacje",
+        "Architektura skalowalna kosztowo wraz ze wzrostem liczby użytkowników, specjalistów i lokalizacji",
+        "Raportowanie KPI takich jak obłożenie, wskaźnik anulacji, no-show i wykorzystanie kalendarza",
+        "Powiadomienia i automatyzacje ograniczające liczbę sporów, pomyłek i nieobsadzonych terminów"
+      ],
+      "concerns": [
+        "Nadmierna elastyczność wyjątków może obniżyć zaufanie użytkowników i zwiększyć liczbę sporów",
+        "Modyfikacje grafiku dla istniejących rezerwacji mogą generować koszty obsługi klienta i ryzyko utraty klientów",
+        "Zbyt restrykcyjne zasady anulowania mogą zmniejszyć konwersję i satysfakcję użytkowników",
+        "Zbyt liberalne anulowanie może zwiększyć liczbę pustych slotów i obniżyć przychody specjalistów",
+        "Błędy w zapobieganiu konfliktom rezerwacji mogą bezpośrednio szkodzić reputacji marki",
+        "Skalowanie systemu bez kontroli kosztów infrastruktury może pogorszyć ROI",
+        "W przypadku usług medycznych lub regulowanych konieczna może być zgodność z przepisami o ochronie danych i dokumentowaniu działań"
+      ],
+      "priorities": [
+        "Niezawodność procesu rezerwacji i brak podwójnych rezerwacji jako priorytet podstawowy",
+        "Jasne, konfigurowalne polityki anulowania i zmian grafiku wspierające różne modele biznesowe",
+        "Szybkie wdrożenie MVP z kluczowymi rolami i podstawową skalowalnością",
+        "Automatyzacja komunikacji z użytkownikami i specjalistami w celu redukcji kosztów operacyjnych",
+        "Możliwość późniejszego rozszerzania o wyjątki, integracje i bardziej zaawansowane reguły"
+      ],
+      "constraints": [
+        "Ograniczony budżet wdrożeniowy wymaga etapowania funkcji i koncentracji na najwyższej wartości biznesowej",
+        "Presja czasowa na wejście na rynek ogranicza zakres pierwszej wersji systemu",
+        "Wymogi prawne dotyczące prywatności, bezpieczeństwa danych i audytowalności działań użytkowników",
+        "Potencjalne zobowiązania kontraktowe wobec specjalistów lub partnerów dotyczące dostępności systemu i zasad anulowania",
+        "Konieczność utrzymania prostoty UX mimo złożonych reguł biznesowych"
+      ],
+      "tradeoffs": [
+        "Elastyczność wyjątków od konfliktów rezerwacji versus prostota systemu i przewidywalność dla użytkownika",
+        "Restrykcyjne okna anulowania versus wyższa satysfakcja klienta i większa konwersja",
+        "Możliwość swobodnej modyfikacji grafiku przez specjalistę versus stabilność już potwierdzonych wizyt",
+        "Szybkie dostarczenie MVP versus pełna automatyzacja wszystkich scenariuszy wyjątkowych",
+        "Wysoka skalowalność i niezawodność versus koszty infrastruktury oraz czas implementacji"
+      ]
+    },
+    {
+      "stakeholder": "security",
+      "goals": [
+        "Zapewnienie poufności, integralności i dostępności danych rezerwacji, grafików oraz danych osobowych użytkowników i specjalistów",
+        "Ograniczenie ryzyka nieautoryzowanego dostępu do funkcji rezerwacji, anulowania i modyfikacji grafiku",
+        "Zapobieganie nadużyciom biznesowym, w tym podwójnym rezerwacjom, masowym blokadom terminów i nieuprawnionym wyjątkom od reguł konfliktów",
+        "Spełnienie wymagań ochrony danych osobowych i zapewnienie rozliczalności działań użytkowników oraz personelu"
+      ],
+      "needs": [
+        "Silne uwierzytelnianie i autoryzacja oparta na rolach dla użytkowników, specjalistów i administratorów",
+        "Precyzyjny model uprawnień dla przeglądania terminów, tworzenia rezerwacji, anulowania wizyt i modyfikacji grafiku",
+        "Szyfrowanie danych w tranzycie i w spoczynku, zwłaszcza danych osobowych, kontaktowych i historii wizyt",
+        "Pełne logi audytowe dla operacji krytycznych: rezerwacja, anulowanie, zmiana grafiku, nadanie wyjątków, zmiana ról",
+        "Mechanizmy wykrywania anomalii i nadużyć, np. rate limiting, ochrona przed botami i alerty dla nietypowych zmian grafiku",
+        "Bezpieczna obsługa współbieżności i transakcyjność, aby uniknąć race condition prowadzących do konfliktów rezerwacji",
+        "Polityki retencji danych, minimalizacji danych i obsługi zgód zgodne z wymaganiami prawnymi"
+      ],
+      "concerns": [
+        "Nieautoryzowany dostęp do danych wrażliwych przez błędną konfigurację ról lub eskalację uprawnień",
+        "Wycieki danych osobowych specjalistów i użytkowników przez API, logi, kopie zapasowe lub integracje zewnętrzne",
+        "Ataki typu brute force, credential stuffing i przejęcie kont prowadzące do fałszywych rezerwacji lub anulowań",
+        "Race conditions i błędy integralności umożliwiające podwójne rezerwacje albo obejście reguł konfliktów",
+        "Nadużywanie wyjątków dopuszczających konflikty bez odpowiedniej autoryzacji, uzasadnienia i śladu audytowego",
+        "Nieuprawniona modyfikacja istniejących rezerwacji przez specjalistę bez odpowiednich ograniczeń i powiadomień",
+        "Brak rozliczalności przy sporach dotyczących anulowania, przesunięcia wizyty lub zmiany grafiku",
+        "Ryzyko naruszenia zgodności z RODO/GDPR w zakresie podstaw przetwarzania, praw podmiotów danych i retencji"
+      ],
+      "priorities": [
+        "Najwyższy priorytet: kontrola dostępu i separacja uprawnień między rolami",
+        "Najwyższy priorytet: integralność procesu rezerwacji i odporność na współbieżne konflikty",
+        "Wysoki priorytet: ochrona danych osobowych oraz ograniczenie ekspozycji danych do minimum niezbędnego",
+        "Wysoki priorytet: audytowalność wszystkich operacji wpływających na terminy, wyjątki i anulowania",
+        "Wysoki priorytet: monitorowanie bezpieczeństwa i szybkie wykrywanie nadużyć operacyjnych"
+      ],
+      "constraints": [
+        "Każda operacja krytyczna musi być wykonywana wyłącznie po uwierzytelnieniu i autoryzacji zgodnej z rolą oraz kontekstem zasobu",
+        "Wyjątki od reguł konfliktów rezerwacji muszą być ograniczone do wybranych ról, wymagać uzasadnienia biznesowego i być logowane",
+        "Anulowanie wizyty po przekroczeniu limitu czasowego musi wymagać dodatkowej autoryzacji lub udokumentowanego wyjątku",
+        "Specjalista może modyfikować grafik wpływający na istniejące rezerwacje tylko w ramach zdefiniowanych polityk oraz z pełnym audytem i powiadomieniem stron",
+        "Dane osobowe nie mogą być ujawniane innym użytkownikom poza zakresem koniecznym do realizacji wizyty",
+        "API musi stosować walidację wejścia, ochronę przed IDOR, CSRF tam gdzie dotyczy, oraz ograniczenia częstotliwości żądań",
+        "System musi wspierać retencję, usuwanie lub anonimizację danych zgodnie z polityką prawną i operacyjną"
+      ],
+      "tradeoffs": [
+        "Silniejsze uwierzytelnianie i dodatkowe potwierdzenia zwiększają bezpieczeństwo, ale mogą obniżyć wygodę użytkownika podczas szybkiej rezerwacji lub anulowania",
+        "Ścisłe blokady konfliktów poprawiają integralność danych, ale mogą ograniczać elastyczność operacyjną w wyjątkowych sytuacjach biznesowych",
+        "Szerokie logowanie zdarzeń zwiększa rozliczalność i wykrywalność incydentów, ale podnosi koszty przechowywania oraz ryzyko nadmiernego gromadzenia danych",
+        "Minimalizacja ujawnianych informacji o dostępnych terminach poprawia prywatność specjalistów, ale może pogorszyć użyteczność interfejsu planowania",
+        "Restrykcyjne limity anulowania zmniejszają nadużycia, ale mogą utrudniać obsługę uzasadnionych przypadków nagłych"
+      ]
+    },
+    {
+      "stakeholder": "ux",
+      "goals": [
+        "Zapewnienie prostego i przewidywalnego procesu przeglądania, rezerwacji i anulowania wizyt",
+        "Minimalizacja błędów użytkownika przy wyborze terminu i specjalisty",
+        "Jasne komunikowanie zasad wyjątków, ograniczeń czasowych i zmian w grafiku",
+        "Zapewnienie spójnego doświadczenia dla różnych ról użytkowników",
+        "Dostępność systemu dla użytkowników o różnych potrzebach i poziomach kompetencji cyfrowych"
+      ],
+      "needs": [
+        "Czytelny widok dostępnych terminów z jednoznacznym oznaczeniem dostępności, konfliktów i wyjątków",
+        "Prosty, krótki i odwracalny przepływ rezerwacji z potwierdzeniem kluczowych danych przed finalizacją",
+        "Wyraźne komunikaty o powodach odrzucenia rezerwacji, anulowania lub zmiany terminu",
+        "Widoczne zasady anulowania, w tym limity czasowe i uzasadnione przypadki, przedstawione przed dokonaniem rezerwacji",
+        "Mechanizmy powiadomień o zmianach grafiku specjalisty wpływających na istniejące rezerwacje",
+        "Dostępne alternatywy po nieudanej akcji, np. proponowane inne terminy lub kontakt ze wsparciem",
+        "Interfejs zgodny z zasadami dostępności, w tym obsługa klawiatury, odpowiedni kontrast i zrozumiały język",
+        "Spójna nawigacja i nazewnictwo dla użytkowników, specjalistów i administratorów"
+      ],
+      "concerns": [
+        "Niejasność pojęcia dopuszczalnych wyjątków może powodować utratę zaufania i poczucie niesprawiedliwości",
+        "Modyfikacje grafiku specjalisty dla istniejących rezerwacji mogą dezorientować użytkowników i zwiększać liczbę porzuconych procesów",
+        "Zbyt restrykcyjne lub ukryte zasady anulowania mogą prowadzić do frustracji i obciążenia wsparcia",
+        "Ryzyko podwójnej rezerwacji lub pozornego konfliktu może obniżyć wiarygodność systemu",
+        "Różne role użytkowników mogą otrzymać niespójne interfejsy i komunikaty, co utrudni naukę systemu",
+        "Skalowanie systemu może pogorszyć szybkość odpowiedzi interfejsu, co negatywnie wpłynie na doświadczenie użytkownika",
+        "Brak jasnej historii zmian i statusów rezerwacji może utrudnić zrozumienie, co się wydarzyło i co należy zrobić dalej",
+        "Niedostateczna dostępność może wykluczyć część użytkowników z samodzielnego korzystania z systemu"
+      ],
+      "priorities": [
+        "Przejrzystość statusów terminów i rezerwacji",
+        "Jasne zasady anulowania i wyjątków prezentowane we właściwym momencie procesu",
+        "Szybkie i jednoznaczne potwierdzenia oraz powiadomienia o zmianach",
+        "Minimalna liczba kroków do wykonania najczęstszych zadań",
+        "Spójność interfejsu między rolami i urządzeniami",
+        "Dostępność zgodna z uznanymi standardami"
+      ],
+      "constraints": [
+        "Interfejs musi obsługiwać złożone reguły biznesowe bez przeciążania użytkownika szczegółami",
+        "Komunikaty muszą być zrozumiałe dla osób nietechnicznych i możliwe do lokalizacji językowej",
+        "Projekt powinien działać poprawnie na urządzeniach mobilnych i przy słabszym połączeniu sieciowym",
+        "Procesy krytyczne muszą być odporne na odświeżenie strony, cofanie oraz przerwanie sesji",
+        "Rozwiązania UX nie mogą zakładać pełnej swobody anulowania ani nieograniczonej edycji grafiku"
+      ],
+      "tradeoffs": [
+        "Większa elastyczność wyjątków zwiększa użyteczność w rzadkich przypadkach, ale obniża przewidywalność systemu",
+        "Silne zabezpieczenia przed konfliktami zmniejszają liczbę błędów, ale mogą wydłużać proces rezerwacji",
+        "Pokazywanie pełnych reguł biznesowych zwiększa transparentność, ale może przeciążać poznawczo użytkownika",
+        "Możliwość modyfikacji istniejących rezerwacji przez specjalistę poprawia operacyjność, ale pogarsza poczucie kontroli po stronie użytkownika",
+        "Rozbudowane potwierdzenia i ostrzeżenia zmniejszają ryzyko pomyłek, ale zwiększają liczbę kroków w procesie"
+      ]
+    },
+    {
+      "stakeholder": "qa",
+      "goals": [
+        "Zdefiniować jednoznaczne kryteria akceptacji dla rezerwacji, anulowania, modyfikacji grafiku i obsługi wyjątków konfliktów",
+        "Zapewnić wysoką testowalność reguł biznesowych dla wielu ról użytkowników i scenariuszy czasowych",
+        "Ograniczyć ryzyko regresji w obszarach współbieżności, konfliktów terminów i zmian istniejących rezerwacji",
+        "Zapewnić obserwowalność systemu umożliwiającą diagnozowanie błędów, sporów i nieoczekiwanych stanów"
+      ],
+      "needs": [
+        "Precyzyjna specyfikacja reguł konfliktów rezerwacji oraz warunków, w których wyjątki są dopuszczalne",
+        "Jednoznaczne zasady anulowania: co oznacza uzasadniony przypadek, jakie są limity czasowe i kto podejmuje decyzję",
+        "Jawne reguły modyfikacji grafiku przez specjalistę dla terminów wolnych i już zarezerwowanych",
+        "Macierz uprawnień dla wszystkich ról użytkowników wraz z dozwolonymi operacjami i ograniczeniami",
+        "Wymagania niefunkcjonalne dotyczące spójności danych, odporności na wyścigi oraz zachowania pod obciążeniem",
+        "Identyfikowalne zdarzenia audytowe i logi dla utworzenia, zmiany, anulowania, nadpisania konfliktu i błędów walidacji",
+        "Możliwość testowania scenariuszy granicznych związanych ze strefami czasowymi, zmianą czasu, opóźnieniami i częściową niedostępnością usług",
+        "Środowisko testowe z danymi referencyjnymi oraz mechanizmy automatyzacji testów API, integracyjnych i end-to-end"
+      ],
+      "concerns": [
+        "Niejednoznaczność pojęcia dopuszczalne wyjątki może prowadzić do niespójnych implementacji i trudnych do odtworzenia defektów",
+        "Ryzyko podwójnej rezerwacji przy równoczesnych próbach zajęcia tego samego terminu",
+        "Ryzyko utraty spójności przy jednoczesnym anulowaniu, zmianie grafiku i potwierdzaniu rezerwacji",
+        "Niejasne zasady anulowania mogą powodować spory użytkowników i trudności w walidacji poprawności decyzji systemu",
+        "Modyfikacja grafiku przez specjalistę może naruszać istniejące rezerwacje bez jasnej polityki relokacji, anulacji lub powiadomień",
+        "Błędy związane z czasem lokalnym, strefami czasowymi i granicami okien anulowania",
+        "Brak pełnej ścieżki audytu utrudni analizę incydentów i odróżnienie błędu systemu od działania użytkownika",
+        "Skalowanie systemu może ujawnić problemy z blokadami, opóźnieniami propagacji danych i niespójnymi odczytami",
+        "Złożoność uprawnień wieloról może prowadzić do luk autoryzacyjnych lub błędnych odmów dostępu",
+        "Wysokie ryzyko regresji po zmianach w regułach biznesowych dotyczących wyjątków i ograniczeń czasowych"
+      ],
+      "priorities": [
+        "Najpierw doprecyzować krytyczne reguły biznesowe wpływające na wynik operacji i możliwość automatycznej weryfikacji",
+        "Pokryć testami scenariusze współbieżne i konflikty terminów jako obszar najwyższego ryzyka",
+        "Zabezpieczyć integralność danych rezerwacji i grafiku przed optymalizacją wydajnościową",
+        "Wprowadzić pełne logowanie zdarzeń biznesowych oraz korelację żądań dla diagnostyki",
+        "Zdefiniować minimalny zestaw testów regresyjnych dla ról, wyjątków konfliktów, anulowań czasowych i zmian grafiku",
+        "Zweryfikować zachowanie systemu przy błędach częściowych, ponowieniach żądań i duplikatach"
+      ],
+      "constraints": [
+        "Nie da się przygotować wiarygodnych testów akceptacyjnych bez doprecyzowania niejednoznacznych reguł wyjątków i anulowań",
+        "Testy współbieżności i skalowalności wymagają środowiska zbliżonego do produkcyjnego oraz kontrolowanych danych czasowych",
+        "Weryfikacja okien czasowych wymaga deterministycznej obsługi czasu w testach, np. zegara sterowalnego",
+        "Diagnostyka incydentów będzie ograniczona bez ustandaryzowanych kodów błędów, identyfikatorów zdarzeń i audytu zmian",
+        "Automatyzacja testów end-to-end będzie niestabilna bez przewidywalnych kontraktów API i jednoznacznych komunikatów błędów"
+      ],
+      "tradeoffs": [
+        "Dopuszczenie wyjątków od konfliktów zwiększa elastyczność biznesową kosztem większej złożoności testów i wyższego ryzyka defektów",
+        "Silniejsze blokady i walidacje poprawiają spójność rezerwacji kosztem wydajności i potencjalnie gorszego doświadczenia użytkownika przy dużym obciążeniu",
+        "Możliwość modyfikacji grafiku z istniejącymi rezerwacjami zwiększa użyteczność dla specjalisty kosztem trudniejszych scenariuszy migracji i większego ryzyka regresji",
+        "Restrykcyjne ograniczenia anulowania upraszczają walidację reguł, ale mogą obniżać satysfakcję użytkowników w sytuacjach wyjątkowych",
+        "Rozbudowana obserwowalność poprawia diagnozowanie i audyt kosztem większej ilości danych operacyjnych oraz narzutu implementacyjnego"
+      ]
+    }
+  ],
+  "traceability": {
+    "by_requirement": {
+      "FR3": [
+        "business: priorytet braku podwójnych rezerwacji i niezawodności procesu",
+        "security: integralność procesu rezerwacji i odporność na race conditions",
+        "qa: najwyższe ryzyko współbieżnych konfliktów terminów"
+      ],
+      "FR4": [
+        "business: potrzeba konfigurowalnych wyjątków biznesowych",
+        "security: wyjątki tylko dla wybranych ról z uzasadnieniem i audytem",
+        "ux: obawa o niejasność wyjątków i utratę zaufania"
+      ],
+      "FR6": [
+        "business: równowaga między restrykcyjnym a liberalnym anulowaniem",
+        "security: anulowanie po czasie wymaga dodatkowej autoryzacji lub wyjątku",
+        "qa: konieczność jednoznacznych zasad limitów czasowych"
+      ],
+      "FR9": [
+        "business: kontrolowany wpływ zmian grafiku na istniejące rezerwacje",
+        "security: modyfikacje tylko w ramach polityk, z audytem i powiadomieniem",
+        "qa: potrzeba jawnych reguł dla zmian grafiku z istniejącymi rezerwacjami"
+      ],
+      "NFR5": [
+        "security: pełna audytowalność operacji krytycznych",
+        "qa: identyfikowalne zdarzenia audytowe i diagnostyka incydentów",
+        "business: wymogi zgodności i dokumentowania działań"
+      ]
+    },
+    "gaps": [
+      "qa: brak doprecyzowania definicji uzasadnionego przypadku anulowania",
+      "qa: brak jednoznacznej polityki relokacji lub anulacji wizyt po zmianie grafiku",
+      "security: brak wskazania wymagań dla monitorowania anomalii i alertowania nadużyć",
+      "ux: brak wymagania historii zmian/statusów jako osobnego wymagania funkcjonalnego",
+      "business: brak jawnego etapowania MVP względem funkcji zaawansowanych"
+    ],
+    "conflicts": [
+      "Elastyczne wyjątki biznesowe versus przewidywalność UX, bezpieczeństwo i testowalność",
+      "Swoboda modyfikacji grafiku przez specjalistę versus stabilność potwierdzonych wizyt użytkownika",
+      "Restrykcyjne okna anulowania ograniczają nadużycia, ale mogą obniżać satysfakcję i konwersję",
+      "Szeroki audyt i logowanie zwiększają rozliczalność, ale podnoszą koszty oraz ryzyko nadmiarowych danych",
+      "Silniejsze zabezpieczenia i blokady współbieżności poprawiają integralność, ale mogą pogarszać szybkość i wygodę procesu"
+    ]
+  },
+  "stakeholder_evaluations": [
+    {
+      "stakeholder": "business",
+      "satisfaction_score": 0.89,
+      "satisfied_goals": [
+        "Zwiększyć liczbę skutecznie zrealizowanych rezerwacji przy minimalizacji pustych terminów i utraconych przychodów",
+        "Dostarczyć skalowalny system rezerwacji atrakcyjny dla wielu typów specjalistów i organizacji",
+        "Zbudować przewagę konkurencyjną poprzez wygodę obsługi, elastyczne zasady wyjątków i wysoką niezawodność",
+        "Ograniczyć koszty operacyjne związane z ręcznym zarządzaniem grafikiem, konfliktami i anulacjami",
+        "Zapewnić zgodność z wymaganiami regulacyjnymi i kontraktowymi dotyczącymi danych użytkowników oraz obsługi wizyt"
+      ],
+      "unsatisfied_goals": [
+        "Brakuje wyraźnego etapowania MVP, priorytetyzacji wdrożenia oraz ograniczeń kosztowych/SLA potrzebnych do pełnej oceny ROI i time-to-market"
+      ],
+      "comments": "Wymagania bardzo dobrze pokrywają cele biznesowe: niezawodność rezerwacji, kontrolę konfliktów i wyjątków, polityki anulowania, role, KPI, audyt, prywatność oraz skalowalność. Dobrze wspierają redukcję pustych terminów i kosztów operacyjnych przez powiadomienia, raporty i automatyzację. Główna luka z perspektywy business to brak wymagań dotyczących budżetu, etapowania MVP, mierników ROI, docelowych terminów wdrożenia oraz zobowiązań dostępnościowych/kontraktowych."
+    },
+    {
+      "stakeholder": "security",
+      "satisfaction_score": 0.9,
+      "satisfied_goals": [
+        "Zapewnienie poufności, integralności i dostępności danych rezerwacji, grafików oraz danych osobowych użytkowników i specjalistów",
+        "Ograniczenie ryzyka nieautoryzowanego dostępu do funkcji rezerwacji, anulowania i modyfikacji grafiku",
+        "Zapobieganie nadużyciom biznesowym, w tym podwójnym rezerwacjom, masowym blokadom terminów i nieuprawnionym wyjątkom od reguł konfliktów",
+        "Spełnienie wymagań ochrony danych osobowych i zapewnienie rozliczalności działań użytkowników oraz personelu"
+      ],
+      "unsatisfied_goals": [],
+      "comments": "Wymagania bardzo dobrze pokrywają cele security: RBAC i uwierzytelnianie dla operacji krytycznych, szyfrowanie danych, minimalizacja ekspozycji, audyt, retencja/anonimizacja, transakcyjność i ochrona przed nadużyciami. Pozostają drobne luki doprecyzowania, np. brak wprost wymagan dla MFA, zarządzania sesją, ochrony przed brute force/credential stuffing na poziomie kont oraz formalnych wymagan monitoringu i alertowania incydentow."
+    },
+    {
+      "stakeholder": "ux",
+      "satisfaction_score": 0.89,
+      "satisfied_goals": [
+        "Zapewnienie prostego i przewidywalnego procesu przeglądania, rezerwacji i anulowania wizyt",
+        "Minimalizacja błędów użytkownika przy wyborze terminu i specjalisty",
+        "Jasne komunikowanie zasad wyjątków, ograniczeń czasowych i zmian w grafiku",
+        "Zapewnienie spójnego doświadczenia dla różnych ról użytkowników",
+        "Dostępność systemu dla użytkowników o różnych potrzebach i poziomach kompetencji cyfrowych"
+      ],
+      "unsatisfied_goals": [],
+      "comments": "Wymagania bardzo dobrze pokrywają cele UX: zawierają jasne statusy i komunikaty, prezentację zasad anulowania we właściwym momencie, alternatywy po błędach, historię zmian, powiadomienia, spójność między rolami i kanałami oraz wymagania dostępności. Niewielka luka dotyczy braku bardziej bezpośrednich wymagań o skracaniu liczby kroków, odwracalności działań i wsparciu onboarding/help, ale ogólne dopasowanie do celów interesariusza jest wysokie."
+    },
+    {
+      "stakeholder": "qa",
+      "satisfaction_score": 0.84,
+      "satisfied_goals": [
+        "Zdefiniować jednoznaczne kryteria akceptacji dla rezerwacji, anulowania, modyfikacji grafiku i obsługi wyjątków konfliktów",
+        "Zapewnić wysoką testowalność reguł biznesowych dla wielu ról użytkowników i scenariuszy czasowych",
+        "Ograniczyć ryzyko regresji w obszarach współbieżności, konfliktów terminów i zmian istniejących rezerwacji",
+        "Zapewnić obserwowalność systemu umożliwiającą diagnozowanie błędów, sporów i nieoczekiwanych stanów"
+      ],
+      "unsatisfied_goals": [],
+      "comments": "Wymagania w dużym stopniu wspierają cele QA: zawierają szerokie kryteria akceptacji, audyt, obserwowalność, współbieżność, deterministyczną obsługę czasu i standaryzację API/błędów. Główne luki dotyczą nadal częściowej niejednoznaczności reguł biznesowych dla wyjątków i modyfikacji grafiku, braku mierzalnych progów wydajności/dostępności oraz braku jawnych wymagań dla idempotencji, scenariuszy awarii częściowych i środowiska testowego."
+    }
+  ]
+}
