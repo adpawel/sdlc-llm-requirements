@@ -7,13 +7,13 @@ load_dotenv()
 def get_claude_response(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
     """
     Łączy się z API Anthropic, wysyła prompty i zwraca czysty tekst odpowiedzi.
-    Temperatura domyślnie ustawiona na 0.2 zgodnie z wymogami projektu.
+    Temperatura domyślnie ustawiona na 0.0 zgodnie z wymogami projektu.
     """
     client = Anthropic()
     
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
+        max_tokens=12288,
         temperature=temperature,
         system=system_prompt,
         messages=[

@@ -1,0 +1,25 @@
+Aktualne wymagania R:
+${artifact_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+User stories:
+${user_stories_json}
+
+Ograniczenia:
+- Maksymalnie 15 elementow w liscie "acceptance_criteria".
+- Kazdy element ma byc jednym krotszym testowalnym scenariuszem.
+- Jesli kilka kryteriow opisuje to samo zachowanie, scal je.
+
+Zwracaj WYLACZNIE ten fragment JSON:
+{
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "warunek wstepny",
+      "when": "akcja uzytkownika",
+      "then": "przewidywany wynik"
+    }
+  ]
+}

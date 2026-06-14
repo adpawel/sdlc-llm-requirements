@@ -8,8 +8,8 @@ Wczesniejsze wyjscia:
 ${step1_json}
 
 Ograniczenia:
-- Maksymalnie 20 elementow w liscie "non_functional_requirements".
-- Maksymalnie 20 elementow w liscie "user_stories".
+- Maksymalnie 17 elementow w liscie "non_functional_requirements".
+- Maksymalnie 17 elementow w liscie "user_stories".
 
 Zwracaj WYŁĄCZNIE ten fragment JSON:
 {

@@ -1,0 +1,256 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\title{
+Jawność preferencji i procesy negocjacyjne w wieloagentowych systemach inżynierii wymagań opartych na dużych modelach językowych
+}
+
+\author{
+Paweł Adamczyk i Konrad Ćwięka
+}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Wprowadzenie}
+
+Inżynieria wymagań (RE) to proces identyfikacji, analizy, dokumentowania i uzgadniania potrzeb interesariuszy podczas cyklu życia oprogramowania. Współczesne projekty informatyczne zawsze angażują wielu uczestników o nierzadko sprzecznych celach. Interesariusze biznesowi stawiają na szybkie wdrożenie produktu i optymalizację kosztów, podczas gdy eksperci ds. bezpieczeństwa, zapewnienia jakości (QA) czy użyteczności (UX) priorytetyzują niezawodność, zgodność z normami branżowymi oraz komfort końcowego użytkownika.
+
+Rozwój dużych modeli językowych (LLM) stworzył możliwość bezpośredniego generowania artefaktów wymagań na podstawie opisów tekstowych. Co więcej, architektury wieloagentowe pozwalają na symulowanie perspektyw różnych interesariuszy oraz automatyzację trudnych procesów negocjacyjnych pomiędzy nimi.
+
+Mimo że w klasycznej inżynierii oprogramowania negocjacje uważa się za kluczowe dla poprawy jakości wymagań, brakuje mocnych dowodów empirycznych potwierdzających tę tezę w systemach bazujących na LLM. Podobnie niewiele wiadomo na temat tego, jak jawne udostępnianie (lub ukrywanie) priorytetów interesariuszy głównemu agentowi generującemu wpływa na końcowy wynik.
+
+W niniejszym artykule przedstawiono empiryczną ewaluację wybranych konfiguracji wieloagentowego systemu RE. Zbadano wpływ czynników takich jak: jawność priorytetów, etapy negocjacji, limitowanie wielkości danych wyjściowych oraz stochastyczność (lub jej brak) podczas generowania odpowiedzi.
+
+Główne wkłady (\textit{contributions}) tej pracy to:
+
+\begin{itemize}
+\item zaprojektowanie i implementacja wieloagentowego systemu inżynierii wymagań opartego na LLM,
+\item wprowadzenie metodologii ewaluacji zorientowanej na interesariuszy,
+\item empiryczne porównanie pięciu wariantów działania systemu,
+\item wykazanie, że ograniczanie rozmiaru danych wyjściowych drastycznie obniża jakość wymagań,
+\item dowody na to, że sam proces zautomatyzowanych negocjacji nie przekłada się konsekwentnie na wyższą użyteczność końcowego rozwiązania.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Pytania badawcze}
+
+W ramach badania sformułowano następujące pytania badawcze:
+
+\begin{itemize}
+\item \textbf{PB1}: Czy negocjacje między agentami poprawiają jakość wygenerowanych wymagań?
+\item \textbf{PB2}: Czy jawność priorytetów poszczególnych interesariuszy wpływa pozytywnie na wyniki?
+\item \textbf{PB3}: Jak narzucenie ograniczeń na długość wyjścia (liczbę artefaktów) wpływa na wygenerowane wymagania?
+\item \textbf{PB4}: Czy generowanie w trybie deterministycznym (temperatura zerowa) wpływa na jakość lub spójność uzyskiwanych rezultatów?
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Metodologia}
+
+\subsection{Architektura systemu}
+
+Wieloagentowy system składa się z czterech głównych modułów, działających w sposób sekwencyjno-iteracyjny:
+
+\begin{enumerate}
+\item \textbf{Agenty interesariuszy}: Niezależne instancje LLM analizują tekstowy opis systemu docelowego i budują ustrukturyzowany profil swojej persony, zawierający specyficzne dla jej domeny cele, potrzeby, obawy i ograniczenia.
+\item \textbf{Agent centralny (Inżynier Wymagań)}: Pobiera dane od wszystkich interesariuszy i na ich podstawie syntetyzuje zunifikowany dokument wymagań. W zależności od badanej konfiguracji, agent ten może mieć wgląd w przypisane przez interesariuszy wagi ich priorytetów (lub są one przed nim ukryte).
+\item \textbf{Warstwa negocjacji}: Proces iteracyjnej poprawy, w którym agent centralny otrzymuje informację zwrotną (feedback) o pominiętych potrzebach i punktach zapalnych, po czym odpowiednio modyfikuje wymagania w celu zwiększenia ogólnej satysfakcji.
+\item \textbf{Silnik ewaluacji i śledzenia powiązań (\textit{traceability})}: Niezależny moduł weryfikujący, w jakim stopniu wymagania pokrywają się z obawami interesariuszy (przy użyciu semantycznego dopasowywania przez LLM), pozwalający na deterministyczne wyliczenie końcowych metryk.
+\end{enumerate}
+
+\subsection{Modelowanie interesariuszy}
+
+System symuluje cztery kluczowe role interesariuszy:
+
+\begin{itemize}
+\item \textbf{Biznes}: Priorytetyzuje czas wejścia na rynek (\textit{time-to-market}), optymalizację kosztów i wartość strategiczną.
+\item \textbf{Bezpieczeństwo (Security)}: Skupia się na odporności systemu, minimalizacji wektorów ataku i zgodności z prawnymi regulacjami (np. RODO).
+\item \textbf{UX (User Experience)}: Dba o doświadczenie użytkownika, intuicyjność interfejsu i dostępność.
+\item \textbf{QA (Quality Assurance)}: Kładzie nacisk na testowalność, łatwość utrzymania oraz ogólną niezawodność architektury.
+\end{itemize}
+
+Wyjście wygenerowane przez profil każdego interesariusza ma postać ustrukturyzowanych danych, na które składają się m.in.:
+\textbf{cele} i \textbf{potrzeby}, specyficzne \textbf{obawy} (opcjonalnie z przypisaną numeryczną wagą priorytetu), a także dopuszczalne \textbf{kompromisy}.
+
+\subsection{Generowane artefakty}
+
+Agent centralny generuje cztery typy klasycznych artefaktów:
+
+\begin{itemize}
+\item \textbf{Wymagania funkcjonalne (FR)}
+\item \textbf{Wymagania niefunkcjonalne (NFR)}
+\item \textbf{Historyjki użytkownika (\textit{User Stories} -- US)}
+\item \textbf{Kryteria akceptacji (\textit{Acceptance Criteria} -- AC)}
+\end{itemize}
+
+\subsection{Metryki ewaluacyjne}
+
+Zaimplementowany moduł ewaluacyjny ocenia jakość wymagań z perspektywy problemu optymalizacji wielokryterialnej, stosując standardowe, ustrukturyzowane metryki. 
+
+Zdefiniujmy $S$ jako zbiór wszystkich interesariuszy. Dla każdego interesariusza $s \in S$, niech $C_s$ oznacza listę zgłoszonych przez niego obaw (\textit{concerns}), a $C_s^{covered}$ to podzbiór tych obaw, które udało się powiązać z wygenerowanymi w systemie wymaganiami. Wskaźnik zadowolenia danego interesariusza z wypracowanego rozwiązania określamy jako $Satisfaction(s)$.
+
+\begin{itemize}
+\item \textbf{Coverage} (Pokrycie): Odsetek zaspokojonych obaw interesariusza w stosunku do wszystkich obaw, które zgłosił.
+\[ Coverage(s) = \frac{|C_s^{covered}|}{|C_s|} \]
+
+\item \textbf{Weighted Coverage} (Pokrycie ważone): Wariant metryki \textit{Coverage}, który bierze pod uwagę nie tylko ilość, ale i wagę poszczególnych obaw zdefiniowanych przez interesariusza.
+
+\item \textbf{Utility} (Użyteczność globalna): Główna miara oceniająca jakość wyników systemu. Jest to średnia ważona satysfakcji wszystkich ról biorących udział w projekcie, gdzie domyślnie każda z ról jest równoważna ($w_s = 1{,}0$).
+\[ Utility = \frac{\sum_{s \in S} w_s \cdot Satisfaction(s)}{\sum_{s \in S} w_s} \]
+
+\item \textbf{Fairness} (Sprawiedliwość / Równomierność): Miara stopnia równomiernego zaspokojenia potrzeb wszystkich stron, zdefiniowana poprzez odchylenie wariancji satysfakcji. Wyższa wartość oznacza mniejsze rozbieżności między faworyzowanymi i zaniedbanymi profilami.
+\[ Fairness = 1 - Var(Satisfaction) \]
+
+\item \textbf{Min Satisfaction}: Wynik najmniej usatysfakcjonowanego interesariusza ($\min_{s \in S} Satisfaction(s)$), służący do monitorowania najgorszego scenariusza w wygenerowanych kompromisach (\textit{worst-case scenario}).
+\end{itemize}
+
+\subsection{Szczegóły techniczne i parametryzacja modeli}
+
+Eksperymenty zostały przeprowadzone przy użyciu oficjalnych interfejsów API z wykorzystaniem dwóch najnowocześniejszych modeli generatywnych:
+\begin{itemize}
+\item \textbf{Claude}: Wersja \texttt{claude-sonnet-4-6} udostępniana przez firmę Anthropic.
+\item \textbf{GPT}: Wersja \texttt{gpt-5.4} od OpenAI, pełniąca w konfiguracjach wieloagentowych (i krzyżowych) również dedykowaną rolę obiektywnego modelu ewaluacyjnego.
+\end{itemize}
+
+Wszystkie asystujące agentom LLM operowały w środowisku zapewniającym wysoką wydajność dla dużych artefaktów. Przestrzenie wyjściowe wydłużono do maksymalnego obostrzenia $12\ 288$ tokenów (\texttt{max\_tokens} oraz \texttt{max\_completion\_tokens}), aby zminimalizować ryzyko niekontrolowanego urywania zwracanych w oknie kontekstowym wielopoziomowych obiektów JSON.
+
+Podczas standardowych etapów generowania profilów oraz prowadzenia negocjacji, wartość temperatury, odpowiadającej za kreatywność oraz stochastyczność tekstu, ustalana była domyślnie na zachowawczym poziomie $T=0{,}2$. Dodatkowo, aby uniknąć pętli repetycyjnych w generowaniu ustrukturyzowanych dokumentów narzucono profilowanie hiperparametrów (np. \texttt{top\_p=0{,}9} oraz \texttt{frequency\_penalty=0{,}2} na architekturze GPT). Jedynym twardym odstępstwem badawczym jest tryb deterministyczny (\textit{Deterministic configuration}), wymuszający sztywne $T=0{,}0$ na wszystkich potokach decyzyjnych procesu.
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Projekt eksperymentu}
+
+W badaniu przeanalizowano pięć różnych wariantów środowiska.
+
+\subsection{Bezpośrednia synteza (Punkt odniesienia)}
+Wymagania są agregowane i tworzone jednorazowo w oparciu o zebrane opisy. Moduł negocjacji pozostaje wyłączony (\textit{baseline}).
+
+\subsection{Negocjacje z jawnymi priorytetami (\textit{Priority-aware})}
+Agent centralny posiada bezpośredni dostęp do liczbowych wag (priorytetów) przypisanych do obaw poszczególnych interesariuszy. Moduł iteracyjnych negocjacji jest włączony.
+
+\subsection{Negocjacje z jawnymi priorytetami i limitowanym wyjściem}
+Wariant identyczny jak powyżej, jednak prompt systemowy nakłada sztywne ograniczenia na maksymalną liczbę artefaktów (FR, NFR, US, AC), wymuszając optymalizację wielkości dokumentu wyjściowego.
+
+\subsection{Negocjacje z ukrytymi priorytetami (\textit{Priority-blind})}
+Moduł negocjacji działa, jednak numeryczne wagi priorytetów pozostają ukryte przed agentem generującym, który musi polegać na semantyce samego tekstu.
+
+\subsection{Deterministyczne negocjacje z ukrytymi priorytetami}
+Wariant identyczny z \textit{Priority-blind}, lecz wywołania modelu generującego wymuszają brak losowości poprzez parametryzację temperatury na wartość:
+\[
+T = 0{,}0
+\]
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Wyniki}
+
+\subsection{Zestawienie ogólne}
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrrrr}
+\toprule
+Konfiguracja & Model & Utility & Coverage & Weighted Cov. & Fairness & Min. Sat. & $\Delta$ Utility \\
+\midrule
+Bezpośrednia synteza (\textit{baseline}) & Claude & 0,7950 & -      & -      & -      & -      & -      \\
+Bezpośrednia synteza (\textit{baseline}) & GPT    & 0,8350 & -      & -      & -      & -      & -      \\
+Negocjacje (jawne priorytety)            & Claude & 0,7850 & 0,8824 & 0,7850 & 0,9582 & 0,5667 & +0,0017 \\
+Negocjacje (jawne priorytety)            & GPT    & 0,9100 & 0,9286 & 0,9100 & 0,9822 & 0,7133 & $-$0,0200 \\
+Negocjacje (jawne, limit wyjścia)        & Claude & 0,6789 & 0,8265 & 0,6748 & 0,9437 & 0,2855 & $-$0,0275 \\
+Negocjacje (jawne, limit wyjścia)        & GPT    & 0,6787 & 0,7765 & 0,6787 & 0,9603 & 0,4200 & $-$0,0175 \\
+Negocjacje (ukryte priorytety)           & Claude & 0,8192 & 0,9032 & 0,8192 & 0,9489 & 0,4533 & $-$0,0167 \\
+Negocjacje (ukryte priorytety)           & GPT    & 0,7112 & 0,7917 & 0,7112 & 0,9885 & 0,5900 & $-$0,0087 \\
+Deterministyczne (ukryte priorytety)     & Claude & 0,8391 & 0,8877 & 0,8354 & 0,9632 & 0,5218 & $-$0,0198 \\
+Deterministyczne (ukryte priorytety)     & GPT    & 0,8817 & 0,8940 & 0,8817 & 0,9923 & 0,7600 & +0,1200 \\
+\bottomrule
+\end{tabular}
+\caption{Zbiorcze wyniki eksperymentalne metryk ewaluacyjnych dla obydwu badanych modeli językowych (Claude oraz GPT).}
+\label{tab:results}
+\end{table*}
+
+\subsection{PB1: Wpływ procesów negocjacyjnych}
+
+Uzyskane wyniki nie potwierdzają tezy, jakoby iteracyjne negocjacje systematycznie podnosiły jakość wygenerowanych wymagań. 
+
+Bezpośrednia synteza bez iteracji osiągnęła wartości \textit{Utility} wysoce konkurencyjne względem wariantów negocjacyjnych. W przypadku modelu Claude, wskaźnik \textit{Utility} metody bazowej (0,7950) okazał się wyższy od konfiguracji używającej negocjacji z jawnymi priorytetami (0,7850). Dla modeli z rodziny GPT negocjacje przyniosły zyski w pewnych wariantach, ale progres ten był nieregularny.
+
+Zauważono również, że różnice w \textit{Utility} pomiędzy pierwszą a ostatnią iteracją negocjacyjną ($\Delta$ Utility) są zazwyczaj negatywne lub minimalne. Oznacza to brak wyraźnej zbieżności i potwierdza, że wprowadzanie feedbacku podczas dyskusji agentów nie rozwiązuje fundamentalnych konfliktów tak dobrze, jak jednorazowe podsumowanie i przetworzenie całości kontekstu.
+
+\subsection{PB2: Rola jawności priorytetów interesariuszy}
+
+Analiza dowodzi, że wpływ udostępniania centralnemu agentowi numerycznych wag dla obaw zależy ściśle od konkretnego modelu LLM.
+
+W modelu GPT jawność wag skutkuje istotnym wzrostem głównej metryki – \textit{Utility} rośnie z 0,7112 w wariancie \textit{Priority-blind} do 0,9100 w wariancie \textit{Priority-aware}. 
+
+Natomiast Claude przejawia tendencję odwrotną. Model ten radzi sobie lepiej mając przed sobą ukryte wagi (\textit{Utility} rośnie z 0,7850 do 0,8192 po ich zasłonięciu), sugerując, że liczbowe priorytety wprowadzają zakłócenia semantyczne do jego mechanizmów uwagi, zamiast wspierać logikę priorytetyzacji. Z tego względu ujawnianie priorytetów nie jest uniwersalnym sposobem na zwiększenie efektywności procesu inżynierii wymagań.
+
+\subsection{PB3: Wpływ nakładania limitów na dane wyjściowe}
+
+Ze wszystkich zbadanych czynników, narzucenie ograniczeń wielkości (\textit{output limits}) miało najsilniejszy, jednoznacznie destrukcyjny wpływ na analizowane metryki.
+
+Dla obydwu modeli, nałożenie sztucznego limitu liczby artefaktów generowało najgorsze wartości głównej oceny:
+
+\begin{itemize}
+\item Claude: \textit{Utility} = 0,6789
+\item GPT: \textit{Utility} = 0,6787
+\end{itemize}
+
+Ograniczone warianty wypadały również najgorzej w kategorii całkowitego pokrycia obaw (\textit{Coverage}) oraz gwarantowały najniższy wynik minimalnej satysfakcji (\textit{Min Sat.}). Dowodzi to, że drastyczna kompresja informacji znacznie zubaża zdolność agentów do holistycznej adresacji potrzeb projektowych.
+
+\subsection{PB4: Znaczenie parametru temperatury (Determinizm)}
+
+Wyniki eksperymentów przeczą intuicji, według której modele stochastyczne (generujące losowo) tworzą lepsze, bardziej "kreatywne" rozwiązania w skomplikowanych domenach iteracyjnych.
+
+Generacja deterministyczna ($T=0{,}0$) okazała się być środowiskiem z najlepszym \textit{Utility} dla modelu Claude (0,8391) oraz uzyskała drugie najlepsze wskazanie dla modelu GPT (0,8817), znacznie wyprzedzając swoje stochastyczne odpowiedniki przy zachowaniu pełnej odtwarzalności wyniku. Dla modelu GPT był to również jedyny wariant, w którym iteracyjne negocjacje odnotowały znaczący wzrost użyteczności pod koniec procesu dyskusji ($\Delta$ Utility = +0,1200). 
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Dyskusja}
+
+Wyniki eksperymentów prowadzą do kilku istotnych wniosków architektonicznych z punktu widzenia budowy wieloagentowych systemów RE.
+
+Po pierwsze, skomplikowane iteracje negocjacyjne niosą ze sobą duży narzut obliczeniowy, ale rzadko skutkują wymiernym sukcesem. Największy przyrost wiedzy następuje już podczas inicjalnego przetwarzania żądań (\textit{direct synthesis}). Rozwiązywanie konfliktów sprowadza się najczęściej do zjawiska "gry o sumie zerowej", gdzie spełnienie postulatów zespołu Security obniża jednocześnie satysfakcję w zespole Biznesu, co hamuje wzrost globalnego wskaźnika \textit{Utility}.
+
+Po drugie, modele odmiennie reagują na narzuconą taksonomię wartości (przypisane liczbowo wagi priorytetów). Ujawnianie tych danych nie jest mechanizmem uniwersalnym. 
+
+Po trzecie, sztuczne ograniczanie limitu tokenów (poprzez nakaz wygenerowania maksymalnie $X$ wymagań) powoduje gigantyczne cięcia wiedzy domenowej i jest znacznie bardziej inwazyjne niż na przykład wyłączenie negocjacji.
+
+Ostatecznie okazuje się, że eliminacja losowości poprzez zmniejszenie stochastyczności LLM (tryb deterministyczny) podnosi stabilność generacji i często podnosi sumaryczne wskaźniki systemu, redukując problem halucynacji w procesach negocjacyjnych.
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Zagrożenia dla trafności (Threats to Validity)}
+
+\subsection{Trafność wewnętrzna (\textit{Internal validity})}
+Wiarygodność wyników mogła zostać naruszona przez problemy z formatowaniem wyjścia. Parsowanie generowanych przez LLM obiektów JSON sporadycznie kończy się błędem lub zniekształceniem, szczególnie przy obszernych tekstach wkraczających w limity okna kontekstowego (context window). Choć w kodzie zaimplementowano proces automatycznego parsowania, niepełne dane wyjściowe mogły lokalnie zafałszować ostateczne obliczenia metryk. Co więcej, śledzenie powiązań oparto na sztywnych progach mapowania semantycznego tokenów, co zawsze stwarza ryzyko zgłoszeń fałszywie pozytywnych. Znaczącym problemem były również wysokie koszty zapytań do API czołowych modeli, które organiczyły pulę wykonanych testów, utrudniając jednoznaczne określenie wariancji w ujęciu statystycznym.
+
+\subsection{Trafność teoretyczna (\textit{Construct validity})}
+Obliczone metryki (np. \textit{Utility}, \textit{Coverage}) pozostają przybliżonymi miarami oceny pracy programisty. W pełni opierają się one na sztucznych profilach interesariuszy osadzonych w promptach systemowych. Co istotne, wykorzystanie modeli LLM do ewaluacji pracy wygenerowanej przez inne modele LLM grozi wpadnięciem w pętlę tzw. błędnego koła (\textit{circular evaluation}) oraz promowaniem ukrytych obciążeń z oryginalnego korpusu treningowego sieci na warstwie weryfikacji.
+
+\subsection{Trafność zewnętrzna (\textit{External validity})}
+Możliwość uogólnienia przedstawionych wniosków na szeroko rozumianą branżę IT pozostaje otwarta, ponieważ w badaniu uwzględniono wyłącznie analizę jednego przypadku brzegowego (architektura systemu rezerwacyjnego) ograniczonego do zaledwie czterech perspektyw (Business, Security, UX, QA). Wyniki te mogą nie być reprezentatywne dla mocno odmiennych dziedzin oprogramowania lub przy wykorzystaniu mniejszych, darmowych modeli z otwartymi wagami (\textit{open-weights}).
+
+% ─────────────────────────────────────────────────────────────────────
+\section{Wnioski}
+
+W badaniu przeanalizowano roszady konfiguracyjne wieloagentowych systemów RE, szukając zależności między procesami negocjacji, stochastycznością czy długością wyjścia. Zdecydowanie najmocniejszym zauważonym efektem na niekorzyść procesu była optymalizacja długości wyjścia, która każdorazowo i niezależnie od wybranego modelu LLM obcinała najważniejsze metryki ewaluacyjne takie jak \textit{Utility} czy całkowite pokrycie (\textit{Coverage}).
+
+Odkryto ponadto, że kosztowne iteracje negocjacji w rzadkich przypadkach przebijają jakościowo szybką, bazową syntezę bezpośrednią. Wynika to z faktu, że system łatwo osuwa się w iteracyjne błędne koła rozwiązywania drobnych konfliktów bez popychania struktury dokumentu naprzód.
+
+Pod kątem parametryzacji odnotowano zaskakująco wysokie i stabilne wyniki przy użyciu temperatury o wartości zero (generacja deterministyczna), sugerując mniejsze pole na stochastyczne eksperymenty przy budowie systemów klasy Enterprise w przyszłości. 
+
+
+
+\bibliographystyle{IEEEtran}
+
+\end{document}

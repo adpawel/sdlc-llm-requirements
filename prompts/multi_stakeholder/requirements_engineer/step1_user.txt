@@ -5,7 +5,7 @@ Wejscie interesariuszy:
 ${stakeholder_inputs_json}
 
 Ograniczenia:
-- Maksymalnie 20 elementow w liscie "functional_requirements".
+- Maksymalnie 17 elementow w liscie "functional_requirements".
 
 Zwracaj WYŁĄCZNIE ten fragment JSON:
 {

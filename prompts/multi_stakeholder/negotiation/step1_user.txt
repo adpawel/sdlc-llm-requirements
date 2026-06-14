@@ -1,0 +1,35 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Aktualne wymagania R:
+${artifact_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+Syntetyczny sygnal celu negocjacji (bez wag):
+${negotiation_focus_json}
+
+Zadanie:
+Zintegruj propozycje w sposob minimalizujacy niezadowolenie interesariuszy.
+Aktualizuj tylko to, co konieczne.
+Priorytetyzuj zmiany, ktore adresuja "focus_concerns" i poprawiaja balans miedzy interesariuszami.
+
+Ograniczenia:
+- Maksymalnie 15 elementow w liscie "functional_requirements".
+- Kazdy opis ma miec maksymalnie 140 znakow i byc jednym zdaniem.
+- Jesli wymaganie nie miesci sie w limicie, scal je z pokrewnym albo wybierz wazniejsze.
+
+Zwracaj WYLACZNIE ten fragment JSON:
+{
+  "system_goal": "1-3 sentence system goal",
+  "roles": [
+    {"name": "RoleName", "permissions": ["perm1", "perm2"]}
+  ],
+  "functional_requirements": [
+    {"id": "FR1", "description": "Opis wymagania"}
+  ]
+}

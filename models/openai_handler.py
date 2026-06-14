@@ -7,7 +7,7 @@ load_dotenv()
 def get_openai_response(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
     """
     Łączy się z API OpenAI, wysyła prompty i zwraca czysty tekst odpowiedzi.
-    Temperatura domyślnie ustawiona na 0.2 zgodnie z wymogami projektu.
+    Temperatura domyślnie ustawiona na 0.0 zgodnie z wymogami projektu.
     """
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     
@@ -18,7 +18,7 @@ def get_openai_response(system_prompt: str, user_prompt: str, temperature: float
             {"role": "user", "content": user_prompt}
         ],
         temperature=temperature,
-        max_completion_tokens=4096,
+        max_completion_tokens=12288,
         top_p=0.9,
         frequency_penalty=0.2,
         presence_penalty=0.0

@@ -1,0 +1,33 @@
+Aktualne wymagania R:
+${artifact_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+Syntetyczny sygnal celu negocjacji (bez wag):
+${negotiation_focus_json}
+
+User stories:
+${user_stories_json}
+
+Zadanie:
+Zbuduj tylko liste acceptance criteria dla obecnych user stories.
+Trzymaj kazdy element krótko i testowalnie.
+Priorytetyzuj kryteria, ktore pokrywaja "focus_concerns".
+
+Ograniczenia:
+- Maksymalnie 15 elementow w liscie "acceptance_criteria".
+- Kazdy element ma byc jednym krotszym testowalnym scenariuszem.
+- Jesli kilka kryteriow opisuje to samo zachowanie, scal je.
+
+Zwracaj WYLACZNIE ten fragment JSON:
+{
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "warunek wstepny",
+      "when": "akcja uzytkownika",
+      "then": "przewidywany wynik"
+    }
+  ]
+}

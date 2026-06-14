@@ -1,0 +1,20 @@
+Opis systemu:
+${system_description}
+
+Twoj profil interesariusza:
+${stakeholder_profile}
+
+Aktualne wymagania R:
+${artifact_json}
+
+Zadanie:
+Ocen wplyw aktualnych wymagan na Twoje cele i zidentyfikuj konflikty.
+Nie poprawiaj wymagan.
+
+Zwracaj WYLACZNIE ten obiekt JSON:
+{
+  "violated_concerns": ["..."] ,
+  "partially_satisfied_concerns": ["..."] ,
+  "satisfied_concerns": ["..."] ,
+  "risk_assessment": ["..."]
+}

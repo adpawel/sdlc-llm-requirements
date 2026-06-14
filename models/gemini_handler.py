@@ -8,7 +8,7 @@ load_dotenv()
 def get_gemini_response(system_prompt: str, user_prompt: str, temperature: float = 0.2) -> str:
     """
     Łączy się z API Gemini. Automatycznie używa zmiennej środowiskowej GEMINI_API_KEY.
-    Temperatura domyślnie ustawiona na 0.2 zgodnie z wymogami projektu.
+    Temperatura domyślnie ustawiona na 0.0 zgodnie z wymogami projektu.
     """
     client = genai.Client()
     

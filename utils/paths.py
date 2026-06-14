@@ -12,7 +12,12 @@ def get_experiment_name() -> str:
 
 
 def get_output_dir() -> str:
-    return str(Path("outputs") / get_experiment_name())
+    experiment = get_experiment_name()
+    variant = os.getenv("SDLC_EXPERIMENT_VARIANT", "").strip()
+    if experiment == "multi_stakeholder":
+        variant = variant or "no_weights_zero_temp"
+        return str(Path("outputs") / experiment / variant)
+    return str(Path("outputs") / experiment)
 
 
 def get_prompt_dir() -> str:

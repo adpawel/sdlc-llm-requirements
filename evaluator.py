@@ -187,6 +187,11 @@ def build_evaluation_payload(
     requirement_ambiguity = _compute_requirement_ambiguity(requirements, rubric)
 
     stakeholder_importance = stakeholder_importance or {}
+    per_concern_matrix = _compute_per_concern_matrix(
+        concern_map,
+        requirement_texts,
+        rubric,
+    )
     stakeholder_scores = _compute_stakeholder_satisfaction(
         concern_map,
         requirement_texts,
@@ -214,6 +219,7 @@ def build_evaluation_payload(
             "satisfaction_variance": variance,
             "min_satisfaction": min_satisfaction,
         },
+        "per_concern_matrix": per_concern_matrix,
         "normalized_metrics": {
             "concern_coverage": concern_coverage,
             "weighted_concern_coverage": weighted_coverage,
@@ -226,6 +232,15 @@ def build_evaluation_payload(
             "utility": utility,
             "utility_under_conflict": utility_under_conflict,
             "fairness_score": fairness_score,
+        },
+        "evaluation_lattice": {
+            "coverage_score": concern_coverage,
+            "weighted_coverage_score": weighted_coverage,
+            "specificity_score": requirement_specificity,
+            "traceability_score": traceability_completeness,
+            "conflict_resolution_score": conflict_preservation,
+            "ambiguity_penalty": requirement_ambiguity,
+            "hallucination_penalty": hallucination_rate,
         },
         "uncovered_concerns": uncovered,
         "hallucinated_requirements": hallucinated,
@@ -467,6 +482,50 @@ def _compute_stakeholder_satisfaction(
             }
         )
     return results
+
+
+def _compute_per_concern_matrix(
+    concern_map: list[dict],
+    requirement_texts: dict[str, str],
+    rubric: dict,
+) -> list[dict]:
+    matrix: list[dict] = []
+    for concern in concern_map:
+        matches = _match_text_to_requirements(
+            concern.get("concern", ""),
+            requirement_texts,
+            rubric,
+        )
+        if not matches:
+            status = "unsatisfied"
+            score = 0.0
+        else:
+            best_specificity = 0.0
+            for req_id in matches:
+                text = requirement_texts.get(req_id, "")
+                specificity = 0.0
+                if _has_measurement(text):
+                    specificity += 0.5
+                if _has_actor_and_action(text):
+                    specificity += 0.5
+                best_specificity = max(best_specificity, specificity)
+            if best_specificity >= rubric["thresholds"]["specificity_min"]:
+                status = "satisfied"
+                score = 1.0
+            else:
+                status = "partially_satisfied"
+                score = 0.5
+
+        matrix.append(
+            {
+                "stakeholder": concern.get("stakeholder", ""),
+                "concern": concern.get("concern", ""),
+                "weight": float(concern.get("weight", 0.0)),
+                "status": status,
+                "score": score,
+            }
+        )
+    return matrix
 
 
 def _compute_utility_metrics(stakeholder_scores: list[dict]) -> tuple[float, float, float, float]:

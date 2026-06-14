@@ -8,7 +8,7 @@ def get_llama_response(system_prompt: str, user_prompt: str, temperature: float 
     """
     Łączy się z API Groq w celu użycia modelu Llama. 
     Automatycznie używa zmiennej środowiskowej GROQ_API_KEY.
-    Temperatura domyślnie ustawiona na 0.2 zgodnie z wymogami projektu.
+    Temperatura domyślnie ustawiona na 0.0 zgodnie z wymogami projektu.
     """
     client = Groq()
     

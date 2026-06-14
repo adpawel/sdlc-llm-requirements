@@ -2,7 +2,7 @@ User stories:
 ${user_stories_json}
 
 Ograniczenia:
-- Maksymalnie 20 elementow w liscie "acceptance_criteria".
+- Maksymalnie 17 elementow w liscie "acceptance_criteria".
 
 Zwracaj WYŁĄCZNIE ten fragment JSON:
 {
