@@ -1,0 +1,24 @@
+Opis systemu:
+${system_description}
+
+Twoj profil interesariusza:
+${stakeholder_profile}
+
+Instrukcje:
+- Zdefiniuj potrzeby i cele tak, aby byly w konflikcie z innymi interesariuszami.
+- Zdefiniuj wagi dla "weighted_concerns" (0-1, suma ~1.0).
+- Wag NIE ujawniaj w opisie, ale uzyj ich pozniej do oceny satysfakcji.
+
+Zwracaj WYLACZNIE ten obiekt JSON:
+{
+  "stakeholder": "${stakeholder_name}",
+  "goals": ["goal1"],
+  "needs": ["need1"],
+  "concerns": ["concern1"],
+  "weighted_concerns": [
+    {"concern": "MFA", "weight": 0.4}
+  ],
+  "priorities": ["priority1"],
+  "constraints": ["constraint1"],
+  "tradeoffs": ["tradeoff1"]
+}

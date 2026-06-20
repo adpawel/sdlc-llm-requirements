@@ -1,0 +1,323 @@
+{
+  "stakeholder_runs": [
+    {
+      "stakeholder": "business",
+      "goals": [
+        "Maksymalizacja przychodów poprzez wysokie wykorzystanie dostępnych terminów u specjalistów",
+        "Szybkie wejście na rynek i zdobycie bazy użytkowników przed konkurencją",
+        "Budowanie lojalności użytkowników i specjalistów poprzez niezawodność systemu",
+        "Skalowanie platformy na nowe rynki i specjalizacje bez proporcjonalnego wzrostu kosztów",
+        "Zapewnienie zgodności z regulacjami prawnymi (RODO, przepisy medyczne) minimalizując ryzyko prawne"
+      ],
+      "needs": [
+        "Jasny model monetyzacji (subskrypcje, prowizje od rezerwacji, plany premium)",
+        "Metryki biznesowe: wskaźnik konwersji rezerwacji, wskaźnik anulowań, retencja użytkowników",
+        "Integracja z systemami płatności w celu pobierania opłat i zarządzania zwrotami",
+        "Panel analityczny do monitorowania KPI i podejmowania decyzji biznesowych",
+        "Polityka anulowania wizyt chroniąca przychody specjalistów i platformy"
+      ],
+      "concerns": [
+        "Wysokie wskaźniki anulowań last-minute generujące straty finansowe dla specjalistów i platformy",
+        "Ryzyko odpływu specjalistów jeśli system nie zapewni im wystarczającej kontroli nad grafikiem",
+        "Koszty utrzymania i skalowania infrastruktury technicznej przy wzroście liczby użytkowników",
+        "Naruszenia RODO i przepisów dotyczących danych medycznych mogące skutkować karami finansowymi",
+        "Konflikty rezerwacji prowadzące do utraty zaufania użytkowników i negatywnych opinii",
+        "Trudność w pozyskaniu krytycznej masy specjalistów i pacjentów jednocześnie (problem cold start)"
+      ],
+      "priorities": [
+        "Niezawodność systemu rezerwacji jako fundament wartości platformy",
+        "Szybkie wdrożenie MVP z kluczowymi funkcjonalnościami rezerwacji i zarządzania grafikiem",
+        "Polityki anulowania chroniące przychody przy zachowaniu satysfakcji użytkowników",
+        "Skalowalność architektury umożliwiająca obsługę rosnącej liczby użytkowników bez restrukturyzacji",
+        "Zgodność regulacyjna jako warunek konieczny przed wejściem na rynek medyczny"
+      ],
+      "constraints": [
+        "Budżet na rozwój i marketing ograniczony do fazy startowej",
+        "Harmonogram wdrożenia wymuszający priorytetyzację funkcji MVP nad pełnym zakresem",
+        "Wymogi prawne RODO i przepisy branżowe (np. ustawa o działalności leczniczej) jako twarde ograniczenia",
+        "Konieczność integracji z zewnętrznymi systemami płatności i kalendarzy specjalistów",
+        "Ograniczone zasoby zespołu technicznego w fazie początkowej"
+      ],
+      "tradeoffs": [
+        "Elastyczność anulowania dla użytkowników vs. ochrona przychodów specjalistów i platformy",
+        "Szybkość wdrożenia MVP vs. kompletność funkcjonalna i jakość techniczna systemu",
+        "Niskie bariery wejścia dla specjalistów vs. kontrola jakości i wiarygodność platformy",
+        "Dopuszczanie wyjątków w konfliktach rezerwacji vs. spójność i przewidywalność systemu",
+        "Inwestycja w skalowalność infrastruktury od początku vs. optymalizacja kosztów w fazie startowej",
+        "Bogaty panel zarządzania grafikiem dla specjalistów vs. czas i koszt implementacji zaawansowanych funkcji"
+      ]
+    },
+    {
+      "stakeholder": "security",
+      "goals": [
+        "Zapewnienie poufności danych osobowych pacjentów i użytkowników systemu",
+        "Ochrona przed nieautoryzowanym dostępem do rezerwacji i grafików specjalistów",
+        "Zapewnienie integralności danych rezerwacji i zapobieganie manipulacjom",
+        "Zgodność z regulacjami RODO oraz branżowymi standardami ochrony danych medycznych",
+        "Monitorowanie i wykrywanie podejrzanych aktywności w systemie"
+      ],
+      "needs": [
+        "Silny mechanizm uwierzytelniania (MFA) dla wszystkich ról użytkowników",
+        "Granularna kontrola dostępu oparta na rolach (RBAC) z zasadą najmniejszych uprawnień",
+        "Szyfrowanie danych w spoczynku i podczas transmisji (TLS 1.2+, AES-256)",
+        "Pełne logowanie audytowe wszystkich operacji na rezerwacjach i grafikach",
+        "Mechanizmy wykrywania i zapobiegania atakom (rate limiting, CAPTCHA, anomaly detection)",
+        "Bezpieczne zarządzanie sesjami z automatycznym wygasaniem tokenów",
+        "Procedury reagowania na incydenty bezpieczeństwa",
+        "Regularne testy penetracyjne i audyty bezpieczeństwa"
+      ],
+      "concerns": [
+        "Ryzyko nieuprawnionego dostępu do danych medycznych i osobowych przez osoby trzecie",
+        "Możliwość eskalacji uprawnień przez złośliwego użytkownika zmieniającego swoją rolę",
+        "Ataki typu enumeration na terminy i dane specjalistów przez nieautoryzowanych użytkowników",
+        "Manipulacja rezerwacjami przez race condition przy braku odpowiednich blokad",
+        "Wyciek danych przez nieodpowiednio zabezpieczone API lub błędy autoryzacji (IDOR)",
+        "Brak ograniczeń czasowych anulowania może być wykorzystany do ataków DoS na grafiki specjalistów",
+        "Ryzyko związane ze skalowalnością - nowe instancje mogą wprowadzać luki bezpieczeństwa",
+        "Niewystarczające logowanie utrudniające forensykę po incydencie",
+        "Przechowywanie wrażliwych danych medycznych bez odpowiedniej klasyfikacji i ochrony"
+      ],
+      "priorities": [
+        "Implementacja RBAC jako fundament systemu bezpieczeństwa",
+        "Ochrona danych osobowych zgodna z RODO - pseudonimizacja i minimalizacja danych",
+        "Zabezpieczenie API przed atakami OWASP Top 10",
+        "Wdrożenie kompleksowego systemu logowania i monitorowania",
+        "Zapewnienie bezpiecznej obsługi wyjątków rezerwacji bez obejścia kontroli dostępu",
+        "Szyfrowanie end-to-end dla komunikacji zawierającej dane wrażliwe"
+      ],
+      "constraints": [
+        "Dane osobowe muszą być przechowywane zgodnie z RODO - prawo do bycia zapomnianym musi być zaimplementowane",
+        "Logi audytowe muszą być niemodyfikowalne i przechowywane przez wymagany okres retencji",
+        "Dostęp do danych pacjenta musi być ograniczony wyłącznie do uprawnionych specjalistów i samego pacjenta",
+        "Wszelkie wyjątki w procesie rezerwacji muszą być autoryzowane przez uprawnioną rolę i logowane",
+        "System musi implementować mechanizmy zapobiegające race condition przy jednoczesnych rezerwacjach",
+        "Dane medyczne nie mogą być przesyłane w niezaszyfrowanej formie",
+        "Sesje użytkowników muszą wygasać po określonym czasie nieaktywności"
+      ],
+      "tradeoffs": [
+        "Silniejsze uwierzytelnianie (MFA) zwiększa bezpieczeństwo kosztem wygody użytkownika",
+        "Szczegółowe logowanie audytowe zwiększa bezpieczeństwo, ale generuje koszty przechowywania i może wpływać na wydajność",
+        "Restrykcyjne ograniczenia czasowe anulowania chronią przed nadużyciami, ale mogą ograniczać elastyczność użytkowników",
+        "Granularna kontrola dostępu zwiększa bezpieczeństwo, ale komplikuje architekturę i zarządzanie uprawnieniami",
+        "Szyfrowanie danych poprawia bezpieczeństwo, ale może wpływać na wydajność zapytań do bazy danych",
+        "Obsługa wyjątków rezerwacji przez specjalistów zwiększa elastyczność systemu, ale rozszerza powierzchnię ataku wymagającą dodatkowych kontroli"
+      ]
+    },
+    {
+      "stakeholder": "ux",
+      "goals": [
+        "Zapewnienie intuicyjnego i przejrzystego interfejsu dla wszystkich ról użytkowników",
+        "Minimalizacja liczby kroków potrzebnych do dokonania rezerwacji",
+        "Zapewnienie dostępności systemu dla użytkowników z różnymi potrzebami (WCAG 2.1)",
+        "Stworzenie spójnego doświadczenia na różnych urządzeniach (desktop, mobile)",
+        "Ułatwienie onboardingu nowych użytkowników i specjalistów"
+      ],
+      "needs": [
+        "Jasny i czytelny widok dostępnych terminów z filtrowaniem i wyszukiwaniem",
+        "Natychmiastowe potwierdzenia i powiadomienia o statusie rezerwacji",
+        "Przejrzyste komunikaty błędów przy konfliktach rezerwacji",
+        "Prosty proces anulowania wizyty z jasnym wskazaniem ograniczeń czasowych",
+        "Intuicyjny panel zarządzania grafikiem dla specjalistów",
+        "Widoczne rozróżnienie ról użytkowników w interfejsie",
+        "Responsywny design dostosowany do urządzeń mobilnych"
+      ],
+      "concerns": [
+        "Ryzyko dezorientacji użytkownika przy skomplikowanych regułach anulowania z ograniczeniami czasowymi",
+        "Brak jasnej komunikacji o wyjątkach w polityce rezerwacji może prowadzić do frustracji",
+        "Modyfikacja grafiku przez specjalistę dla istniejących rezerwacji może zaskoczyć użytkowników bez odpowiednich powiadomień",
+        "Złożoność systemu ról może prowadzić do niespójnych doświadczeń użytkownika",
+        "Ryzyko przeładowania informacjami na ekranie rezerwacji",
+        "Brak wsparcia dla użytkowników starszych lub mniej technicznych",
+        "Niejasne komunikaty o konfliktach rezerwacji mogą zniechęcać do korzystania z systemu"
+      ],
+      "priorities": [
+        "Prostota i szybkość procesu rezerwacji (maksymalnie 3 kroki)",
+        "Jasna komunikacja statusów rezerwacji i powiadomień w czasie rzeczywistym",
+        "Czytelne informowanie o zasadach anulowania przed dokonaniem rezerwacji",
+        "Dostępność (accessibility) jako wymóg, nie opcja",
+        "Spójność wizualna i terminologiczna w całym systemie",
+        "Intuicyjny onboarding z przewodnikiem dla nowych użytkowników"
+      ],
+      "constraints": [
+        "Interfejs musi być zgodny ze standardami WCAG 2.1 poziom AA",
+        "Czas ładowania kluczowych widoków nie powinien przekraczać 3 sekund",
+        "System musi działać poprawnie na najpopularniejszych przeglądarkach i urządzeniach mobilnych",
+        "Komunikaty o błędach i ograniczeniach muszą być zrozumiałe dla niespecjalistów",
+        "Zmiany w grafiku specjalisty muszą być natychmiast widoczne dla użytkowników"
+      ],
+      "tradeoffs": [
+        "Bogactwo funkcji vs prostota interfejsu - więcej opcji może przytłoczyć użytkownika",
+        "Elastyczność wyjątków w rezerwacjach vs przewidywalność doświadczenia użytkownika",
+        "Szczegółowość informacji o dostępności vs czytelność widoku kalendarza",
+        "Natychmiastowe powiadomienia o zmianach grafiku vs ryzyko nadmiaru notyfikacji",
+        "Personalizacja interfejsu dla różnych ról vs spójność i łatwość utrzymania systemu"
+      ]
+    },
+    {
+      "stakeholder": "qa",
+      "goals": [
+        "Zapewnienie pełnej testowalności wszystkich scenariuszy rezerwacji i anulowania wizyt",
+        "Zdefiniowanie jednoznacznych kryteriów akceptacji dla każdej funkcjonalności systemu",
+        "Wykrycie i udokumentowanie wszystkich przypadków brzegowych związanych z konfliktami rezerwacji",
+        "Zapewnienie regresyjnej stabilności systemu przy modyfikacjach grafiku przez specjalistów",
+        "Weryfikacja poprawności obsługi ról użytkowników w każdym scenariuszu"
+      ],
+      "needs": [
+        "Precyzyjne definicje reguł biznesowych dotyczących wyjątków od konfliktów rezerwacji",
+        "Jasno określone limity czasowe dla anulowania wizyt wraz z przypadkami brzegowymi (np. dokładnie na granicy czasu)",
+        "Środowisko testowe odwzorowujące produkcję z możliwością symulacji równoczesnych rezerwacji",
+        "Mechanizmy obserwowalności: logi, metryki, alerty umożliwiające diagnozowanie błędów",
+        "Dostęp do historii zmian grafiku specjalisty dla celów audytu i testów regresyjnych",
+        "Narzędzia do testów obciążeniowych symulujących wielu użytkowników rezerwujących jednocześnie",
+        "Dokumentacja wszystkich dozwolonych wyjątków od standardowych reguł rezerwacji"
+      ],
+      "concerns": [
+        "Race condition przy jednoczesnej rezerwacji tego samego terminu przez wielu użytkowników",
+        "Nieokreślone zachowanie systemu w przypadku modyfikacji grafiku dla już potwierdzonych rezerwacji",
+        "Brak jednoznacznych kryteriów dla 'uzasadnionych przypadków' anulowania wizyty - trudność w testowaniu",
+        "Ryzyko regresu przy skalowaniu systemu - nowe instancje mogą wprowadzać niespójności danych",
+        "Brak obserwowalności w przypadku cichych błędów (np. rezerwacja pozornie potwierdzona, ale niezapisana)",
+        "Trudność w testowaniu scenariuszy granicznych czasowych (np. anulowanie dokładnie w ostatniej chwili)",
+        "Niespójność danych przy awarii w trakcie transakcji rezerwacji lub anulowania",
+        "Brak jasnych reguł priorytetu ról - co się dzieje gdy specjalista i użytkownik działają jednocześnie na tej samej rezerwacji"
+      ],
+      "priorities": [
+        "Zdefiniowanie i przetestowanie scenariuszy konfliktów rezerwacji jako najwyższy priorytet",
+        "Testy integracyjne pokrywające wszystkie kombinacje ról użytkowników",
+        "Automatyzacja testów regresyjnych dla krytycznych ścieżek rezerwacji i anulowania",
+        "Testy wydajnościowe i obciążeniowe dla scenariuszy skalowalności",
+        "Weryfikacja mechanizmów powiadomień przy zmianach grafiku przez specjalistę",
+        "Testy bezpieczeństwa sprawdzające izolację uprawnień między rolami"
+      ],
+      "constraints": [
+        "Brak formalnej specyfikacji wyjątków od reguł konfliktów utrudnia tworzenie testów akceptacyjnych",
+        "Środowisko testowe musi obsługiwać symulację czasu dla testów limitów czasowych anulowania",
+        "Testy nie mogą naruszać danych produkcyjnych przy testach na środowisku zbliżonym do produkcji",
+        "Ograniczone zasoby do manualnego testowania wszystkich kombinacji scenariuszy przy wielu rolach",
+        "Zmiany w regułach biznesowych wymagają natychmiastowej aktualizacji zestawów testów"
+      ],
+      "tradeoffs": [
+        "Dopuszczenie wyjątków od konfliktów rezerwacji znacząco zwiększa złożoność testów i ryzyko regresji",
+        "Elastyczność anulowania dla użytkownika vs. przewidywalność systemu - trudniejsze do przetestowania graniczne przypadki",
+        "Skalowalność systemu vs. spójność danych - więcej instancji oznacza więcej scenariuszy race condition do przetestowania",
+        "Bogata obserwowalność systemu ułatwia diagnostykę, ale wymaga dodatkowych zasobów na utrzymanie i testowanie samych mechanizmów monitoringu",
+        "Możliwość modyfikacji grafiku przez specjalistę dla istniejących rezerwacji zwiększa elastyczność, ale wymaga rozbudowanych testów scenariuszy kompensacyjnych"
+      ]
+    }
+  ],
+  "traceability": {
+    "by_requirement": {
+      "FR3": [
+        "security: mechanizm blokad eliminuje race condition (OWASP)",
+        "qa: wymaga środowiska symulacji równoczesnych rezerwacji",
+        "business: chroni niezawodność jako fundament wartości platformy"
+      ],
+      "FR5": [
+        "business: okno anulowania chroni przychody specjalistów",
+        "ux: zasady muszą być zrozumiałe przed rezerwacją",
+        "qa: granica okna czasowego to krytyczny przypadek brzegowy"
+      ],
+      "FR7": [
+        "security: MFA obowiązkowe dla Specialist/Administrator",
+        "ux: MFA zwiększa bezpieczeństwo kosztem wygody użytkownika",
+        "business: sesje wygasające chronią dane medyczne"
+      ],
+      "FR18": [
+        "qa: brak formalnej specyfikacji wyjątków uniemożliwia testy akceptacyjne",
+        "business: konfigurowalne reguły bez wdrożenia kodu przyspiesza MVP"
+      ],
+      "NFR4": [
+        "security: blokada max 5s zapobiega DoS na grafiki specjalistów",
+        "qa: timeout blokady to przypadek brzegowy wymagający testów"
+      ]
+    },
+    "gaps": [
+      "business: brak wymagania dotyczącego strategii cold-start (pozyskiwanie pierwszych specjalistów i pacjentów)",
+      "qa: brak zdefiniowanych kryteriów akceptacji dla 'uzasadnionych przypadków' anulowania poza oknem czasowym",
+      "security: brak wymagania dotyczącego procedury reagowania na incydenty bezpieczeństwa (incident response plan)",
+      "ux: brak wymagania wsparcia dla użytkowników starszych lub mniej technicznych (np. uproszczony tryb interfejsu)",
+      "business: brak SLA dla integracji z systemami zewnętrznymi (płatności, kalendarze) przy ich awarii"
+    ],
+    "conflicts": [
+      "FR7 vs US2/UX: obowiązkowe MFA dla Specialist zwiększa bezpieczeństwo, ale wydłuża proces logowania sprzeczny z celem minimalizacji kroków",
+      "FR5 vs US3/business: restrykcyjne okno anulowania chroni przychody, ale ogranicza elastyczność pacjenta i może obniżać retencję użytkowników",
+      "FR4 vs QA: dopuszczenie wyjątków od konfliktów rezerwacji przez Administratora znacząco zwiększa złożoność testów i ryzyko regresji",
+      "NFR7 vs NFR8/business: retencja logów 5 lat generuje rosnące koszty infrastruktury sprzeczne z ograniczonym budżetem fazy startowej",
+      "FR16 vs business: inwestycja w skalowalność horyzontalną od początku zwiększa koszty startowe sprzeczne z priorytetem szybkiego MVP"
+    ]
+  },
+  "stakeholder_evaluations": [
+    {
+      "stakeholder": "business",
+      "satisfaction_score": 0.88,
+      "satisfied_goals": [
+        "Maksymalizacja przychodów poprzez wysokie wykorzystanie dostępnych terminów u specjalistów",
+        "Budowanie lojalności użytkowników i specjalistów poprzez niezawodność systemu",
+        "Skalowanie platformy na nowe rynki i specjalizacje bez proporcjonalnego wzrostu kosztów",
+        "Zapewnienie zgodności z regulacjami prawnymi (RODO, przepisy medyczne) minimalizując ryzyko prawne"
+      ],
+      "unsatisfied_goals": [
+        "Szybkie wejście na rynek i zdobycie bazy użytkowników przed konkurencją"
+      ],
+      "comments": "Wymagania bardzo dobrze pokrywają cele biznesowe: FR10 adresuje monetyzację i integrację płatności, FR11 i US12 zapewniają panel KPI, FR5 chroni przychody przez politykę anulowania, FR16 i NFR3 gwarantują skalowalność, FR9 i NFR8 zapewniają zgodność z RODO. Problem cold start i szybkość MVP nie są explicite zaadresowane - brak wymagań dotyczących strategii pozyskiwania użytkowników, uproszczonego trybu MVP ani priorytetyzacji funkcji pod kątem time-to-market. Zakres wymagań jest bardzo szeroki (20 FR, 20 NFR), co może opóźnić wdrożenie i zwiększyć koszty fazy startowej, co stoi w sprzeczności z ograniczeniami budżetowymi i harmonogramem."
+    },
+    {
+      "stakeholder": "security",
+      "satisfaction_score": 0.92,
+      "satisfied_goals": [
+        "Zapewnienie poufności danych osobowych pacjentów i użytkowników systemu - FR9, NFR5, NFR20 pokrywają szyfrowanie AES-256/TLS i pseudonimizację",
+        "Ochrona przed nieautoryzowanym dostępem do rezerwacji i grafików specjalistów - FR7, NFR6 implementują RBAC i MFA",
+        "Zapewnienie integralności danych rezerwacji i zapobieganie manipulacjom - FR3, FR4, NFR4 zapewniają blokady transakcyjne i log audytowy",
+        "Zgodność z regulacjami RODO oraz branżowymi standardami ochrony danych medycznych - FR9, NFR8 pokrywają RODO i prawo do bycia zapomnianym",
+        "Monitorowanie i wykrywanie podejrzanych aktywności w systemie - FR14, FR19, NFR12 implementują anomaly detection i monitoring"
+      ],
+      "unsatisfied_goals": [
+        "Brak explicite zdefiniowanych procedur reagowania na incydenty bezpieczeństwa (Incident Response Plan) - wymagania nie obejmują formalnego procesu IR",
+        "Ochrona przed atakami enumeration na publiczne API terminów (FR1 dopuszcza dostęp bez logowania bez wyraźnych ograniczeń anty-enumeration)"
+      ],
+      "comments": "Wymagania bardzo dobrze pokrywają cele interesariusza security. MFA (FR7), RBAC (NFR6), szyfrowanie (NFR5), niemodyfikowalne logi audytowe (FR8, NFR7), rate limiting i OWASP Top 10 (FR14), pseudonimizacja (NFR20), testy penetracyjne (NFR15) oraz retencja logów 5 lat (NFR7) są wszystkie uwzględnione. Drobne luki: brak formalnych procedur IR oraz potencjalne ryzyko enumeration przy publicznym przeglądaniu terminów bez logowania (FR1) nie jest w pełni zaadresowane mechanizmami anty-enumeration."
+    },
+    {
+      "stakeholder": "ux",
+      "satisfaction_score": 0.87,
+      "satisfied_goals": [
+        "Minimalizacja liczby kroków potrzebnych do dokonania rezerwacji (FR2, US2, AC2 - max 3 kroki)",
+        "Zapewnienie dostępności systemu dla użytkowników z różnymi potrzebami (FR13, NFR9 - WCAG 2.1 AA)",
+        "Stworzenie spójnego doświadczenia na różnych urządzeniach (FR13, NFR9 - responsywność desktop/mobile)",
+        "Ułatwienie onboardingu nowych użytkowników i specjalistów (FR15, US15, AC14 - interaktywny przewodnik)",
+        "Jasny i czytelny widok dostępnych terminów z filtrowaniem (FR1, US1, AC1)",
+        "Natychmiastowe potwierdzenia i powiadomienia o statusie rezerwacji (FR2, FR12, US2, AC2)",
+        "Przejrzyste komunikaty błędów przy konfliktach rezerwacji (US18, AC17 - lista alternatywnych terminów)",
+        "Prosty proces anulowania wizyty z jasnym wskazaniem ograniczeń czasowych (FR5, US3, AC3)",
+        "Intuicyjny panel zarządzania grafikiem dla specjalistów (US6, AC6)",
+        "Responsywny design dostosowany do urządzeń mobilnych (FR13, NFR9)",
+        "Zarządzanie preferencjami powiadomień (FR12, US16, AC15)",
+        "Powiadomienia o zmianach grafiku specjalisty (FR6, US4, AC4)"
+      ],
+      "unsatisfied_goals": [
+        "Brak wymagania dotyczącego wsparcia dla użytkowników starszych lub mniej technicznych (np. uproszczony tryb, pomoc kontekstowa, większe fonty jako opcja)",
+        "Brak explicite zdefiniowanego wymagania dotyczącego spójności wizualnej i terminologicznej w całym systemie (design system / style guide)",
+        "Ryzyko przeładowania informacjami na ekranie rezerwacji nie jest adresowane przez dedykowane wymaganie dotyczące progressive disclosure",
+        "Brak wymagania dotyczącego obsługi błędów sieciowych i stanów offline z przyjaznym komunikatem dla użytkownika"
+      ],
+      "comments": "Wymagania bardzo dobrze pokrywają główne cele UX: 3-krokowa rezerwacja, WCAG 2.1 AA, responsywność, onboarding, powiadomienia, czytelne komunikaty błędów i alternatywne terminy przy konflikcie. Brakuje jednak wymagań dotyczących wsparcia dla mniej technicznych użytkowników, spójnego design systemu oraz obsługi stanów błędów sieciowych. Kompromis MFA vs wygoda jest zaakceptowany przez opcjonalne MFA dla pacjentów. Ogólna ocena wysoka."
+    },
+    {
+      "stakeholder": "qa",
+      "satisfaction_score": 0.87,
+      "satisfied_goals": [
+        "Zapewnienie pełnej testowalności wszystkich scenariuszy rezerwacji i anulowania wizyt",
+        "Zdefiniowanie jednoznacznych kryteriów akceptacji dla każdej funkcjonalności systemu",
+        "Wykrycie i udokumentowanie wszystkich przypadków brzegowych związanych z konfliktami rezerwacji",
+        "Zapewnienie regresyjnej stabilności systemu przy modyfikacjach grafiku przez specjalistów",
+        "Weryfikacja poprawności obsługi ról użytkowników w każdym scenariuszu"
+      ],
+      "unsatisfied_goals": [
+        "Brak jednoznacznych kryteriów dla 'uzasadnionych przypadków' anulowania - FR5 i AC3 nadal nie definiują precyzyjnie warunków brzegowych (np. dokładnie na granicy okna czasowego)",
+        "Brak explicite zdefiniowanego zachowania systemu przy jednoczesnej modyfikacji rezerwacji przez Specjalistę i Pacjenta - reguły priorytetu ról nieopisane",
+        "AC17 wymaga propozycji 3 alternatywnych terminów, ale brak kryterium co gdy dostępnych jest mniej niż 3"
+      ],
+      "comments": "Wymagania bardzo dobrze adresują potrzeby QA: FR18 definiuje konfigurowalne reguły biznesowe, FR19 zapewnia obserwowalność, FR20 i NFR16 dostarczają środowisko testowe z symulacją czasu i izolacją danych. AC pokrywają kluczowe scenariusze. NFR14 wymaga 80% pokrycia testami automatycznymi, NFR4 precyzuje limity blokad transakcyjnych. Główne luki: brak precyzyjnych kryteriów dla przypadków granicznych okna anulowania (np. żądanie złożone dokładnie w ostatniej sekundzie), brak specyfikacji zachowania przy równoczesnych operacjach różnych ról na tej samej rezerwacji oraz brak fallback dla AC17 gdy dostępnych jest mniej niż 3 alternatywy."
+    }
+  ]
+}

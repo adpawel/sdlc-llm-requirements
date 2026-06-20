@@ -1,0 +1,12 @@
+Opis systemu: ${system_description}
+Wygenerowane FR: ${r1_json}
+
+Wygeneruj TYLKO ten fragment JSON z dokładnie taką strukturą:
+{
+  "non_functional_requirements": [
+    {"id": "NFR1", "description": "Treść wymagania."}
+  ],
+  "user_stories": [
+    {"id": "US1", "description": "Jako X chcę Y, aby Z."}
+  ]
+}

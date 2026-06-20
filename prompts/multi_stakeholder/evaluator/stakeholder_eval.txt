@@ -1,0 +1,27 @@
+Opis systemu:
+${system_description}
+
+Twoj profil interesariusza:
+${stakeholder_profile}
+
+Artefakt wymagan:
+${artifact_json}
+
+Instrukcje:
+- Ocen spelnienie wymagania dla kazdego elementu "weighted_concerns".
+- Uzyj wag do wyliczenia "weighted_satisfaction" (0-1).
+- Nie ujawniaj wag wprost, tylko wynik i statusy.
+- Statusy tylko: satisfied, partially_satisfied, unsatisfied.
+
+Zwracaj WYLACZNIE ten obiekt JSON:
+{
+  "stakeholder": "${stakeholder_name}",
+  "satisfaction_score": 0.0,
+  "weighted_satisfaction": 0.0,
+  "satisfied_goals": ["goal1"],
+  "unsatisfied_goals": ["goal2"],
+  "per_concern": [
+    {"concern": "MFA", "status": "partially_satisfied", "rationale": "krotkie uzasadnienie"}
+  ],
+  "comments": "krotkie uzasadnienie"
+}

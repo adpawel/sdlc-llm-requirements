@@ -1,0 +1,387 @@
+{
+  "system_goal": "System ma umozliwiac szybka i skalowalna rezerwacje wizyt u specjalistow przy minimalnym tarciu dla uzytkownika, z obsluga anulowania, zarzadzania grafikiem i podstawowej monetyzacji. MVP powinno priorytetyzowac prostote procesu i szybkie wdrozenie, ale jednoczesnie zapewnic rozliczalnosc operacji, kontrole dostepu oraz deterministyczne zasady konfliktow i wyjatkow.",
+  "roles": [
+    {
+      "name": "User",
+      "permissions": [
+        "register_account",
+        "login",
+        "manage_own_profile",
+        "browse_available_slots",
+        "create_own_booking",
+        "view_own_bookings",
+        "cancel_own_booking_within_policy",
+        "submit_cancellation_reason_when_required"
+      ]
+    },
+    {
+      "name": "Specialist",
+      "permissions": [
+        "login_with_mfa",
+        "manage_own_profile",
+        "manage_own_schedule",
+        "view_own_bookings",
+        "modify_schedule_affecting_own_bookings",
+        "request_or_apply_allowed_booking_conflict_exception_if_authorized",
+        "view_minimum_required_user_data_for_own_appointments"
+      ]
+    },
+    {
+      "name": "Administrator",
+      "permissions": [
+        "login_with_mfa",
+        "manage_users_and_roles",
+        "configure_booking_and_cancellation_policies",
+        "configure_allowed_conflict_exceptions",
+        "view_audit_logs",
+        "view_business_reports",
+        "manage_system_settings",
+        "perform_privileged_booking_or_schedule_interventions_with_audit"
+      ]
+    }
+  ],
+  "functional_requirements": [
+    {
+      "id": "FR1",
+      "description": "System musi obslugiwac trzy role MVP: User, Specialist i Administrator, z kontrola dostepu oparta o role oraz ograniczeniem widocznosci danych do wlasnych rezerwacji, wlasnego grafiku lub jawnie autoryzowanych zasobow administracyjnych."
+    },
+    {
+      "id": "FR2",
+      "description": "System musi umozliwiac szybka rejestracje i logowanie uzytkownika przy minimalnym zestawie wymaganych danych dla User, przy czym Specialist i Administrator musza korzystac z MFA podczas logowania."
+    },
+    {
+      "id": "FR3",
+      "description": "System musi prezentowac liste najblizszych dostepnych terminow specjalisty w czytelnej formie mobilnej i desktopowej, bez koniecznosci przechodzenia przez rozbudowane filtry lub formularze."
+    },
+    {
+      "id": "FR4",
+      "description": "User musi moc utworzyc rezerwacje wybranego terminu w minimalnej liczbie krokow, a system musi natychmiast zwrocic jednoznaczny wynik operacji: potwierdzenie albo deterministyczny blad."
+    },
+    {
+      "id": "FR5",
+      "description": "System musi zapobiegac standardowym konfliktom rezerwacji tego samego terminu poprzez atomowa walidacje i zapis, tak aby rownolegle proby rezerwacji nie prowadzily do niespojnosci danych."
+    },
+    {
+      "id": "FR6",
+      "description": "Wyjatki od reguly braku konfliktu rezerwacji musza byc jawnie konfigurowalne przez Administratora, domyslnie wylaczone, wymagac dodatkowej autoryzacji dla operacji uprzywilejowanej oraz pozostawiac slad audytowy z powodem i tozsamoscia wykonawcy."
+    },
+    {
+      "id": "FR7",
+      "description": "System musi definiowac jednoznaczne stany rezerwacji co najmniej: booked, cancelled_by_user, cancelled_by_specialist, reschedule_required oraz completed, wraz z dozwolonymi przejsciami miedzy stanami."
+    },
+    {
+      "id": "FR8",
+      "description": "User musi moc anulowac wlasna rezerwacje tylko zgodnie z konfigurowalna polityka czasowa anulowania; system przed rozpoczeciem akcji musi jasno pokazac, czy anulowanie jest dozwolone, ograniczone lub wymaga uzasadnienia."
+    },
+    {
+      "id": "FR9",
+      "description": "Jesli polityka anulowania tego wymaga, system musi pobrac od User uzasadnienie anulowania w postaci krotkiego powodu; dla przypadkow niewymagajacych uzasadnienia proces anulowania ma pozostac uproszczony."
+    },
+    {
+      "id": "FR10",
+      "description": "Specialist musi moc zarzadzac swoim grafikiem przez dodawanie, usuwanie i modyfikowanie slotow dostepnosci, przy czym zmiany dotyczace istniejacych rezerwacji musza byc walidowane i zapisywane jako operacje audytowalne."
+    },
+    {
+      "id": "FR11",
+      "description": "Gdy Specialist zmieni grafik w sposob naruszajacy istniejaca rezerwacje, system musi oznaczyc taka rezerwacje stanem reschedule_required albo cancelled_by_specialist zgodnie z konfiguracja polityki oraz natychmiast poinformowac o tym User."
+    },
+    {
+      "id": "FR12",
+      "description": "System musi wyswietlac krotkie i jednoznaczne komunikaty o dostepnosci terminow, konflikcie, ograniczeniu anulowania i skutkach zmiany grafiku, bez ukrytej logiki i bez technicznego zargonu na glownych ekranach."
+    },
+    {
+      "id": "FR13",
+      "description": "Wszystkie operacje zmieniajace stan systemu, w tym logowanie, rezerwacja, anulowanie, zmiana grafiku, nadanie uprawnien i uzycie wyjatku konfliktu, musza byc zapisywane w niemodyfikowalnym logu audytowym z identyfikatorem aktora, czasem i wynikiem operacji."
+    },
+    {
+      "id": "FR14",
+      "description": "API systemu musi byc wersjonowane i zwracac spojny model odpowiedzi oraz deterministyczne kody bledow dla walidacji, autoryzacji, konfliktu terminu i naruszenia polityki anulowania."
+    },
+    {
+      "id": "FR15",
+      "description": "System musi stosowac szyfrowanie danych w transmisji i w spoczynku oraz ograniczac zakres danych osobowych widocznych dla Specialist do minimum niezbednego do realizacji wizyty."
+    },
+    {
+      "id": "FR16",
+      "description": "System musi zapewniac podstawowe zabezpieczenia przed naduzyciami: silna polityke hasel, rate limiting logowania i operacji wrazliwych oraz wykrywanie anomalii dla masowych anulowan, masowych zmian grafiku i nietypowego uzycia wyjatkow konfliktu."
+    },
+    {
+      "id": "FR17",
+      "description": "Administrator musi moc konfigurowac bez zmian kodu co najmniej: okno czasowe anulowania, wymagalnosc uzasadnienia anulowania, zasady reakcji na zmiane grafiku oraz katalog dopuszczalnych wyjatkow od konfliktow rezerwacji."
+    },
+    {
+      "id": "FR18",
+      "description": "System musi dostarczac podstawowe raporty biznesowe obejmujace liczbe rezerwacji, anulacji, wykorzystanie grafikow specjalistow oraz dane potrzebne do rozliczen oplat, prowizji lub abonamentow."
+    },
+    {
+      "id": "FR19",
+      "description": "Architektura rozwiazania musi wspierac skalowanie poziome warstwy aplikacyjnej i obsluge wielu specjalistow oraz uzytkownikow bez zmiany modelu funkcjonalnego MVP."
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "id": "NFR1",
+      "description": "System musi zapewniac dostepnosc miesieczna na poziomie co najmniej 99.5% dla krytycznych funkcji MVP: przeglad terminow, rezerwacja, anulowanie i zarzadzanie grafikiem."
+    },
+    {
+      "id": "NFR2",
+      "description": "Dla 95 percentyla czas odpowiedzi API dla odczytu listy terminow nie moze przekraczac 1000 ms, a dla operacji rezerwacji, anulowania i zmiany grafiku 2000 ms przy obciazeniu odpowiadajacym planowanemu ruchowi MVP."
+    },
+    {
+      "id": "NFR3",
+      "description": "System musi byc projektowany do skalowania poziomego warstwy aplikacyjnej bez przestoju wdrozeniowego i bez zmiany kontraktow API dla klientow."
+    },
+    {
+      "id": "NFR4",
+      "description": "Operacje rezerwacji tego samego terminu wykonywane wspolbieznie musza gwarantowac spojny wynik i brak podwojnej rezerwacji poza jawnie skonfigurowanymi wyjatkami."
+    },
+    {
+      "id": "NFR5",
+      "description": "Wszystkie operacje zmieniajace stan systemu musza byc rozliczalne, zapisywane w niemodyfikowalnym logu audytowym i mozliwe do korelacji po identyfikatorze uzytkownika, roli, czasie i wyniku operacji."
+    },
+    {
+      "id": "NFR6",
+      "description": "Logi audytowe musza byc przechowywane przez minimum 12 miesiecy oraz zabezpieczone przed edycja i usunieciem przez zwyklych operatorow systemu."
+    },
+    {
+      "id": "NFR7",
+      "description": "System musi stosowac szyfrowanie danych w transmisji z uzyciem aktualnie wspieranych protokolow TLS oraz szyfrowanie danych w spoczynku dla baz danych i kopii zapasowych."
+    },
+    {
+      "id": "NFR8",
+      "description": "Dostep do funkcji i danych musi byc egzekwowany przez RBAC z zasada minimalnych uprawnien oraz kontrola dostepu na poziomie zasobu dla rezerwacji, grafikow i danych osobowych."
+    },
+    {
+      "id": "NFR9",
+      "description": "MFA musi byc obowiazkowe dla Specialist i Administrator oraz wymagane dla wszystkich operacji uprzywilejowanych lub wysokiego ryzyka, nawet jesli zwieksza tarcie procesu."
+    },
+    {
+      "id": "NFR10",
+      "description": "API musi byc wersjonowane, utrzymywac kompatybilnosc wsteczna w ramach wersji oraz zwracac deterministyczne kody bledow i odpowiedzi zgodne z udokumentowanym kontraktem."
+    },
+    {
+      "id": "NFR11",
+      "description": "Wymagania biznesowe dotyczace konfliktow rezerwacji, anulowania i zmian grafiku musza byc sformalizowane jako jednoznaczne reguly konfiguracyjne bez niejawnych wyjatkow."
+    },
+    {
+      "id": "NFR12",
+      "description": "Krytyczne scenariusze MVP: logowanie, przeglad terminow, rezerwacja, anulowanie, zmiana grafiku i autoryzacja musza byc pokryte testami automatycznymi przed wydaniem produkcyjnym."
+    },
+    {
+      "id": "NFR13",
+      "description": "System musi umozliwiac testowanie polityk czasowych poprzez kontrolowany czas systemowy lub mechanizm zegara testowego, aby zapewnic powtarzalnosc testow anulowania i zmian grafiku."
+    },
+    {
+      "id": "NFR14",
+      "description": "Interfejs uzytkownika musi byc responsywny i w pelni uzywalny na urzadzeniach mobilnych oraz desktopowych dla wszystkich kluczowych przeplywow MVP."
+    },
+    {
+      "id": "NFR15",
+      "description": "Komunikaty systemowe dla uzytkownika koncowego musza byc krotkie, jednoznaczne, pozbawione zargonu technicznego i spojne miedzy kanalami oraz rolami."
+    },
+    {
+      "id": "NFR16",
+      "description": "System powinien spelniac podstawowe wymagania dostepnosci cyfrowej na poziomie co najmniej WCAG 2.1 AA dla kluczowych ekranow rezerwacji, anulowania i zarzadzania grafikiem."
+    },
+    {
+      "id": "NFR17",
+      "description": "System musi posiadac monitoring techniczny i biznesowy obejmujacy co najmniej bledy aplikacyjne, czasy odpowiedzi, skutecznosc rezerwacji, anulacje oraz anomalie bezpieczenstwa."
+    },
+    {
+      "id": "NFR18",
+      "description": "Rozwiazanie MVP powinno preferowac uslugi zarzadzane i gotowe komponenty tam, gdzie nie obniza to wymagan bezpieczenstwa, audytowalnosci i skalowalnosci."
+    }
+  ],
+  "user_stories": [
+    {
+      "id": "US1",
+      "description": "Jako User chce szybko zalozyc konto przy minimalnej liczbie wymaganych danych aby moc od razu zarezerwowac wizyte."
+    },
+    {
+      "id": "US2",
+      "description": "Jako User chce zobaczyc najblizsze dostepne terminy specjalisty bez zbednych filtrow aby szybko podjac decyzje o rezerwacji."
+    },
+    {
+      "id": "US3",
+      "description": "Jako User chce zarezerwowac wybrany termin w kilku prostych krokach aby ograniczyc ryzyko porzucenia procesu."
+    },
+    {
+      "id": "US4",
+      "description": "Jako User chce natychmiast otrzymac potwierdzenie lub jasny powod niepowodzenia rezerwacji aby wiedziec co dalej zrobic."
+    },
+    {
+      "id": "US5",
+      "description": "Jako User chce widziec swoje nadchodzace i anulowane rezerwacje aby latwo zarzadzac wizytami."
+    },
+    {
+      "id": "US6",
+      "description": "Jako User chce przed anulowaniem od razu wiedziec czy mieszcze sie w oknie czasowym oraz czy potrzebne jest uzasadnienie aby uniknac frustracji."
+    },
+    {
+      "id": "US7",
+      "description": "Jako User chce anulowac swoja rezerwacje prostym procesem aby szybko zwolnic termin gdy nie moge przyjsc."
+    },
+    {
+      "id": "US8",
+      "description": "Jako User chce otrzymac natychmiastowa informacje o zmianie grafiku specjalisty dotyczacej mojej wizyty aby wiedziec czy musze wybrac nowy termin."
+    },
+    {
+      "id": "US9",
+      "description": "Jako Specialist chce logowac sie z MFA aby bezpiecznie zarzadzac swoim grafikiem i rezerwacjami."
+    },
+    {
+      "id": "US10",
+      "description": "Jako Specialist chce dodawac i usuwac sloty dostepnosci w swoim grafiku aby kontrolowac kiedy przyjmuje wizyty."
+    },
+    {
+      "id": "US11",
+      "description": "Jako Specialist chce modyfikowac swoj grafik takze wtedy gdy istnieja juz rezerwacje aby odzwierciedlic realne zmiany dostepnosci."
+    },
+    {
+      "id": "US12",
+      "description": "Jako Specialist chce widziec tylko minimalny zakres danych potrzebnych do realizacji moich wizyt aby chronic prywatnosc uzytkownikow."
+    },
+    {
+      "id": "US13",
+      "description": "Jako Administrator chce konfigurowac polityke anulowania bez zmian kodu aby szybko dopasowywac zasady do potrzeb biznesowych."
+    },
+    {
+      "id": "US14",
+      "description": "Jako Administrator chce definiowac dopuszczalne wyjatki od konfliktow rezerwacji jako jawne reguly aby kontrolowac ich uzycie i ryzyko naduzyc."
+    },
+    {
+      "id": "US15",
+      "description": "Jako Administrator chce miec dostep do logow audytowych operacji krytycznych aby analizowac incydenty i rozliczac dzialania uzytkownikow."
+    },
+    {
+      "id": "US16",
+      "description": "Jako Administrator chce przegladac podstawowe raporty o rezerwacjach, anulacjach, oblozeniu grafikow i przychodach aby monitorowac wynik biznesowy MVP."
+    },
+    {
+      "id": "US17",
+      "description": "Jako Security Officer chce miec pewnosc ze kazda operacja uprzywilejowana jest dodatkowo autoryzowana i audytowana aby ograniczyc fraud oraz naduzycia."
+    },
+    {
+      "id": "US18",
+      "description": "Jako QA Engineer chce miec jednoznacznie zdefiniowane stany rezerwacji, przejscia oraz kody bledow aby moc automatyzowac testy regresji."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "Uzytkownik nie jest zalogowany i nie ma konta",
+      "when": "rozpoczyna rejestracje z procesu rezerwacji i podaje tylko wymagane minimum danych",
+      "then": "konto zostaje utworzone bez zbednych pol, uzytkownik zostaje zalogowany i moze od razu kontynuowac rezerwacje"
+    },
+    {
+      "id": "AC2",
+      "given": "Uzytkownik chce umowic wizyte u specjalisty",
+      "when": "otwiera widok dostepnych terminow specjalisty",
+      "then": "system pokazuje najblizsze dostepne terminy domyslnie bez wymagania dodatkowych filtrow"
+    },
+    {
+      "id": "AC3",
+      "given": "Uzytkownik przeglada dostepne terminy i wybral slot",
+      "when": "potwierdza rezerwacje w uproszczonym procesie",
+      "then": "system finalizuje rezerwacje w kilku prostych krokach bez wymagania danych niepotrzebnych do MVP"
+    },
+    {
+      "id": "AC4",
+      "given": "Uzytkownik probuje zarezerwowac termin",
+      "when": "operacja rezerwacji zostaje zakonczona",
+      "then": "system natychmiast zwraca jednoznaczny wynik: potwierdzenie rezerwacji albo jasny kod bledu i powod niepowodzenia"
+    },
+    {
+      "id": "AC5",
+      "given": "Uzytkownik ma rezerwacje w systemie",
+      "when": "otwiera liste swoich wizyt",
+      "then": "widzi co najmniej rezerwacje nadchodzace i anulowane wraz z ich aktualnym statusem"
+    },
+    {
+      "id": "AC6",
+      "given": "Uzytkownik otwiera szczegoly swojej rezerwacji mozliwej do anulowania lub poza oknem anulacji",
+      "when": "przechodzi do akcji anulowania",
+      "then": "system przed potwierdzeniem jasno pokazuje czy anulowanie jest dozwolone wedlug aktualnej polityki oraz czy wymagane jest uzasadnienie"
+    },
+    {
+      "id": "AC7",
+      "given": "Uzytkownik ma rezerwacje spelniajaca warunki anulowania albo wyjatek dopuszczony regulami",
+      "when": "potwierdza anulowanie i podaje uzasadnienie tylko jesli jest wymagane",
+      "then": "rezerwacja otrzymuje status anulowana, slot zostaje zwolniony zgodnie z regulami, a uzytkownik dostaje natychmiastowe potwierdzenie albo jednoznaczny powod odmowy"
+    },
+    {
+      "id": "AC8",
+      "given": "Specjalista zmienia grafik w sposob wplywajacy na istniejaca rezerwacje uzytkownika",
+      "when": "zmiana zostaje zapisana",
+      "then": "powiazany uzytkownik otrzymuje natychmiastowa informacje o zmianie dotyczacej jego wizyty oraz nowym statusie lub koniecznosci wyboru innego terminu"
+    },
+    {
+      "id": "AC9",
+      "given": "Specjalista chce uzyskac dostep do funkcji zarzadzania grafikiem lub rezerwacjami",
+      "when": "loguje sie do systemu",
+      "then": "dostep jest przyznawany dopiero po poprawnym uwierzytelnieniu haslem i MFA"
+    },
+    {
+      "id": "AC10",
+      "given": "Specjalista jest poprawnie uwierzytelniony",
+      "when": "dodaje lub usuwa sloty dostepnosci w swoim grafiku",
+      "then": "system zapisuje zmiany tylko dla jego grafiku i blokuje utworzenie niedozwolonych konfliktow poza jawnymi wyjatkami zdefiniowanymi przez administratora"
+    },
+    {
+      "id": "AC11",
+      "given": "Specjalista modyfikuje grafik, a na objetych slotach istnieja juz rezerwacje",
+      "when": "probuje zapisac zmiane",
+      "then": "system pozwala na zmiane tylko zgodnie z politykami i regulami wyjatkow, oznacza dotkniete rezerwacje odpowiednim stanem oraz uruchamia wymagane powiadomienia i audyt"
+    },
+    {
+      "id": "AC12",
+      "given": "Specjalista przeglada dane rezerwacji przypisanej do swojej wizyty",
+      "when": "otwiera szczegoly pacjenta potrzebne do realizacji wizyty",
+      "then": "widzi tylko minimalny zakres danych niezbednych operacyjnie, bez danych nadmiarowych"
+    },
+    {
+      "id": "AC13",
+      "given": "Administrator ma uprawnienia konfiguracyjne",
+      "when": "zmienia polityke anulowania, w tym okno czasowe i wymagalnosc uzasadnienia",
+      "then": "nowe zasady sa stosowane bez zmian kodu dla kolejnych operacji oraz sa wersjonowane i audytowane"
+    },
+    {
+      "id": "AC14",
+      "given": "Administrator ma uprawnienia do zarzadzania regulami biznesowymi",
+      "when": "definiuje lub modyfikuje jawne wyjatki od konfliktow rezerwacji",
+      "then": "system zapisuje reguly w sposob mozliwy do przegladu, egzekwuje je przy operacjach konfliktowych i audytuje ich uzycie"
+    },
+    {
+      "id": "AC15",
+      "given": "W systemie wykonywana jest operacja krytyczna lub uprzywilejowana, taka jak zmiana grafiku z istniejacymi rezerwacjami, zmiana polityki, definicja wyjatku albo dostep do raportow administracyjnych",
+      "when": "operacja jest zatwierdzana",
+      "then": "system wymaga dodatkowej autoryzacji dla roli uprzywilejowanej oraz zapisuje kompletny wpis audytowy z aktorem, czasem, zakresem zmiany i wynikiem"
+    },
+    {
+      "id": "AC16",
+      "given": "Administrator otwiera modul raportowy MVP",
+      "when": "wybiera zakres czasu",
+      "then": "system prezentuje podstawowe raporty obejmujace liczbe rezerwacji, anulacji, oblozenie grafikow oraz przychody"
+    },
+    {
+      "id": "AC17",
+      "given": "QA Engineer lub integracja kliencka korzysta z logiki rezerwacji",
+      "when": "wykonywana jest dowolna operacja zmieniajaca stan rezerwacji",
+      "then": "system stosuje jednoznacznie zdefiniowany model stanow, dozwolonych przejsc oraz stabilne kody bledow dla przypadkow sukcesu i porazki"
+    },
+    {
+      "id": "AC18",
+      "given": "Dwoch uzytkownikow lub procesy rownoczesnie probuja zarezerwowac ten sam slot",
+      "when": "obie operacje docieraja niemal jednoczesnie do finalizacji",
+      "then": "dokladnie jedna rezerwacja moze zostac potwierdzona, a pozostale otrzymuja jednoznaczny blad konfliktu bez niespojnego stanu danych"
+    }
+  ],
+  "metadata": {
+    "version": "llm",
+    "case_study": "appointment-booking",
+    "model_used": "gpt-5.4",
+    "prompt_log": "[SYSTEM]\nJestes Analitykiem Wymagan.\nNa podstawie wejsc interesariuszy opracuj najlepszy plan systemu.\nUwzglednij potencjalne konflikty i uzasadnij kompromisy w doborze wymagan.\nOdpowiadaj WYLACZNIE poprawnym JSON. Bez Markdown i bez komentarzy.\n\n[STAKEHOLDERS]\n[{\"stakeholder\": \"business\", \"goals\": [\"Uruchomic MVP systemu rezerwacji jak najszybciej, aby zaczac generowac przychody i walidowac popyt.\", \"Maksymalizowac ROI przez ograniczenie kosztow budowy, utrzymania i wsparcia operacyjnego.\", \"Zminimalizowac tarcie w rejestracji, rezerwacji i anulowaniu wizyt, aby zwiekszyc konwersje.\", \"Zapewnic szybkie skalowanie liczby uzytkownikow i specjalistow bez proporcjonalnego wzrostu kosztow.\", \"Wprowadzic podstawy monetyzacji, takie jak oplaty za rezerwacje, abonamenty specjalistow lub prowizje.\"], \"needs\": [\"Prosty i krotki przeplyw rejestracji z minimalna liczba krokow i danych wymaganych od uzytkownika.\", \"Mozliwosc szybkiego wdrozenia podstawowych rol uzytkownikow bez rozbudowanego modelu uprawnien na start.\", \"Elastyczne, ale nieskomplikowane zasady rezerwacji i anulowania, ktore ograniczaja obsluge manualna.\", \"Tania architektura skalowalna poziomo, preferencyjnie oparta o gotowe komponenty i uslugi zarzadzane.\", \"Podstawowe raporty biznesowe o liczbie rezerwacji, anulacjach, oblozeniu grafikow i przychodach.\", \"Mozliwosc latwego uruchamiania eksperymentow cenowych i produktowych bez duzych zmian systemowych.\", \"Obsluga wyjatkow od konfliktow rezerwacji tylko tam, gdzie daje to wartosc biznesowa lub operacyjna.\"], \"concerns\": [\"Zbyt rozbudowane zabezpieczenia i procesy weryfikacyjne moga obnizyc konwersje i opoznic wdrozenie.\", \"Nadmiernie restrykcyjne reguly anulowania lub rezerwacji moga zmniejszyc liczbe transakcji i retencje.\", \"Rozbudowane testy, formalizmy jakosciowe i dlugi proces akceptacji moga wydluzyc time-to-market.\", \"Zbyt precyzyjne i zlozone komunikaty oraz formularze moga zwiekszyc porzucenia procesu.\", \"Zaawansowana logika harmonogramowania i obslugi wyjatkow moze istotnie podniesc koszt implementacji.\", \"Nadmierne wymagania compliance na starcie moga podniesc koszt wejscia bez proporcjonalnego zwrotu.\", \"Modyfikacje grafikow przez specjalistow nie powinny generowac kosztownych procesow rekompensat i supportu.\"], \"priorities\": [\"Najpierw wdrozyc podstawowy przeplyw: przeglad terminow, rezerwacja, anulowanie, zarzadzanie grafikiem specjalisty.\", \"Ograniczyc zakres MVP do funkcji o najwyzszym wplywie na przychod i adopcje.\", \"Preferowac rozwiazania gotowe lub uproszczone zamiast budowy zlozonych mechanizmow od zera.\", \"Dopuscic kontrolowane wyjatki od sztywnych regul konfliktow rezerwacji, jesli poprawia to wykorzystanie zasobow.\", \"Wprowadzic podstawowe analityki i raportowanie od pierwszej wersji produktu.\"], \"constraints\": [\"Ograniczony budzet na development, QA, security i utrzymanie infrastruktury.\", \"Presja na szybkie wejscie na rynek i krotkie iteracje wydawnicze.\", \"Brak akceptacji dla dlugiego etapu analizy przed dostarczeniem MVP.\", \"Preferencja dla minimalnego zestawu integracji zewnetrznych na start.\", \"System musi byc skalowalny, ale bez kosztownych inwestycji infrastrukturalnych przed uzyskaniem trakcji.\"], \"tradeoffs\": [\"Akceptacja nizszego poziomu zabezpieczen poczatkowych w zamian za wyzsza konwersje i szybszy launch.\", \"Akceptacja ograniczonego pokrycia testami automatycznymi w MVP w zamian za krotszy czas dostarczenia.\", \"Akceptacja mniej precyzyjnych komunikatow i prostszych formularzy w zamian za mniejsze tarcie uzytkownika.\", \"Akceptacja uproszczonych zasad anulowania i konfliktow rezerwacji w zamian za nizszy koszt implementacji.\", \"Akceptacja tymczasowych procesow manualnych dla rzadkich przypadkow brzegowych zamiast pelnej automatyzacji od razu.\"]}, {\"stakeholder\": \"security\", \"goals\": [\"Wymusic silna weryfikacje tozsamosci dla wszystkich rol, szczegolnie dla specjalistow i administratorow.\", \"Zapewnic scisla kontrole dostepu oparta o role i minimalne uprawnienia do danych rezerwacji, grafikow i danych osobowych.\", \"Zapewnic pelna audytowalnosc wszystkich operacji: logowanie, przeglad terminow, rezerwacje, anulacje, zmiany grafiku i nadawanie uprawnien.\", \"Ograniczyc powierzchnie ataku systemu przy zachowaniu skalowalnosci i odpornosci na naduzycia.\", \"Chronc dane osobowe i dane wrazliwe w spoczynku, w transmisji oraz podczas przetwarzania.\"], \"needs\": [\"Obowiazkowe MFA co najmniej dla specjalistow, administratorow i wszystkich operacji wysokiego ryzyka; preferowane MFA dla wszystkich uzytkownikow.\", \"RBAC z mozliwoscia dalszego zawezania uprawnien na poziomie zasobow i akcji.\", \"Szyfrowanie danych w tranzycie i w spoczynku, wraz z bezpiecznym zarzadzaniem kluczami.\", \"Centralne, niemodyfikowalne logi audytowe z retencja i mozliwoscia korelacji zdarzen.\", \"Silna polityka hasel, ochrona przed credential stuffing, rate limiting i blokady po anomaliach logowania.\", \"Segmentacja dostepu do danych tak, aby uzytkownik widzial tylko swoje rezerwacje, a specjalista tylko dane niezbedne do realizacji wizyty.\", \"Mechanizmy wykrywania anomalii i alertowania przy nietypowych anulacjach, masowych zmianach grafiku lub probach obejscia konfliktow rezerwacji.\", \"Bezpieczne API z autoryzacja per endpoint oraz walidacja wszystkich wejsc.\"], \"concerns\": [\"Brak MFA zwieksza ryzyko przejecia kont i nieautoryzowanych zmian rezerwacji lub grafikow.\", \"Zbyt szerokie uprawnienia rol moga prowadzic do wycieku danych osobowych i naduzyc wewnetrznych.\", \"Wyjatki od konfliktow rezerwacji moga zostac wykorzystane do obejscia kontroli integralnosci i eskalacji naduzyc.\", \"Modyfikacja grafiku przez specjaliste dla istniejacych rezerwacji wymaga scislego logowania, autoryzacji i rozliczalnosci.\", \"Anulowanie wizyt w uzasadnionych przypadkach moze byc wektorem fraudu bez dodatkowej weryfikacji i audytu.\", \"Skalowalnosc nie moze prowadzic do oslabienia izolacji danych ani uproszczenia kontroli dostepu.\", \"Nadmierna ekspozycja danych w interfejsie lub API narusza zasade minimalizacji dostepu.\", \"Brak retencji logow lub ich modyfikowalnosc utrudni wykrywanie incydentow i dochodzenia powypadkowe.\"], \"priorities\": [\"Najpierw zabezpieczyc uwierzytelnianie i autoryzacje, dopiero potem optymalizowac wygode uzytkownika.\", \"Wszystkie operacje zmieniajace stan systemu musza byc rozliczalne i przypisane do konkretnej tozsamosci.\", \"Wyjatki biznesowe od zasad konfliktu rezerwacji lub anulacji musza wymagac dodatkowej autoryzacji i pozostawiac slad audytowy.\", \"Dostep do danych osobowych ograniczyc do absolutnego minimum niezbednego dla danej roli.\", \"Interfejsy administracyjne i operacje uprzywilejowane traktowac jako obszary podwyzszonego ryzyka.\"], \"constraints\": [\"Brak anonimowych operacji modyfikujacych rezerwacje, grafiki lub dane konta.\", \"Brak oslabiania polityki hasel lub MFA w celu poprawy konwersji lub wygody.\", \"Brak wspoldzielonych kont dla personelu i administratorow.\", \"Brak dostepu specjalisty do danych innych specjalistow poza jawnie autoryzowanymi przypadkami operacyjnymi.\", \"Brak mozliwosci usuwania lub edycji logow audytowych przez zwyklych operatorow systemu.\", \"Wyjatki od blokady konfliktow rezerwacji nie moga byc domyslne ani niewidoczne w audycie.\"], \"tradeoffs\": [\"Akceptujemy wyzsze tarcie przy logowaniu i operacjach wysokiego ryzyka w zamian za nizsze ryzyko przejecia konta.\", \"Akceptujemy wyzsze koszty infrastruktury na logowanie, retencje i monitoring w zamian za lepsza wykrywalnosc incydentow.\", \"Akceptujemy wolniejsze wdrazanie funkcji, jesli wymagane sa dodatkowe kontrole dostepu i przeglady bezpieczenstwa.\", \"Akceptujemy ograniczenie elastycznosci wyjatkow biznesowych, jesli zmniejsza to ryzyko fraudu i naduzyc.\", \"Akceptujemy bardziej restrykcyjna segmentacje danych nawet kosztem wygody obslugi i prostoty implementacji.\"]}, {\"stakeholder\": \"ux\", \"goals\": [\"Skrócić ścieżkę rezerwacji, anulowania i zmiany wizyty do minimalnej liczby kroków.\", \"Zapewnić przewidywalny, szybki i spójny interfejs dla wszystkich ról użytkowników.\", \"Umożliwić użytkownikowi zrozumienie dostępnych terminów, wyjątków i ograniczeń bez czytania długich instrukcji.\", \"Ograniczyć liczbę decyzji i pól formularzy wymaganych do wykonania kluczowych zadań.\", \"Zmniejszyć porzucanie procesu przez uproszczenie logowania, onboardingu i odzyskiwania dostępu.\"], \"needs\": [\"Jednoznaczne komunikaty o dostępności terminów, konfliktach i wyjątkach prezentowane prostym językiem.\", \"Możliwość szybkiej rezerwacji z poziomu listy terminów bez przechodzenia przez rozbudowane formularze.\", \"Czytelne wskazanie, kiedy anulowanie jest możliwe, a kiedy ograniczone czasowo, zanim użytkownik wejdzie w proces.\", \"Natychmiastowa informacja zwrotna po rezerwacji, anulowaniu lub zmianie grafiku przez specjalistę.\", \"Spójne wzorce UI dla pacjenta, specjalisty i administratora, aby ograniczyć naukę interfejsu.\", \"Krótki onboarding z minimalną liczbą obowiązkowych danych wejściowych.\", \"Dostępność interfejsu na urządzeniach mobilnych i dla użytkowników ze szczególnymi potrzebami.\", \"Szybko ładujące się widoki kalendarza i list terminów.\"], \"concerns\": [\"Nadmierne zabezpieczenia logowania i potwierdzeń mogą wydłużać ścieżkę użytkownika.\", \"Zbyt rygorystyczna walidacja formularzy może blokować szybkie wykonanie rezerwacji lub anulowania.\", \"Rozbudowane wyjątki biznesowe dotyczące konfliktów i zmian grafiku mogą być niezrozumiałe dla użytkownika.\", \"Częste zmiany grafiku specjalisty mogą obniżać poczucie przewidywalności systemu.\", \"Zbyt wiele ról i odmiennych ekranów może zwiększać złożoność obsługi.\", \"Długie komunikaty prawne lub proceduralne mogą utrudniać podjęcie decyzji.\", \"Wielostopniowe potwierdzenia anulowania lub rezerwacji mogą zwiększać porzucanie procesu.\"], \"priorities\": [\"Rezerwacja wizyty w jak najmniejszej liczbie interakcji.\", \"Natychmiastowe pokazanie najbliższych dostępnych terminów bez zbędnych filtrów.\", \"Proste anulowanie wizyty z jasnym wskazaniem ograniczeń czasowych.\", \"Szybkie zrozumienie skutków zmiany grafiku przez specjalistę.\", \"Minimalizacja liczby ekranów, modali i potwierdzeń.\"], \"constraints\": [\"Interfejs nie powinien wymagać długich formularzy ani zbierania danych niewymaganych do realizacji procesu.\", \"Komunikaty systemowe muszą być krótkie, jednoznaczne i pozbawione żargonu technicznego.\", \"Kluczowe akcje powinny być możliwe na urządzeniach mobilnych bez utraty czytelności.\", \"Procesy dla różnych ról powinny zachowywać wspólne wzorce nawigacji i prezentacji danych.\", \"Wyjątki od reguł konfliktów rezerwacji muszą być prezentowane w sposób zrozumiały bez ukrytej logiki.\"], \"tradeoffs\": [\"Akceptacja mniejszej liczby kroków kosztem ograniczenia liczby dodatkowych zabezpieczeń w procesie logowania i potwierdzania akcji.\", \"Akceptacja krótszych formularzy kosztem mniej kompletnej walidacji na etapie wprowadzania danych.\", \"Akceptacja uproszczonych komunikatów kosztem pełnej ekspozycji wszystkich szczegółów reguł biznesowych na głównym ekranie.\", \"Akceptacja szybkiej ścieżki anulowania kosztem dodatkowych kontroli wymagających uzasadnienia w każdym przypadku.\", \"Akceptacja prostszych ekranów kosztem mniejszej liczby zaawansowanych opcji widocznych od razu.\"]}, {\"stakeholder\": \"qa\", \"goals\": [\"Zdefiniowac jednoznaczne, mierzalne i testowalne wymagania dla rezerwacji, anulowania, modyfikacji grafiku i obslugi wyjatkow.\", \"Zapewnic wysoka stabilnosc wersji poprzez rygorystyczne testy regresji przed kazdym wydaniem.\", \"Wymusic przewidywalne zachowanie systemu dla wszystkich rol i scenariuszy brzegowych, nawet kosztem opoznienia release.\", \"Zminimalizowac ryzyko niespojnosci danych i konfliktow rezerwacji poprzez formalne reguly walidacji i obslugi bledow.\"], \"needs\": [\"Precyzyjne kryteria akceptacji dla kazdej reguly biznesowej, w tym konfliktow rezerwacji i dopuszczalnych wyjatkow.\", \"Jednoznaczna specyfikacja stanów rezerwacji oraz dozwolonych przejsc miedzy stanami.\", \"Pelna macierz przypadkow testowych dla rol: uzytkownik, specjalista, administrator.\", \"Stabilne i wersjonowane API oraz kontrakty integracyjne bez niejawnych zmian zachowania.\", \"Spójny model kodow bledow, komunikatow walidacyjnych i odpowiedzi systemu.\", \"Mozliwosc testowania ograniczen czasowych anulowania z kontrola czasu systemowego.\", \"Srodowiska testowe z danymi reprezentujacymi scenariusze normalne, graniczne i bledne.\", \"Monitoring techniczny i biznesowy pozwalajacy wykrywac regresje po wdrozeniu.\"], \"concerns\": [\"Nieprecyzyjna definicja wyjatkow od zakazu konfliktow rezerwacji utrudni automatyzacje testow i zwiekszy liczbe defektow.\", \"Modyfikacja grafiku specjalisty dla istniejacych rezerwacji moze prowadzic do utraty spojnosci danych i trudnych do odtworzenia bledow.\", \"Niespójna obsluga bledow miedzy kanalami i rolami obnizy przewidywalnosc systemu.\", \"Brak twardych ograniczen czasowych i stref czasowych dla anulowania spowoduje niejednoznaczne wyniki testow.\", \"Zbyt duza elastycznosc UX lub biznesowa bez formalnych regul zwiekszy ryzyko regresji.\", \"Skalowanie systemu moze ujawnic warunki wyscigu przy rownoczesnych probach rezerwacji tego samego terminu.\", \"Zmiany w API lub logice bez kompatybilnosci wstecznej utrudnia utrzymanie pakietu regresji.\"], \"priorities\": [\"Najpierw formalizacja zasad biznesowych, potem implementacja UX i optymalizacji.\", \"Blokowanie wydania przy niespelnieniu kryteriow akceptacji lub niezaliczonych testach krytycznych.\", \"Automatyzacja testow dla rezerwacji, anulowania, konfliktow terminow i zmian grafiku.\", \"Weryfikacja kompatybilnosci wstecznej interfejsow oraz migracji danych.\", \"Testowanie scenariuszy wspolbieznosci i odpornosci na duze obciazenie.\"], \"constraints\": [\"Brak zgody na niejednoznaczne wymagania typu 'w niektorych przypadkach' bez listy warunkow i priorytetow decyzyjnych.\", \"Brak zgody na release bez minimalnego progu pokrycia testami dla sciezek krytycznych.\", \"Kazda zmiana logiki anulowania lub grafiku musi miec zaktualizowane testy automatyczne i dokumentacje kontraktowa.\", \"Wszystkie komunikaty bledow musza byc deterministyczne, wersjonowane i mapowane do konkretnych przypadkow walidacyjnych.\", \"Wyjatki od reguly braku konfliktu musza byc jawnie konfigurowalne i audytowalne.\"], \"tradeoffs\": [\"Akceptuje wolniejsze wydania w zamian za nizsze ryzyko regresji produkcyjnej.\", \"Akceptuje bardziej restrykcyjne walidacje kosztem prostoty interfejsu uzytkownika.\", \"Akceptuje wiekszy koszt implementacji i utrzymania testow w zamian za przewidywalnosc zmian.\", \"Odrzuca szybkie obejscia biznesowe, jesli nie da sie ich pokryc testami i monitorowaniem.\"]}]\n\n[STEP1]\nOpis systemu:\nSystem umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny. \n\nWejscie interesariuszy:\n[{\"stakeholder\": \"business\", \"goals\": [\"Uruchomic MVP systemu rezerwacji jak najszybciej, aby zaczac generowac przychody i walidowac popyt.\", \"Maksymalizowac ROI przez ograniczenie kosztow budowy, utrzymania i wsparcia operacyjnego.\", \"Zminimalizowac tarcie w rejestracji, rezerwacji i anulowaniu wizyt, aby zwiekszyc konwersje.\", \"Zapewnic szybkie skalowanie liczby uzytkownikow i specjalistow bez proporcjonalnego wzrostu kosztow.\", \"Wprowadzic podstawy monetyzacji, takie jak oplaty za rezerwacje, abonamenty specjalistow lub prowizje.\"], \"needs\": [\"Prosty i krotki przeplyw rejestracji z minimalna liczba krokow i danych wymaganych od uzytkownika.\", \"Mozliwosc szybkiego wdrozenia podstawowych rol uzytkownikow bez rozbudowanego modelu uprawnien na start.\", \"Elastyczne, ale nieskomplikowane zasady rezerwacji i anulowania, ktore ograniczaja obsluge manualna.\", \"Tania architektura skalowalna poziomo, preferencyjnie oparta o gotowe komponenty i uslugi zarzadzane.\", \"Podstawowe raporty biznesowe o liczbie rezerwacji, anulacjach, oblozeniu grafikow i przychodach.\", \"Mozliwosc latwego uruchamiania eksperymentow cenowych i produktowych bez duzych zmian systemowych.\", \"Obsluga wyjatkow od konfliktow rezerwacji tylko tam, gdzie daje to wartosc biznesowa lub operacyjna.\"], \"concerns\": [\"Zbyt rozbudowane zabezpieczenia i procesy weryfikacyjne moga obnizyc konwersje i opoznic wdrozenie.\", \"Nadmiernie restrykcyjne reguly anulowania lub rezerwacji moga zmniejszyc liczbe transakcji i retencje.\", \"Rozbudowane testy, formalizmy jakosciowe i dlugi proces akceptacji moga wydluzyc time-to-market.\", \"Zbyt precyzyjne i zlozone komunikaty oraz formularze moga zwiekszyc porzucenia procesu.\", \"Zaawansowana logika harmonogramowania i obslugi wyjatkow moze istotnie podniesc koszt implementacji.\", \"Nadmierne wymagania compliance na starcie moga podniesc koszt wejscia bez proporcjonalnego zwrotu.\", \"Modyfikacje grafikow przez specjalistow nie powinny generowac kosztownych procesow rekompensat i supportu.\"], \"priorities\": [\"Najpierw wdrozyc podstawowy przeplyw: przeglad terminow, rezerwacja, anulowanie, zarzadzanie grafikiem specjalisty.\", \"Ograniczyc zakres MVP do funkcji o najwyzszym wplywie na przychod i adopcje.\", \"Preferowac rozwiazania gotowe lub uproszczone zamiast budowy zlozonych mechanizmow od zera.\", \"Dopuscic kontrolowane wyjatki od sztywnych regul konfliktow rezerwacji, jesli poprawia to wykorzystanie zasobow.\", \"Wprowadzic podstawowe analityki i raportowanie od pierwszej wersji produktu.\"], \"constraints\": [\"Ograniczony budzet na development, QA, security i utrzymanie infrastruktury.\", \"Presja na szybkie wejscie na rynek i krotkie iteracje wydawnicze.\", \"Brak akceptacji dla dlugiego etapu analizy przed dostarczeniem MVP.\", \"Preferencja dla minimalnego zestawu integracji zewnetrznych na start.\", \"System musi byc skalowalny, ale bez kosztownych inwestycji infrastrukturalnych przed uzyskaniem trakcji.\"], \"tradeoffs\": [\"Akceptacja nizszego poziomu zabezpieczen poczatkowych w zamian za wyzsza konwersje i szybszy launch.\", \"Akceptacja ograniczonego pokrycia testami automatycznymi w MVP w zamian za krotszy czas dostarczenia.\", \"Akceptacja mniej precyzyjnych komunikatow i prostszych formularzy w zamian za mniejsze tarcie uzytkownika.\", \"Akceptacja uproszczonych zasad anulowania i konfliktow rezerwacji w zamian za nizszy koszt implementacji.\", \"Akceptacja tymczasowych procesow manualnych dla rzadkich przypadkow brzegowych zamiast pelnej automatyzacji od razu.\"]}, {\"stakeholder\": \"security\", \"goals\": [\"Wymusic silna weryfikacje tozsamosci dla wszystkich rol, szczegolnie dla specjalistow i administratorow.\", \"Zapewnic scisla kontrole dostepu oparta o role i minimalne uprawnienia do danych rezerwacji, grafikow i danych osobowych.\", \"Zapewnic pelna audytowalnosc wszystkich operacji: logowanie, przeglad terminow, rezerwacje, anulacje, zmiany grafiku i nadawanie uprawnien.\", \"Ograniczyc powierzchnie ataku systemu przy zachowaniu skalowalnosci i odpornosci na naduzycia.\", \"Chronc dane osobowe i dane wrazliwe w spoczynku, w transmisji oraz podczas przetwarzania.\"], \"needs\": [\"Obowiazkowe MFA co najmniej dla specjalistow, administratorow i wszystkich operacji wysokiego ryzyka; preferowane MFA dla wszystkich uzytkownikow.\", \"RBAC z mozliwoscia dalszego zawezania uprawnien na poziomie zasobow i akcji.\", \"Szyfrowanie danych w tranzycie i w spoczynku, wraz z bezpiecznym zarzadzaniem kluczami.\", \"Centralne, niemodyfikowalne logi audytowe z retencja i mozliwoscia korelacji zdarzen.\", \"Silna polityka hasel, ochrona przed credential stuffing, rate limiting i blokady po anomaliach logowania.\", \"Segmentacja dostepu do danych tak, aby uzytkownik widzial tylko swoje rezerwacje, a specjalista tylko dane niezbedne do realizacji wizyty.\", \"Mechanizmy wykrywania anomalii i alertowania przy nietypowych anulacjach, masowych zmianach grafiku lub probach obejscia konfliktow rezerwacji.\", \"Bezpieczne API z autoryzacja per endpoint oraz walidacja wszystkich wejsc.\"], \"concerns\": [\"Brak MFA zwieksza ryzyko przejecia kont i nieautoryzowanych zmian rezerwacji lub grafikow.\", \"Zbyt szerokie uprawnienia rol moga prowadzic do wycieku danych osobowych i naduzyc wewnetrznych.\", \"Wyjatki od konfliktow rezerwacji moga zostac wykorzystane do obejscia kontroli integralnosci i eskalacji naduzyc.\", \"Modyfikacja grafiku przez specjaliste dla istniejacych rezerwacji wymaga scislego logowania, autoryzacji i rozliczalnosci.\", \"Anulowanie wizyt w uzasadnionych przypadkach moze byc wektorem fraudu bez dodatkowej weryfikacji i audytu.\", \"Skalowalnosc nie moze prowadzic do oslabienia izolacji danych ani uproszczenia kontroli dostepu.\", \"Nadmierna ekspozycja danych w interfejsie lub API narusza zasade minimalizacji dostepu.\", \"Brak retencji logow lub ich modyfikowalnosc utrudni wykrywanie incydentow i dochodzenia powypadkowe.\"], \"priorities\": [\"Najpierw zabezpieczyc uwierzytelnianie i autoryzacje, dopiero potem optymalizowac wygode uzytkownika.\", \"Wszystkie operacje zmieniajace stan systemu musza byc rozliczalne i przypisane do konkretnej tozsamosci.\", \"Wyjatki biznesowe od zasad konfliktu rezerwacji lub anulacji musza wymagac dodatkowej autoryzacji i pozostawiac slad audytowy.\", \"Dostep do danych osobowych ograniczyc do absolutnego minimum niezbednego dla danej roli.\", \"Interfejsy administracyjne i operacje uprzywilejowane traktowac jako obszary podwyzszonego ryzyka.\"], \"constraints\": [\"Brak anonimowych operacji modyfikujacych rezerwacje, grafiki lub dane konta.\", \"Brak oslabiania polityki hasel lub MFA w celu poprawy konwersji lub wygody.\", \"Brak wspoldzielonych kont dla personelu i administratorow.\", \"Brak dostepu specjalisty do danych innych specjalistow poza jawnie autoryzowanymi przypadkami operacyjnymi.\", \"Brak mozliwosci usuwania lub edycji logow audytowych przez zwyklych operatorow systemu.\", \"Wyjatki od blokady konfliktow rezerwacji nie moga byc domyslne ani niewidoczne w audycie.\"], \"tradeoffs\": [\"Akceptujemy wyzsze tarcie przy logowaniu i operacjach wysokiego ryzyka w zamian za nizsze ryzyko przejecia konta.\", \"Akceptujemy wyzsze koszty infrastruktury na logowanie, retencje i monitoring w zamian za lepsza wykrywalnosc incydentow.\", \"Akceptujemy wolniejsze wdrazanie funkcji, jesli wymagane sa dodatkowe kontrole dostepu i przeglady bezpieczenstwa.\", \"Akceptujemy ograniczenie elastycznosci wyjatkow biznesowych, jesli zmniejsza to ryzyko fraudu i naduzyc.\", \"Akceptujemy bardziej restrykcyjna segmentacje danych nawet kosztem wygody obslugi i prostoty implementacji.\"]}, {\"stakeholder\": \"ux\", \"goals\": [\"Skrócić ścieżkę rezerwacji, anulowania i zmiany wizyty do minimalnej liczby kroków.\", \"Zapewnić przewidywalny, szybki i spójny interfejs dla wszystkich ról użytkowników.\", \"Umożliwić użytkownikowi zrozumienie dostępnych terminów, wyjątków i ograniczeń bez czytania długich instrukcji.\", \"Ograniczyć liczbę decyzji i pól formularzy wymaganych do wykonania kluczowych zadań.\", \"Zmniejszyć porzucanie procesu przez uproszczenie logowania, onboardingu i odzyskiwania dostępu.\"], \"needs\": [\"Jednoznaczne komunikaty o dostępności terminów, konfliktach i wyjątkach prezentowane prostym językiem.\", \"Możliwość szybkiej rezerwacji z poziomu listy terminów bez przechodzenia przez rozbudowane formularze.\", \"Czytelne wskazanie, kiedy anulowanie jest możliwe, a kiedy ograniczone czasowo, zanim użytkownik wejdzie w proces.\", \"Natychmiastowa informacja zwrotna po rezerwacji, anulowaniu lub zmianie grafiku przez specjalistę.\", \"Spójne wzorce UI dla pacjenta, specjalisty i administratora, aby ograniczyć naukę interfejsu.\", \"Krótki onboarding z minimalną liczbą obowiązkowych danych wejściowych.\", \"Dostępność interfejsu na urządzeniach mobilnych i dla użytkowników ze szczególnymi potrzebami.\", \"Szybko ładujące się widoki kalendarza i list terminów.\"], \"concerns\": [\"Nadmierne zabezpieczenia logowania i potwierdzeń mogą wydłużać ścieżkę użytkownika.\", \"Zbyt rygorystyczna walidacja formularzy może blokować szybkie wykonanie rezerwacji lub anulowania.\", \"Rozbudowane wyjątki biznesowe dotyczące konfliktów i zmian grafiku mogą być niezrozumiałe dla użytkownika.\", \"Częste zmiany grafiku specjalisty mogą obniżać poczucie przewidywalności systemu.\", \"Zbyt wiele ról i odmiennych ekranów może zwiększać złożoność obsługi.\", \"Długie komunikaty prawne lub proceduralne mogą utrudniać podjęcie decyzji.\", \"Wielostopniowe potwierdzenia anulowania lub rezerwacji mogą zwiększać porzucanie procesu.\"], \"priorities\": [\"Rezerwacja wizyty w jak najmniejszej liczbie interakcji.\", \"Natychmiastowe pokazanie najbliższych dostępnych terminów bez zbędnych filtrów.\", \"Proste anulowanie wizyty z jasnym wskazaniem ograniczeń czasowych.\", \"Szybkie zrozumienie skutków zmiany grafiku przez specjalistę.\", \"Minimalizacja liczby ekranów, modali i potwierdzeń.\"], \"constraints\": [\"Interfejs nie powinien wymagać długich formularzy ani zbierania danych niewymaganych do realizacji procesu.\", \"Komunikaty systemowe muszą być krótkie, jednoznaczne i pozbawione żargonu technicznego.\", \"Kluczowe akcje powinny być możliwe na urządzeniach mobilnych bez utraty czytelności.\", \"Procesy dla różnych ról powinny zachowywać wspólne wzorce nawigacji i prezentacji danych.\", \"Wyjątki od reguł konfliktów rezerwacji muszą być prezentowane w sposób zrozumiały bez ukrytej logiki.\"], \"tradeoffs\": [\"Akceptacja mniejszej liczby kroków kosztem ograniczenia liczby dodatkowych zabezpieczeń w procesie logowania i potwierdzania akcji.\", \"Akceptacja krótszych formularzy kosztem mniej kompletnej walidacji na etapie wprowadzania danych.\", \"Akceptacja uproszczonych komunikatów kosztem pełnej ekspozycji wszystkich szczegółów reguł biznesowych na głównym ekranie.\", \"Akceptacja szybkiej ścieżki anulowania kosztem dodatkowych kontroli wymagających uzasadnienia w każdym przypadku.\", \"Akceptacja prostszych ekranów kosztem mniejszej liczby zaawansowanych opcji widocznych od razu.\"]}, {\"stakeholder\": \"qa\", \"goals\": [\"Zdefiniowac jednoznaczne, mierzalne i testowalne wymagania dla rezerwacji, anulowania, modyfikacji grafiku i obslugi wyjatkow.\", \"Zapewnic wysoka stabilnosc wersji poprzez rygorystyczne testy regresji przed kazdym wydaniem.\", \"Wymusic przewidywalne zachowanie systemu dla wszystkich rol i scenariuszy brzegowych, nawet kosztem opoznienia release.\", \"Zminimalizowac ryzyko niespojnosci danych i konfliktow rezerwacji poprzez formalne reguly walidacji i obslugi bledow.\"], \"needs\": [\"Precyzyjne kryteria akceptacji dla kazdej reguly biznesowej, w tym konfliktow rezerwacji i dopuszczalnych wyjatkow.\", \"Jednoznaczna specyfikacja stanów rezerwacji oraz dozwolonych przejsc miedzy stanami.\", \"Pelna macierz przypadkow testowych dla rol: uzytkownik, specjalista, administrator.\", \"Stabilne i wersjonowane API oraz kontrakty integracyjne bez niejawnych zmian zachowania.\", \"Spójny model kodow bledow, komunikatow walidacyjnych i odpowiedzi systemu.\", \"Mozliwosc testowania ograniczen czasowych anulowania z kontrola czasu systemowego.\", \"Srodowiska testowe z danymi reprezentujacymi scenariusze normalne, graniczne i bledne.\", \"Monitoring techniczny i biznesowy pozwalajacy wykrywac regresje po wdrozeniu.\"], \"concerns\": [\"Nieprecyzyjna definicja wyjatkow od zakazu konfliktow rezerwacji utrudni automatyzacje testow i zwiekszy liczbe defektow.\", \"Modyfikacja grafiku specjalisty dla istniejacych rezerwacji moze prowadzic do utraty spojnosci danych i trudnych do odtworzenia bledow.\", \"Niespójna obsluga bledow miedzy kanalami i rolami obnizy przewidywalnosc systemu.\", \"Brak twardych ograniczen czasowych i stref czasowych dla anulowania spowoduje niejednoznaczne wyniki testow.\", \"Zbyt duza elastycznosc UX lub biznesowa bez formalnych regul zwiekszy ryzyko regresji.\", \"Skalowanie systemu moze ujawnic warunki wyscigu przy rownoczesnych probach rezerwacji tego samego terminu.\", \"Zmiany w API lub logice bez kompatybilnosci wstecznej utrudnia utrzymanie pakietu regresji.\"], \"priorities\": [\"Najpierw formalizacja zasad biznesowych, potem implementacja UX i optymalizacji.\", \"Blokowanie wydania przy niespelnieniu kryteriow akceptacji lub niezaliczonych testach krytycznych.\", \"Automatyzacja testow dla rezerwacji, anulowania, konfliktow terminow i zmian grafiku.\", \"Weryfikacja kompatybilnosci wstecznej interfejsow oraz migracji danych.\", \"Testowanie scenariuszy wspolbieznosci i odpornosci na duze obciazenie.\"], \"constraints\": [\"Brak zgody na niejednoznaczne wymagania typu 'w niektorych przypadkach' bez listy warunkow i priorytetow decyzyjnych.\", \"Brak zgody na release bez minimalnego progu pokrycia testami dla sciezek krytycznych.\", \"Kazda zmiana logiki anulowania lub grafiku musi miec zaktualizowane testy automatyczne i dokumentacje kontraktowa.\", \"Wszystkie komunikaty bledow musza byc deterministyczne, wersjonowane i mapowane do konkretnych przypadkow walidacyjnych.\", \"Wyjatki od reguly braku konfliktu musza byc jawnie konfigurowalne i audytowalne.\"], \"tradeoffs\": [\"Akceptuje wolniejsze wydania w zamian za nizsze ryzyko regresji produkcyjnej.\", \"Akceptuje bardziej restrykcyjne walidacje kosztem prostoty interfejsu uzytkownika.\", \"Akceptuje wiekszy koszt implementacji i utrzymania testow w zamian za przewidywalnosc zmian.\", \"Odrzuca szybkie obejscia biznesowe, jesli nie da sie ich pokryc testami i monitorowaniem.\"]}]\n\nOgraniczenia:\n- Maksymalnie 20 elementow w liscie \"functional_requirements\".\n\nZwracaj WYŁĄCZNIE ten fragment JSON:\n{\n  \"system_goal\": \"1-3 sentence system goal\",\n  \"roles\": [\n    {\"name\": \"RoleName\", \"permissions\": [\"perm1\", \"perm2\"]}\n  ],\n  \"functional_requirements\": [\n    {\"id\": \"FR1\", \"description\": \"Opis wymagania\"}\n  ]\n}\n\n\n[STEP2]\nOpis systemu:\nSystem umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny. \n\nWejscie interesariuszy:\n[{\"stakeholder\": \"business\", \"goals\": [\"Uruchomic MVP systemu rezerwacji jak najszybciej, aby zaczac generowac przychody i walidowac popyt.\", \"Maksymalizowac ROI przez ograniczenie kosztow budowy, utrzymania i wsparcia operacyjnego.\", \"Zminimalizowac tarcie w rejestracji, rezerwacji i anulowaniu wizyt, aby zwiekszyc konwersje.\", \"Zapewnic szybkie skalowanie liczby uzytkownikow i specjalistow bez proporcjonalnego wzrostu kosztow.\", \"Wprowadzic podstawy monetyzacji, takie jak oplaty za rezerwacje, abonamenty specjalistow lub prowizje.\"], \"needs\": [\"Prosty i krotki przeplyw rejestracji z minimalna liczba krokow i danych wymaganych od uzytkownika.\", \"Mozliwosc szybkiego wdrozenia podstawowych rol uzytkownikow bez rozbudowanego modelu uprawnien na start.\", \"Elastyczne, ale nieskomplikowane zasady rezerwacji i anulowania, ktore ograniczaja obsluge manualna.\", \"Tania architektura skalowalna poziomo, preferencyjnie oparta o gotowe komponenty i uslugi zarzadzane.\", \"Podstawowe raporty biznesowe o liczbie rezerwacji, anulacjach, oblozeniu grafikow i przychodach.\", \"Mozliwosc latwego uruchamiania eksperymentow cenowych i produktowych bez duzych zmian systemowych.\", \"Obsluga wyjatkow od konfliktow rezerwacji tylko tam, gdzie daje to wartosc biznesowa lub operacyjna.\"], \"concerns\": [\"Zbyt rozbudowane zabezpieczenia i procesy weryfikacyjne moga obnizyc konwersje i opoznic wdrozenie.\", \"Nadmiernie restrykcyjne reguly anulowania lub rezerwacji moga zmniejszyc liczbe transakcji i retencje.\", \"Rozbudowane testy, formalizmy jakosciowe i dlugi proces akceptacji moga wydluzyc time-to-market.\", \"Zbyt precyzyjne i zlozone komunikaty oraz formularze moga zwiekszyc porzucenia procesu.\", \"Zaawansowana logika harmonogramowania i obslugi wyjatkow moze istotnie podniesc koszt implementacji.\", \"Nadmierne wymagania compliance na starcie moga podniesc koszt wejscia bez proporcjonalnego zwrotu.\", \"Modyfikacje grafikow przez specjalistow nie powinny generowac kosztownych procesow rekompensat i supportu.\"], \"priorities\": [\"Najpierw wdrozyc podstawowy przeplyw: przeglad terminow, rezerwacja, anulowanie, zarzadzanie grafikiem specjalisty.\", \"Ograniczyc zakres MVP do funkcji o najwyzszym wplywie na przychod i adopcje.\", \"Preferowac rozwiazania gotowe lub uproszczone zamiast budowy zlozonych mechanizmow od zera.\", \"Dopuscic kontrolowane wyjatki od sztywnych regul konfliktow rezerwacji, jesli poprawia to wykorzystanie zasobow.\", \"Wprowadzic podstawowe analityki i raportowanie od pierwszej wersji produktu.\"], \"constraints\": [\"Ograniczony budzet na development, QA, security i utrzymanie infrastruktury.\", \"Presja na szybkie wejscie na rynek i krotkie iteracje wydawnicze.\", \"Brak akceptacji dla dlugiego etapu analizy przed dostarczeniem MVP.\", \"Preferencja dla minimalnego zestawu integracji zewnetrznych na start.\", \"System musi byc skalowalny, ale bez kosztownych inwestycji infrastrukturalnych przed uzyskaniem trakcji.\"], \"tradeoffs\": [\"Akceptacja nizszego poziomu zabezpieczen poczatkowych w zamian za wyzsza konwersje i szybszy launch.\", \"Akceptacja ograniczonego pokrycia testami automatycznymi w MVP w zamian za krotszy czas dostarczenia.\", \"Akceptacja mniej precyzyjnych komunikatow i prostszych formularzy w zamian za mniejsze tarcie uzytkownika.\", \"Akceptacja uproszczonych zasad anulowania i konfliktow rezerwacji w zamian za nizszy koszt implementacji.\", \"Akceptacja tymczasowych procesow manualnych dla rzadkich przypadkow brzegowych zamiast pelnej automatyzacji od razu.\"]}, {\"stakeholder\": \"security\", \"goals\": [\"Wymusic silna weryfikacje tozsamosci dla wszystkich rol, szczegolnie dla specjalistow i administratorow.\", \"Zapewnic scisla kontrole dostepu oparta o role i minimalne uprawnienia do danych rezerwacji, grafikow i danych osobowych.\", \"Zapewnic pelna audytowalnosc wszystkich operacji: logowanie, przeglad terminow, rezerwacje, anulacje, zmiany grafiku i nadawanie uprawnien.\", \"Ograniczyc powierzchnie ataku systemu przy zachowaniu skalowalnosci i odpornosci na naduzycia.\", \"Chronc dane osobowe i dane wrazliwe w spoczynku, w transmisji oraz podczas przetwarzania.\"], \"needs\": [\"Obowiazkowe MFA co najmniej dla specjalistow, administratorow i wszystkich operacji wysokiego ryzyka; preferowane MFA dla wszystkich uzytkownikow.\", \"RBAC z mozliwoscia dalszego zawezania uprawnien na poziomie zasobow i akcji.\", \"Szyfrowanie danych w tranzycie i w spoczynku, wraz z bezpiecznym zarzadzaniem kluczami.\", \"Centralne, niemodyfikowalne logi audytowe z retencja i mozliwoscia korelacji zdarzen.\", \"Silna polityka hasel, ochrona przed credential stuffing, rate limiting i blokady po anomaliach logowania.\", \"Segmentacja dostepu do danych tak, aby uzytkownik widzial tylko swoje rezerwacje, a specjalista tylko dane niezbedne do realizacji wizyty.\", \"Mechanizmy wykrywania anomalii i alertowania przy nietypowych anulacjach, masowych zmianach grafiku lub probach obejscia konfliktow rezerwacji.\", \"Bezpieczne API z autoryzacja per endpoint oraz walidacja wszystkich wejsc.\"], \"concerns\": [\"Brak MFA zwieksza ryzyko przejecia kont i nieautoryzowanych zmian rezerwacji lub grafikow.\", \"Zbyt szerokie uprawnienia rol moga prowadzic do wycieku danych osobowych i naduzyc wewnetrznych.\", \"Wyjatki od konfliktow rezerwacji moga zostac wykorzystane do obejscia kontroli integralnosci i eskalacji naduzyc.\", \"Modyfikacja grafiku przez specjaliste dla istniejacych rezerwacji wymaga scislego logowania, autoryzacji i rozliczalnosci.\", \"Anulowanie wizyt w uzasadnionych przypadkach moze byc wektorem fraudu bez dodatkowej weryfikacji i audytu.\", \"Skalowalnosc nie moze prowadzic do oslabienia izolacji danych ani uproszczenia kontroli dostepu.\", \"Nadmierna ekspozycja danych w interfejsie lub API narusza zasade minimalizacji dostepu.\", \"Brak retencji logow lub ich modyfikowalnosc utrudni wykrywanie incydentow i dochodzenia powypadkowe.\"], \"priorities\": [\"Najpierw zabezpieczyc uwierzytelnianie i autoryzacje, dopiero potem optymalizowac wygode uzytkownika.\", \"Wszystkie operacje zmieniajace stan systemu musza byc rozliczalne i przypisane do konkretnej tozsamosci.\", \"Wyjatki biznesowe od zasad konfliktu rezerwacji lub anulacji musza wymagac dodatkowej autoryzacji i pozostawiac slad audytowy.\", \"Dostep do danych osobowych ograniczyc do absolutnego minimum niezbednego dla danej roli.\", \"Interfejsy administracyjne i operacje uprzywilejowane traktowac jako obszary podwyzszonego ryzyka.\"], \"constraints\": [\"Brak anonimowych operacji modyfikujacych rezerwacje, grafiki lub dane konta.\", \"Brak oslabiania polityki hasel lub MFA w celu poprawy konwersji lub wygody.\", \"Brak wspoldzielonych kont dla personelu i administratorow.\", \"Brak dostepu specjalisty do danych innych specjalistow poza jawnie autoryzowanymi przypadkami operacyjnymi.\", \"Brak mozliwosci usuwania lub edycji logow audytowych przez zwyklych operatorow systemu.\", \"Wyjatki od blokady konfliktow rezerwacji nie moga byc domyslne ani niewidoczne w audycie.\"], \"tradeoffs\": [\"Akceptujemy wyzsze tarcie przy logowaniu i operacjach wysokiego ryzyka w zamian za nizsze ryzyko przejecia konta.\", \"Akceptujemy wyzsze koszty infrastruktury na logowanie, retencje i monitoring w zamian za lepsza wykrywalnosc incydentow.\", \"Akceptujemy wolniejsze wdrazanie funkcji, jesli wymagane sa dodatkowe kontrole dostepu i przeglady bezpieczenstwa.\", \"Akceptujemy ograniczenie elastycznosci wyjatkow biznesowych, jesli zmniejsza to ryzyko fraudu i naduzyc.\", \"Akceptujemy bardziej restrykcyjna segmentacje danych nawet kosztem wygody obslugi i prostoty implementacji.\"]}, {\"stakeholder\": \"ux\", \"goals\": [\"Skrócić ścieżkę rezerwacji, anulowania i zmiany wizyty do minimalnej liczby kroków.\", \"Zapewnić przewidywalny, szybki i spójny interfejs dla wszystkich ról użytkowników.\", \"Umożliwić użytkownikowi zrozumienie dostępnych terminów, wyjątków i ograniczeń bez czytania długich instrukcji.\", \"Ograniczyć liczbę decyzji i pól formularzy wymaganych do wykonania kluczowych zadań.\", \"Zmniejszyć porzucanie procesu przez uproszczenie logowania, onboardingu i odzyskiwania dostępu.\"], \"needs\": [\"Jednoznaczne komunikaty o dostępności terminów, konfliktach i wyjątkach prezentowane prostym językiem.\", \"Możliwość szybkiej rezerwacji z poziomu listy terminów bez przechodzenia przez rozbudowane formularze.\", \"Czytelne wskazanie, kiedy anulowanie jest możliwe, a kiedy ograniczone czasowo, zanim użytkownik wejdzie w proces.\", \"Natychmiastowa informacja zwrotna po rezerwacji, anulowaniu lub zmianie grafiku przez specjalistę.\", \"Spójne wzorce UI dla pacjenta, specjalisty i administratora, aby ograniczyć naukę interfejsu.\", \"Krótki onboarding z minimalną liczbą obowiązkowych danych wejściowych.\", \"Dostępność interfejsu na urządzeniach mobilnych i dla użytkowników ze szczególnymi potrzebami.\", \"Szybko ładujące się widoki kalendarza i list terminów.\"], \"concerns\": [\"Nadmierne zabezpieczenia logowania i potwierdzeń mogą wydłużać ścieżkę użytkownika.\", \"Zbyt rygorystyczna walidacja formularzy może blokować szybkie wykonanie rezerwacji lub anulowania.\", \"Rozbudowane wyjątki biznesowe dotyczące konfliktów i zmian grafiku mogą być niezrozumiałe dla użytkownika.\", \"Częste zmiany grafiku specjalisty mogą obniżać poczucie przewidywalności systemu.\", \"Zbyt wiele ról i odmiennych ekranów może zwiększać złożoność obsługi.\", \"Długie komunikaty prawne lub proceduralne mogą utrudniać podjęcie decyzji.\", \"Wielostopniowe potwierdzenia anulowania lub rezerwacji mogą zwiększać porzucanie procesu.\"], \"priorities\": [\"Rezerwacja wizyty w jak najmniejszej liczbie interakcji.\", \"Natychmiastowe pokazanie najbliższych dostępnych terminów bez zbędnych filtrów.\", \"Proste anulowanie wizyty z jasnym wskazaniem ograniczeń czasowych.\", \"Szybkie zrozumienie skutków zmiany grafiku przez specjalistę.\", \"Minimalizacja liczby ekranów, modali i potwierdzeń.\"], \"constraints\": [\"Interfejs nie powinien wymagać długich formularzy ani zbierania danych niewymaganych do realizacji procesu.\", \"Komunikaty systemowe muszą być krótkie, jednoznaczne i pozbawione żargonu technicznego.\", \"Kluczowe akcje powinny być możliwe na urządzeniach mobilnych bez utraty czytelności.\", \"Procesy dla różnych ról powinny zachowywać wspólne wzorce nawigacji i prezentacji danych.\", \"Wyjątki od reguł konfliktów rezerwacji muszą być prezentowane w sposób zrozumiały bez ukrytej logiki.\"], \"tradeoffs\": [\"Akceptacja mniejszej liczby kroków kosztem ograniczenia liczby dodatkowych zabezpieczeń w procesie logowania i potwierdzania akcji.\", \"Akceptacja krótszych formularzy kosztem mniej kompletnej walidacji na etapie wprowadzania danych.\", \"Akceptacja uproszczonych komunikatów kosztem pełnej ekspozycji wszystkich szczegółów reguł biznesowych na głównym ekranie.\", \"Akceptacja szybkiej ścieżki anulowania kosztem dodatkowych kontroli wymagających uzasadnienia w każdym przypadku.\", \"Akceptacja prostszych ekranów kosztem mniejszej liczby zaawansowanych opcji widocznych od razu.\"]}, {\"stakeholder\": \"qa\", \"goals\": [\"Zdefiniowac jednoznaczne, mierzalne i testowalne wymagania dla rezerwacji, anulowania, modyfikacji grafiku i obslugi wyjatkow.\", \"Zapewnic wysoka stabilnosc wersji poprzez rygorystyczne testy regresji przed kazdym wydaniem.\", \"Wymusic przewidywalne zachowanie systemu dla wszystkich rol i scenariuszy brzegowych, nawet kosztem opoznienia release.\", \"Zminimalizowac ryzyko niespojnosci danych i konfliktow rezerwacji poprzez formalne reguly walidacji i obslugi bledow.\"], \"needs\": [\"Precyzyjne kryteria akceptacji dla kazdej reguly biznesowej, w tym konfliktow rezerwacji i dopuszczalnych wyjatkow.\", \"Jednoznaczna specyfikacja stanów rezerwacji oraz dozwolonych przejsc miedzy stanami.\", \"Pelna macierz przypadkow testowych dla rol: uzytkownik, specjalista, administrator.\", \"Stabilne i wersjonowane API oraz kontrakty integracyjne bez niejawnych zmian zachowania.\", \"Spójny model kodow bledow, komunikatow walidacyjnych i odpowiedzi systemu.\", \"Mozliwosc testowania ograniczen czasowych anulowania z kontrola czasu systemowego.\", \"Srodowiska testowe z danymi reprezentujacymi scenariusze normalne, graniczne i bledne.\", \"Monitoring techniczny i biznesowy pozwalajacy wykrywac regresje po wdrozeniu.\"], \"concerns\": [\"Nieprecyzyjna definicja wyjatkow od zakazu konfliktow rezerwacji utrudni automatyzacje testow i zwiekszy liczbe defektow.\", \"Modyfikacja grafiku specjalisty dla istniejacych rezerwacji moze prowadzic do utraty spojnosci danych i trudnych do odtworzenia bledow.\", \"Niespójna obsluga bledow miedzy kanalami i rolami obnizy przewidywalnosc systemu.\", \"Brak twardych ograniczen czasowych i stref czasowych dla anulowania spowoduje niejednoznaczne wyniki testow.\", \"Zbyt duza elastycznosc UX lub biznesowa bez formalnych regul zwiekszy ryzyko regresji.\", \"Skalowanie systemu moze ujawnic warunki wyscigu przy rownoczesnych probach rezerwacji tego samego terminu.\", \"Zmiany w API lub logice bez kompatybilnosci wstecznej utrudnia utrzymanie pakietu regresji.\"], \"priorities\": [\"Najpierw formalizacja zasad biznesowych, potem implementacja UX i optymalizacji.\", \"Blokowanie wydania przy niespelnieniu kryteriow akceptacji lub niezaliczonych testach krytycznych.\", \"Automatyzacja testow dla rezerwacji, anulowania, konfliktow terminow i zmian grafiku.\", \"Weryfikacja kompatybilnosci wstecznej interfejsow oraz migracji danych.\", \"Testowanie scenariuszy wspolbieznosci i odpornosci na duze obciazenie.\"], \"constraints\": [\"Brak zgody na niejednoznaczne wymagania typu 'w niektorych przypadkach' bez listy warunkow i priorytetow decyzyjnych.\", \"Brak zgody na release bez minimalnego progu pokrycia testami dla sciezek krytycznych.\", \"Kazda zmiana logiki anulowania lub grafiku musi miec zaktualizowane testy automatyczne i dokumentacje kontraktowa.\", \"Wszystkie komunikaty bledow musza byc deterministyczne, wersjonowane i mapowane do konkretnych przypadkow walidacyjnych.\", \"Wyjatki od reguly braku konfliktu musza byc jawnie konfigurowalne i audytowalne.\"], \"tradeoffs\": [\"Akceptuje wolniejsze wydania w zamian za nizsze ryzyko regresji produkcyjnej.\", \"Akceptuje bardziej restrykcyjne walidacje kosztem prostoty interfejsu uzytkownika.\", \"Akceptuje wiekszy koszt implementacji i utrzymania testow w zamian za przewidywalnosc zmian.\", \"Odrzuca szybkie obejscia biznesowe, jesli nie da sie ich pokryc testami i monitorowaniem.\"]}]\n\nWczesniejsze wyjscia:\n{\"system_goal\": \"System ma umozliwiac szybka i skalowalna rezerwacje wizyt u specjalistow przy minimalnym tarciu dla uzytkownika, z obsluga anulowania, zarzadzania grafikiem i podstawowej monetyzacji. MVP powinno priorytetyzowac prostote procesu i szybkie wdrozenie, ale jednoczesnie zapewnic rozliczalnosc operacji, kontrole dostepu oraz deterministyczne zasady konfliktow i wyjatkow.\", \"roles\": [{\"name\": \"User\", \"permissions\": [\"register_account\", \"login\", \"manage_own_profile\", \"browse_available_slots\", \"create_own_booking\", \"view_own_bookings\", \"cancel_own_booking_within_policy\", \"submit_cancellation_reason_when_required\"]}, {\"name\": \"Specialist\", \"permissions\": [\"login_with_mfa\", \"manage_own_profile\", \"manage_own_schedule\", \"view_own_bookings\", \"modify_schedule_affecting_own_bookings\", \"request_or_apply_allowed_booking_conflict_exception_if_authorized\", \"view_minimum_required_user_data_for_own_appointments\"]}, {\"name\": \"Administrator\", \"permissions\": [\"login_with_mfa\", \"manage_users_and_roles\", \"configure_booking_and_cancellation_policies\", \"configure_allowed_conflict_exceptions\", \"view_audit_logs\", \"view_business_reports\", \"manage_system_settings\", \"perform_privileged_booking_or_schedule_interventions_with_audit\"]}], \"functional_requirements\": [{\"id\": \"FR1\", \"description\": \"System musi obslugiwac trzy role MVP: User, Specialist i Administrator, z kontrola dostepu oparta o role oraz ograniczeniem widocznosci danych do wlasnych rezerwacji, wlasnego grafiku lub jawnie autoryzowanych zasobow administracyjnych.\"}, {\"id\": \"FR2\", \"description\": \"System musi umozliwiac szybka rejestracje i logowanie uzytkownika przy minimalnym zestawie wymaganych danych dla User, przy czym Specialist i Administrator musza korzystac z MFA podczas logowania.\"}, {\"id\": \"FR3\", \"description\": \"System musi prezentowac liste najblizszych dostepnych terminow specjalisty w czytelnej formie mobilnej i desktopowej, bez koniecznosci przechodzenia przez rozbudowane filtry lub formularze.\"}, {\"id\": \"FR4\", \"description\": \"User musi moc utworzyc rezerwacje wybranego terminu w minimalnej liczbie krokow, a system musi natychmiast zwrocic jednoznaczny wynik operacji: potwierdzenie albo deterministyczny blad.\"}, {\"id\": \"FR5\", \"description\": \"System musi zapobiegac standardowym konfliktom rezerwacji tego samego terminu poprzez atomowa walidacje i zapis, tak aby rownolegle proby rezerwacji nie prowadzily do niespojnosci danych.\"}, {\"id\": \"FR6\", \"description\": \"Wyjatki od reguly braku konfliktu rezerwacji musza byc jawnie konfigurowalne przez Administratora, domyslnie wylaczone, wymagac dodatkowej autoryzacji dla operacji uprzywilejowanej oraz pozostawiac slad audytowy z powodem i tozsamoscia wykonawcy.\"}, {\"id\": \"FR7\", \"description\": \"System musi definiowac jednoznaczne stany rezerwacji co najmniej: booked, cancelled_by_user, cancelled_by_specialist, reschedule_required oraz completed, wraz z dozwolonymi przejsciami miedzy stanami.\"}, {\"id\": \"FR8\", \"description\": \"User musi moc anulowac wlasna rezerwacje tylko zgodnie z konfigurowalna polityka czasowa anulowania; system przed rozpoczeciem akcji musi jasno pokazac, czy anulowanie jest dozwolone, ograniczone lub wymaga uzasadnienia.\"}, {\"id\": \"FR9\", \"description\": \"Jesli polityka anulowania tego wymaga, system musi pobrac od User uzasadnienie anulowania w postaci krotkiego powodu; dla przypadkow niewymagajacych uzasadnienia proces anulowania ma pozostac uproszczony.\"}, {\"id\": \"FR10\", \"description\": \"Specialist musi moc zarzadzac swoim grafikiem przez dodawanie, usuwanie i modyfikowanie slotow dostepnosci, przy czym zmiany dotyczace istniejacych rezerwacji musza byc walidowane i zapisywane jako operacje audytowalne.\"}, {\"id\": \"FR11\", \"description\": \"Gdy Specialist zmieni grafik w sposob naruszajacy istniejaca rezerwacje, system musi oznaczyc taka rezerwacje stanem reschedule_required albo cancelled_by_specialist zgodnie z konfiguracja polityki oraz natychmiast poinformowac o tym User.\"}, {\"id\": \"FR12\", \"description\": \"System musi wyswietlac krotkie i jednoznaczne komunikaty o dostepnosci terminow, konflikcie, ograniczeniu anulowania i skutkach zmiany grafiku, bez ukrytej logiki i bez technicznego zargonu na glownych ekranach.\"}, {\"id\": \"FR13\", \"description\": \"Wszystkie operacje zmieniajace stan systemu, w tym logowanie, rezerwacja, anulowanie, zmiana grafiku, nadanie uprawnien i uzycie wyjatku konfliktu, musza byc zapisywane w niemodyfikowalnym logu audytowym z identyfikatorem aktora, czasem i wynikiem operacji.\"}, {\"id\": \"FR14\", \"description\": \"API systemu musi byc wersjonowane i zwracac spojny model odpowiedzi oraz deterministyczne kody bledow dla walidacji, autoryzacji, konfliktu terminu i naruszenia polityki anulowania.\"}, {\"id\": \"FR15\", \"description\": \"System musi stosowac szyfrowanie danych w transmisji i w spoczynku oraz ograniczac zakres danych osobowych widocznych dla Specialist do minimum niezbednego do realizacji wizyty.\"}, {\"id\": \"FR16\", \"description\": \"System musi zapewniac podstawowe zabezpieczenia przed naduzyciami: silna polityke hasel, rate limiting logowania i operacji wrazliwych oraz wykrywanie anomalii dla masowych anulowan, masowych zmian grafiku i nietypowego uzycia wyjatkow konfliktu.\"}, {\"id\": \"FR17\", \"description\": \"Administrator musi moc konfigurowac bez zmian kodu co najmniej: okno czasowe anulowania, wymagalnosc uzasadnienia anulowania, zasady reakcji na zmiane grafiku oraz katalog dopuszczalnych wyjatkow od konfliktow rezerwacji.\"}, {\"id\": \"FR18\", \"description\": \"System musi dostarczac podstawowe raporty biznesowe obejmujace liczbe rezerwacji, anulacji, wykorzystanie grafikow specjalistow oraz dane potrzebne do rozliczen oplat, prowizji lub abonamentow.\"}, {\"id\": \"FR19\", \"description\": \"Architektura rozwiazania musi wspierac skalowanie poziome warstwy aplikacyjnej i obsluge wielu specjalistow oraz uzytkownikow bez zmiany modelu funkcjonalnego MVP.\"}]}\n\nOgraniczenia:\n- Maksymalnie 20 elementow w liscie \"non_functional_requirements\".\n- Maksymalnie 20 elementow w liscie \"user_stories\".\n\nZwracaj WYŁĄCZNIE ten fragment JSON:\n{\n  \"non_functional_requirements\": [\n    {\"id\": \"NFR1\", \"description\": \"Opis wymagania\"}\n  ],\n  \"user_stories\": [\n    {\"id\": \"US1\", \"description\": \"Jako X chcę Y aby Z.\"}\n  ]\n}\n\n\n[STEP3]\nUser stories:\n[{\"id\": \"US1\", \"description\": \"Jako User chce szybko zalozyc konto przy minimalnej liczbie wymaganych danych aby moc od razu zarezerwowac wizyte.\"}, {\"id\": \"US2\", \"description\": \"Jako User chce zobaczyc najblizsze dostepne terminy specjalisty bez zbednych filtrow aby szybko podjac decyzje o rezerwacji.\"}, {\"id\": \"US3\", \"description\": \"Jako User chce zarezerwowac wybrany termin w kilku prostych krokach aby ograniczyc ryzyko porzucenia procesu.\"}, {\"id\": \"US4\", \"description\": \"Jako User chce natychmiast otrzymac potwierdzenie lub jasny powod niepowodzenia rezerwacji aby wiedziec co dalej zrobic.\"}, {\"id\": \"US5\", \"description\": \"Jako User chce widziec swoje nadchodzace i anulowane rezerwacje aby latwo zarzadzac wizytami.\"}, {\"id\": \"US6\", \"description\": \"Jako User chce przed anulowaniem od razu wiedziec czy mieszcze sie w oknie czasowym oraz czy potrzebne jest uzasadnienie aby uniknac frustracji.\"}, {\"id\": \"US7\", \"description\": \"Jako User chce anulowac swoja rezerwacje prostym procesem aby szybko zwolnic termin gdy nie moge przyjsc.\"}, {\"id\": \"US8\", \"description\": \"Jako User chce otrzymac natychmiastowa informacje o zmianie grafiku specjalisty dotyczacej mojej wizyty aby wiedziec czy musze wybrac nowy termin.\"}, {\"id\": \"US9\", \"description\": \"Jako Specialist chce logowac sie z MFA aby bezpiecznie zarzadzac swoim grafikiem i rezerwacjami.\"}, {\"id\": \"US10\", \"description\": \"Jako Specialist chce dodawac i usuwac sloty dostepnosci w swoim grafiku aby kontrolowac kiedy przyjmuje wizyty.\"}, {\"id\": \"US11\", \"description\": \"Jako Specialist chce modyfikowac swoj grafik takze wtedy gdy istnieja juz rezerwacje aby odzwierciedlic realne zmiany dostepnosci.\"}, {\"id\": \"US12\", \"description\": \"Jako Specialist chce widziec tylko minimalny zakres danych potrzebnych do realizacji moich wizyt aby chronic prywatnosc uzytkownikow.\"}, {\"id\": \"US13\", \"description\": \"Jako Administrator chce konfigurowac polityke anulowania bez zmian kodu aby szybko dopasowywac zasady do potrzeb biznesowych.\"}, {\"id\": \"US14\", \"description\": \"Jako Administrator chce definiowac dopuszczalne wyjatki od konfliktow rezerwacji jako jawne reguly aby kontrolowac ich uzycie i ryzyko naduzyc.\"}, {\"id\": \"US15\", \"description\": \"Jako Administrator chce miec dostep do logow audytowych operacji krytycznych aby analizowac incydenty i rozliczac dzialania uzytkownikow.\"}, {\"id\": \"US16\", \"description\": \"Jako Administrator chce przegladac podstawowe raporty o rezerwacjach, anulacjach, oblozeniu grafikow i przychodach aby monitorowac wynik biznesowy MVP.\"}, {\"id\": \"US17\", \"description\": \"Jako Security Officer chce miec pewnosc ze kazda operacja uprzywilejowana jest dodatkowo autoryzowana i audytowana aby ograniczyc fraud oraz naduzycia.\"}, {\"id\": \"US18\", \"description\": \"Jako QA Engineer chce miec jednoznacznie zdefiniowane stany rezerwacji, przejscia oraz kody bledow aby moc automatyzowac testy regresji.\"}]\n\nOgraniczenia:\n- Maksymalnie 20 elementow w liscie \"acceptance_criteria\".\n\nZwracaj WYŁĄCZNIE ten fragment JSON:\n{\n  \"acceptance_criteria\": [\n    {\n      \"id\": \"AC1\",\n      \"given\": \"warunek wstępny\",\n      \"when\": \"akcja użytkownika\",\n      \"then\": \"przewidywany wynik\"\n    }\n  ]\n}\n",
+    "human_changes": null,
+    "score": null
+  }
+}

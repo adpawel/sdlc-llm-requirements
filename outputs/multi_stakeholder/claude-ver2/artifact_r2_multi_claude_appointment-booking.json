@@ -1,0 +1,412 @@
+{
+  "system_goal": "System rezerwacji wizyt umożliwia użytkownikom przeglądanie dostępności specjalistów, dokonywanie i anulowanie rezerwacji oraz zarządzanie grafikiem przez specjalistów. System balansuje między szybkim time-to-market a bezpieczeństwem danych wrażliwych, zapewniając skalowalną architekturę opartą na gotowych komponentach SaaS z wbudowanymi mechanizmami monetyzacji.",
+  "roles": [
+    {
+      "name": "Użytkownik",
+      "permissions": [
+        "przeglądanie dostępnych terminów",
+        "dokonywanie rezerwacji",
+        "anulowanie własnych rezerwacji (z ograniczeniem czasowym)",
+        "przeglądanie historii własnych rezerwacji",
+        "edycja własnego profilu"
+      ]
+    },
+    {
+      "name": "Specjalista",
+      "permissions": [
+        "zarządzanie własnym grafikiem",
+        "modyfikacja istniejących rezerwacji z powiadomieniem użytkownika",
+        "przeglądanie listy własnych rezerwacji",
+        "blokowanie terminów",
+        "przeglądanie danych kontaktowych rezerwujących użytkowników"
+      ]
+    },
+    {
+      "name": "Administrator",
+      "permissions": [
+        "zarządzanie kontami użytkowników i specjalistów",
+        "przeglądanie logów audytowych",
+        "konfiguracja polityk rezerwacji i anulowania",
+        "dostęp do dashboardu raportowego",
+        "zarządzanie planami subskrypcyjnymi i prowizjami",
+        "ręczne rozwiązywanie konfliktów rezerwacji"
+      ]
+    }
+  ],
+  "functional_requirements": [
+    {
+      "id": "FR1",
+      "description": "System umożliwia rejestrację użytkownika w maksymalnie 3 krokach z weryfikacją email wymaganą przed dokonaniem pierwszej rezerwacji (kompromis: onboarding bez natychmiastowej weryfikacji email jest dozwolony dla przeglądania terminów, ale rezerwacja wymaga potwierdzonego konta ze względu na ochronę danych i redukcję fake bookings)."
+    },
+    {
+      "id": "FR2",
+      "description": "System obsługuje logowanie przez SSO (Google, Apple) jako podstawową metodę uwierzytelniania. MFA jest obowiązkowe dla roli Specjalista i Administrator, natomiast dla roli Użytkownik MFA jest opcjonalne i rekomendowane (kompromis między bezpieczeństwem kont wrażliwych a płynnością onboardingu zwykłych użytkowników)."
+    },
+    {
+      "id": "FR3",
+      "description": "System implementuje RBAC z trzema rolami (Użytkownik, Specjalista, Administrator) zapewniający techniczną niemożność dostępu do danych innych użytkowników bez odpowiednich uprawnień. Każda rola posiada udokumentowany zestaw uprawnień zgodny z zasadą najmniejszych uprawnień."
+    },
+    {
+      "id": "FR4",
+      "description": "Użytkownik może przeglądać dostępne terminy specjalisty w widoku kalendarza ładującym się w czasie poniżej 2 sekund. Widok prezentuje wyłącznie dostępność (wolny/zajęty) bez ujawniania danych innych rezerwujących."
+    },
+    {
+      "id": "FR5",
+      "description": "Proces rezerwacji wizyty składa się z maksymalnie 3 kroków: (1) wybór terminu, (2) podanie niezbędnych danych (maksymalnie 5 pól obowiązkowych), (3) potwierdzenie. System wyświetla natychmiastowe potwierdzenie rezerwacji po jej dokonaniu."
+    },
+    {
+      "id": "FR6",
+      "description": "System zapobiega konfliktom rezerwacji poprzez blokadę terminu w momencie jego wyboru (optymistyczne blokowanie z timeout 5 minut). Administrator może ręcznie dopuścić wyjątek od reguły konfliktu z obowiązkowym uzasadnieniem zapisanym w logu audytowym (kompromis: wyjątki są możliwe, ale audytowalne)."
+    },
+    {
+      "id": "FR7",
+      "description": "Użytkownik może anulować rezerwację samodzielnie do 24 godzin przed wizytą. Anulowanie w krótszym terminie wymaga kontaktu ze specjalistą lub administratorem. Komunikat o ograniczeniu czasowym jest wyświetlany w języku zrozumiałym dla użytkownika bez technicznego żargonu."
+    },
+    {
+      "id": "FR8",
+      "description": "Specjalista może modyfikować swój grafik, w tym terminy z istniejącymi rezerwacjami. W przypadku modyfikacji wpływającej na istniejącą rezerwację system automatycznie wysyła powiadomienie do użytkownika z propozycją nowego terminu lub możliwością anulowania bez kary."
+    },
+    {
+      "id": "FR9",
+      "description": "System rejestruje niemodyfikowalne logi audytowe dla wszystkich operacji: rejestracja, logowanie, rezerwacja, anulowanie, modyfikacja grafiku, zmiany uprawnień. Logi przechowywane są przez minimum 12 miesięcy i dostępne wyłącznie dla Administratora."
+    },
+    {
+      "id": "FR10",
+      "description": "Wszystkie dane osobowe i dane rezerwacji są szyfrowane w spoczynku (AES-256) i w tranzycie (TLS 1.3). System spełnia wymagania RODO w zakresie przechowywania, przetwarzania i usuwania danych osobowych na żądanie użytkownika."
+    },
+    {
+      "id": "FR11",
+      "description": "System wysyła automatyczne powiadomienia email i/lub SMS do użytkownika: potwierdzenie rezerwacji, przypomnienie 24h przed wizytą, informacja o modyfikacji lub anulowaniu przez specjalistę."
+    },
+    {
+      "id": "FR12",
+      "description": "System obsługuje modele monetyzacji: prowizja od rezerwacji (pobierana od specjalisty) oraz plany subskrypcyjne dla specjalistów (podstawowy/premium). Mechanizm płatności oparty na gotowym dostawcy SaaS (np. Stripe) bez implementacji custom."
+    },
+    {
+      "id": "FR13",
+      "description": "Administrator ma dostęp do dashboardu raportowego prezentującego kluczowe metryki biznesowe: liczba rezerwacji, przychody z prowizji i subskrypcji, wskaźnik anulowań, aktywni użytkownicy. Dashboard ładuje dane z opóźnieniem do 5 minut (nie real-time, kompromis kosztowy)."
+    },
+    {
+      "id": "FR14",
+      "description": "System obsługuje silną politykę haseł dla kont lokalnych (minimum 12 znaków, złożoność) z obowiązkową rotacją co 90 dni dla ról Specjalista i Administrator. Dla roli Użytkownik polityka haseł wynosi minimum 8 znaków (kompromis między bezpieczeństwem a UX dla użytkowników końcowych)."
+    },
+    {
+      "id": "FR15",
+      "description": "System implementuje walidację danych wejściowych po stronie serwera dla wszystkich operacji rezerwacji, anulowania i modyfikacji grafiku. Każda operacja zwraca ustandaryzowany kod błędu i komunikat zrozumiały dla użytkownika końcowego."
+    },
+    {
+      "id": "FR16",
+      "description": "System wykrywa anomalie behawioralne (np. masowe rezerwacje z jednego konta, wielokrotne nieudane logowania) i generuje alerty dla Administratora. Po 5 nieudanych próbach logowania konto jest tymczasowo blokowane z możliwością odblokowania przez email."
+    },
+    {
+      "id": "FR17",
+      "description": "Interfejs systemu jest responsywny i w pełni funkcjonalny na urządzeniach mobilnych (iOS, Android) poprzez przeglądarkę mobilną lub dedykowaną aplikację PWA. Kluczowe widoki (kalendarz, formularz rezerwacji, lista rezerwacji) ładują się poniżej 2 sekund."
+    },
+    {
+      "id": "FR18",
+      "description": "System umożliwia Specjaliście definiowanie dostępności w grafiku: godziny pracy, przerwy, urlopy, czas trwania wizyty. Specjalista może ustawić maksymalną liczbę rezerwacji dziennie oraz bufor czasowy między wizytami."
+    },
+    {
+      "id": "FR19",
+      "description": "Każda funkcjonalność systemu posiada udokumentowane kryteria akceptacji zdefiniowane przed implementacją. System przechodzi pełny zestaw testów regresji (automatycznych) przed każdym wydaniem produkcyjnym, obejmujący scenariusze: rezerwacja, anulowanie, konflikty, modyfikacja grafiku, przepływy wielorólowe (kompromis: 8-tygodniowy MVP dopuszcza ograniczony zakres testów automatycznych dla funkcji niekrytycznych, ale krytyczna ścieżka musi być w pełni pokryta)."
+    },
+    {
+      "id": "FR20",
+      "description": "System jest zbudowany na skalowalnej architekturze chmurowej (np. AWS/GCP/Azure) z wykorzystaniem gotowych komponentów SaaS dla: uwierzytelniania (np. Auth0), płatności (np. Stripe), powiadomień (np. SendGrid/Twilio). Infrastruktura skaluje się automatycznie przy wzroście liczby użytkowników bez zmian w kodzie aplikacji."
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "id": "NFR1",
+      "description": "Czas ładowania kluczowych widoków (kalendarz dostępności, formularz rezerwacji, lista rezerwacji) nie może przekraczać 2 sekund przy obciążeniu do 1000 jednoczesnych użytkowników, mierzony jako czas do pierwszego wyrenderowania treści (FCP)."
+    },
+    {
+      "id": "NFR2",
+      "description": "System musi być dostępny przez minimum 99,5% czasu miesięcznie (dopuszczalny downtime ~3,6h/miesiąc), z wyłączeniem zaplanowanych okien serwisowych ogłaszanych z minimum 24-godzinnym wyprzedzeniem."
+    },
+    {
+      "id": "NFR3",
+      "description": "Wszystkie dane osobowe i dane rezerwacji muszą być szyfrowane w spoczynku algorytmem AES-256 oraz w tranzycie przy użyciu TLS 1.3. Klucze szyfrowania muszą być zarządzane przez dedykowany serwis (np. AWS KMS) z rotacją co 12 miesięcy."
+    },
+    {
+      "id": "NFR4",
+      "description": "System musi spełniać wymagania RODO: prawo do usunięcia danych (realizacja w ciągu 72 godzin od żądania), prawo dostępu do danych, minimalizacja zakresu zbieranych danych do niezbędnego minimum, udokumentowana podstawa prawna przetwarzania."
+    },
+    {
+      "id": "NFR5",
+      "description": "Logi audytowe muszą być niemodyfikowalne (append-only), przechowywane przez minimum 12 miesięcy, z automatycznym archiwizowaniem do cold storage po 3 miesiącach. Integralność logów musi być weryfikowalna poprzez sumy kontrolne (hash chain)."
+    },
+    {
+      "id": "NFR6",
+      "description": "System musi implementować RBAC z techniczną niemożnością dostępu do danych innych użytkowników bez odpowiednich uprawnień. Naruszenia prób dostępu muszą być automatycznie logowane i generować alert dla Administratora w czasie rzeczywistym."
+    },
+    {
+      "id": "NFR7",
+      "description": "Architektura systemu musi umożliwiać skalowanie horyzontalne bez zmian w kodzie aplikacji. Infrastruktura chmurowa musi obsługiwać automatyczne skalowanie (auto-scaling) reagujące na wzrost obciążenia w ciągu maksymalnie 2 minut."
+    },
+    {
+      "id": "NFR8",
+      "description": "Koszty infrastruktury muszą być skalowalne: minimalne przy niskim ruchu (model pay-as-you-go), bez stałych kosztów przekraczających ustalony limit miesięczny na etapie MVP. System musi wykorzystywać gotowe komponenty SaaS zamiast rozwiązań custom wszędzie tam, gdzie jest to możliwe."
+    },
+    {
+      "id": "NFR9",
+      "description": "System musi wykrywać i blokować anomalie behawioralne: po 5 nieudanych próbach logowania konto jest blokowane na 15 minut, masowe rezerwacje (powyżej 10 w ciągu 5 minut z jednego konta) generują alert i wymagają weryfikacji. Czas reakcji systemu na wykrytą anomalię nie może przekraczać 30 sekund."
+    },
+    {
+      "id": "NFR10",
+      "description": "Interfejs użytkownika musi być w pełni responsywny i funkcjonalny na urządzeniach mobilnych (iOS Safari, Android Chrome) bez utraty funkcjonalności. Aplikacja musi spełniać standardy WCAG 2.1 poziom AA w zakresie dostępności."
+    },
+    {
+      "id": "NFR11",
+      "description": "System musi zapewniać spójną obsługę błędów w całym systemie: każdy błąd zwraca ustandaryzowany obiekt JSON z kodem błędu, komunikatem technicznym (dla logów) i komunikatem przyjaznym użytkownikowi (dla UI). Kody błędów muszą być udokumentowane i stabilne między wersjami API."
+    },
+    {
+      "id": "NFR12",
+      "description": "Krytyczna ścieżka użytkownika (rejestracja, logowanie, rezerwacja, anulowanie) musi być pokryta automatycznymi testami end-to-end uruchamianymi przed każdym wydaniem produkcyjnym. Pokrycie testami automatycznymi krytycznej ścieżki musi wynosić minimum 80% (kompromis: funkcje niekrytyczne mogą mieć niższe pokrycie w MVP)."
+    },
+    {
+      "id": "NFR13",
+      "description": "Czas odpowiedzi API dla operacji rezerwacji i anulowania nie może przekraczać 500ms w 95. percentylu przy normalnym obciążeniu. Operacja blokowania terminu (optymistyczne blokowanie) musi być atomowa i odporna na równoczesne żądania."
+    },
+    {
+      "id": "NFR14",
+      "description": "System musi wysyłać powiadomienia email w ciągu maksymalnie 60 sekund od zdarzenia (rezerwacja, anulowanie, modyfikacja grafiku). Powiadomienia SMS muszą być dostarczone w ciągu 5 minut. Niedostarczone powiadomienia muszą być ponawiane z mechanizmem retry (3 próby z wykładniczym backoff)."
+    },
+    {
+      "id": "NFR15",
+      "description": "Dashboard raportowy dla Administratora musi prezentować dane z opóźnieniem maksymalnie 5 minut (odświeżanie cykliczne, nie real-time). Eksport danych raportowych musi być dostępny w formacie CSV i JSON."
+    },
+    {
+      "id": "NFR16",
+      "description": "Wszystkie dane wejściowe muszą być walidowane po stronie serwera niezależnie od walidacji po stronie klienta. Walidacja musi obejmować: typy danych, zakresy wartości, format dat i godzin, sanityzację przed zapisem do bazy danych (ochrona przed SQL injection i XSS)."
+    },
+    {
+      "id": "NFR17",
+      "description": "System musi posiadać środowisko testowe izolowane od produkcji, odzwierciedlające konfigurację produkcyjną, z możliwością symulacji konfliktów rezerwacji i scenariuszy wielorólowych. Dane testowe nie mogą zawierać rzeczywistych danych osobowych użytkowników."
+    },
+    {
+      "id": "NFR18",
+      "description": "Mechanizm płatności musi być oparty wyłącznie na certyfikowanym dostawcy SaaS (np. Stripe) spełniającym standard PCI DSS. System nie może przechowywać danych kart płatniczych. Transakcje muszą być idempotentne i odporne na duplikaty żądań."
+    },
+    {
+      "id": "NFR19",
+      "description": "System musi implementować monitoring produkcyjny z alertami dla: dostępności systemu (downtime), błędów krytycznych (5xx), przekroczenia progów czasu odpowiedzi, anomalii w liczbie rezerwacji. Alerty muszą być dostarczone do Administratora w ciągu 5 minut od wykrycia zdarzenia."
+    },
+    {
+      "id": "NFR20",
+      "description": "Architektura systemu musi umożliwiać wdrożenie MVP w ciągu 8 tygodni poprzez wykorzystanie gotowych komponentów SaaS (Auth0 lub odpowiednik dla uwierzytelniania, Stripe dla płatności, SendGrid/Twilio dla powiadomień). Każdy komponent SaaS musi posiadać zdefiniowany plan awaryjny (fallback) na wypadek niedostępności dostawcy."
+    }
+  ],
+  "user_stories": [
+    {
+      "id": "US1",
+      "description": "Jako nowy Użytkownik chcę zarejestrować się w systemie w maksymalnie 3 krokach (dane podstawowe, hasło, potwierdzenie email) aby móc szybko rozpocząć korzystanie z systemu bez zbędnych barier wejścia."
+    },
+    {
+      "id": "US2",
+      "description": "Jako Użytkownik chcę zalogować się przez SSO (Google lub Apple) jednym kliknięciem aby uniknąć konieczności pamiętania hasła i przyspieszyć dostęp do systemu."
+    },
+    {
+      "id": "US3",
+      "description": "Jako Użytkownik chcę przeglądać dostępne terminy wybranego specjalisty w widoku kalendarza aby szybko znaleźć odpowiadający mi termin bez znajomości szczegółów innych rezerwacji."
+    },
+    {
+      "id": "US4",
+      "description": "Jako Użytkownik chcę zarezerwować wizytę w maksymalnie 3 krokach (wybór terminu, podanie danych, potwierdzenie) aby proces był szybki i nie wymagał podawania zbędnych informacji."
+    },
+    {
+      "id": "US5",
+      "description": "Jako Użytkownik chcę otrzymać natychmiastowe potwierdzenie rezerwacji na ekranie oraz email z detalami wizyty aby mieć pewność, że rezerwacja została przyjęta."
+    },
+    {
+      "id": "US6",
+      "description": "Jako Użytkownik chcę anulować rezerwację samodzielnie do 24 godzin przed wizytą jednym kliknięciem z jednym potwierdzeniem aby móc elastycznie zarządzać swoim harmonogramem bez kontaktu z obsługą."
+    },
+    {
+      "id": "US7",
+      "description": "Jako Użytkownik chcę otrzymać czytelny komunikat (bez technicznego żargonu) gdy wybrany termin jest już zajęty lub gdy anulowanie jest niemożliwe ze względu na ograniczenie czasowe aby wiedzieć co zrobić w takiej sytuacji."
+    },
+    {
+      "id": "US8",
+      "description": "Jako Użytkownik chcę otrzymać przypomnienie email lub SMS 24 godziny przed wizytą aby nie zapomnieć o zaplanowanej wizycie."
+    },
+    {
+      "id": "US9",
+      "description": "Jako Użytkownik chcę być natychmiast powiadomiony emailem gdy specjalista zmodyfikuje lub odwoła moją rezerwację wraz z propozycją nowego terminu lub możliwością bezkosztowego anulowania aby móc podjąć odpowiednie działania."
+    },
+    {
+      "id": "US10",
+      "description": "Jako Specjalista chcę skonfigurować swój grafik dostępności (godziny pracy, przerwy, urlopy, czas trwania wizyty, bufory między wizytami) aby system automatycznie prezentował użytkownikom tylko faktycznie dostępne terminy."
+    },
+    {
+      "id": "US11",
+      "description": "Jako Specjalista chcę zalogować się do systemu z obowiązkowym MFA (TOTP lub SMS) aby moje konto i dane moich pacjentów były chronione przed nieautoryzowanym dostępem."
+    },
+    {
+      "id": "US12",
+      "description": "Jako Specjalista chcę modyfikować swój grafik nawet gdy istnieją już rezerwacje w danym terminie, z automatycznym powiadomieniem dotkniętych użytkowników, aby móc elastycznie zarządzać swoją dostępnością w uzasadnionych przypadkach."
+    },
+    {
+      "id": "US13",
+      "description": "Jako Specjalista chcę przeglądać listę moich nadchodzących rezerwacji z danymi kontaktowymi rezerwujących użytkowników aby móc przygotować się do wizyt i w razie potrzeby skontaktować się z pacjentem."
+    },
+    {
+      "id": "US14",
+      "description": "Jako Administrator chcę przeglądać niemodyfikowalne logi audytowe wszystkich operacji w systemie (rezerwacje, anulowania, logowania, modyfikacje grafiku) aby móc wykrywać i analizować incydenty bezpieczeństwa oraz nieprawidłowości."
+    },
+    {
+      "id": "US15",
+      "description": "Jako Administrator chcę mieć dostęp do dashboardu raportowego z kluczowymi metrykami biznesowymi (liczba rezerwacji, przychody z prowizji i subskrypcji, wskaźnik anulowań, aktywni użytkownicy) aby monitorować kondycję biznesu i podejmować decyzje operacyjne."
+    },
+    {
+      "id": "US16",
+      "description": "Jako Administrator chcę ręcznie dopuścić wyjątek od reguły konfliktu rezerwacji z obowiązkowym uzasadnieniem zapisanym w logu audytowym aby obsłużyć szczególne przypadki biznesowe przy zachowaniu pełnej audytowalności."
+    },
+    {
+      "id": "US17",
+      "description": "Jako Administrator chcę zarządzać planami subskrypcyjnymi specjalistów (podstawowy/premium) oraz konfiguracją prowizji od rezerwacji aby móc elastycznie dostosowywać model monetyzacji do potrzeb biznesowych."
+    },
+    {
+      "id": "US18",
+      "description": "Jako Administrator chcę otrzymywać automatyczne alerty o anomaliach behawioralnych (masowe rezerwacje, wielokrotne nieudane logowania, próby nieautoryzowanego dostępu) aby móc szybko reagować na potencjalne zagrożenia bezpieczeństwa."
+    },
+    {
+      "id": "US19",
+      "description": "Jako Specjalista chcę wybierać między planem subskrypcyjnym podstawowym a premium aby dopasować zakres funkcjonalności do moich potrzeb i możliwości finansowych, z jasnym przedstawieniem różnic między planami."
+    },
+    {
+      "id": "US20",
+      "description": "Jako Użytkownik chcę przeglądać historię moich rezerwacji (przeszłych i nadchodzących) oraz zarządzać swoim profilem i preferencjami powiadomień aby mieć pełną kontrolę nad swoimi danymi i aktywnością w systemie."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "given": "Nowy użytkownik odwiedza stronę rejestracji",
+      "when": "Wypełnia dane podstawowe, hasło i potwierdza email",
+      "then": "Konto zostaje utworzone w dokładnie 3 krokach, a użytkownik otrzymuje email weryfikacyjny i uzyskuje dostęp do systemu"
+    },
+    {
+      "id": "AC2",
+      "given": "Użytkownik na stronie logowania wybiera SSO",
+      "when": "Klika przycisk 'Zaloguj przez Google' lub 'Zaloguj przez Apple'",
+      "then": "Użytkownik zostaje zalogowany jednym kliknięciem bez konieczności podawania hasła, a sesja jest tworzona natychmiast"
+    },
+    {
+      "id": "AC3",
+      "given": "Zalogowany użytkownik wybiera specjalistę",
+      "when": "Otwiera widok kalendarza dostępności specjalisty",
+      "then": "System prezentuje wyłącznie faktycznie wolne terminy uwzględniające grafik, przerwy i istniejące rezerwacje, bez ujawniania danych innych rezerwacji"
+    },
+    {
+      "id": "AC4",
+      "given": "Użytkownik wybrał wolny termin w kalendarzu",
+      "when": "Przechodzi przez proces rezerwacji: wybór terminu, podanie danych, potwierdzenie",
+      "then": "Rezerwacja zostaje zapisana w dokładnie 3 krokach, na ekranie pojawia się natychmiastowe potwierdzenie, a na email trafia wiadomość z detalami wizyty"
+    },
+    {
+      "id": "AC5",
+      "given": "Użytkownik próbuje zarezerwować termin, który właśnie zajął inny użytkownik",
+      "when": "Potwierdza rezerwację",
+      "then": "System wyświetla czytelny komunikat w języku niespecjalistycznym informujący o zajętości terminu oraz sugeruje alternatywne działanie"
+    },
+    {
+      "id": "AC6",
+      "given": "Użytkownik posiada aktywną rezerwację z terminem wizyty oddalonym o więcej niż 24 godziny",
+      "when": "Klika 'Anuluj wizytę' i potwierdza jednym kliknięciem",
+      "then": "Rezerwacja zostaje anulowana, termin wraca do puli dostępnych, a użytkownik otrzymuje potwierdzenie anulowania emailem"
+    },
+    {
+      "id": "AC7",
+      "given": "Użytkownik próbuje anulować rezerwację na mniej niż 24 godziny przed wizytą",
+      "when": "Klika 'Anuluj wizytę'",
+      "then": "System wyświetla czytelny komunikat bez technicznego żargonu informujący o niemożności anulowania z podaniem powodu i sugestią kontaktu ze specjalistą"
+    },
+    {
+      "id": "AC8",
+      "given": "Istnieje potwierdzona rezerwacja z terminem wizyty za dokładnie 24 godziny",
+      "when": "System wykonuje zaplanowane zadanie wysyłki przypomnień",
+      "then": "Użytkownik otrzymuje przypomnienie emailem lub SMS-em zgodnie z ustawionymi preferencjami powiadomień"
+    },
+    {
+      "id": "AC9",
+      "given": "Specjalista modyfikuje lub odwołuje termin, na który istnieje rezerwacja użytkownika",
+      "when": "Specjalista zapisuje zmiany w grafiku",
+      "then": "Użytkownik natychmiast otrzymuje email z informacją o zmianie, propozycją nowego terminu lub możliwością bezkosztowego anulowania"
+    },
+    {
+      "id": "AC10",
+      "given": "Specjalista jest zalogowany i przechodzi do konfiguracji grafiku",
+      "when": "Ustawia godziny pracy, przerwy, urlopy, czas trwania wizyty i bufory między wizytami",
+      "then": "System zapisuje konfigurację i od razu prezentuje użytkownikom wyłącznie terminy zgodne z nowym grafikiem"
+    },
+    {
+      "id": "AC11",
+      "given": "Specjalista próbuje zalogować się do systemu",
+      "when": "Poda poprawne dane logowania",
+      "then": "System wymaga obowiązkowej weryfikacji MFA (TOTP lub SMS) i dopuszcza dostęp dopiero po jej pomyślnym przejściu"
+    },
+    {
+      "id": "AC12",
+      "given": "Specjalista jest zalogowany i przegląda swój panel",
+      "when": "Otwiera listę nadchodzących rezerwacji",
+      "then": "System wyświetla posortowaną listę rezerwacji zawierającą dane kontaktowe rezerwujących użytkowników"
+    },
+    {
+      "id": "AC13",
+      "given": "Administrator jest zalogowany w panelu administracyjnym",
+      "when": "Otwiera sekcję logów audytowych",
+      "then": "System prezentuje niemodyfikowalne logi wszystkich operacji (rezerwacje, anulowania, logowania, modyfikacje grafiku) z możliwością filtrowania i wyszukiwania"
+    },
+    {
+      "id": "AC14",
+      "given": "Administrator jest zalogowany w panelu administracyjnym",
+      "when": "Otwiera dashboard raportowy",
+      "then": "System wyświetla aktualne metryki: liczba rezerwacji, przychody z prowizji i subskrypcji, wskaźnik anulowań oraz liczba aktywnych użytkowników"
+    },
+    {
+      "id": "AC15",
+      "given": "Administrator identyfikuje konieczność wyjątku od reguły konfliktu rezerwacji",
+      "when": "Zatwierdza wyjątek z obowiązkowym uzasadnieniem tekstowym",
+      "then": "System dopuszcza rezerwację, a uzasadnienie wraz z danymi operacji zostaje niemodyfikowalnie zapisane w logu audytowym"
+    },
+    {
+      "id": "AC16",
+      "given": "Administrator jest zalogowany w panelu zarządzania subskrypcjami",
+      "when": "Modyfikuje plan subskrypcyjny specjalisty lub konfigurację prowizji",
+      "then": "Zmiany zostają zapisane natychmiast, specjalista jest powiadamiany, a operacja jest rejestrowana w logu audytowym"
+    },
+    {
+      "id": "AC17",
+      "given": "System wykrywa anomalię behawioralną (masowe rezerwacje, wielokrotne nieudane logowania lub próby nieautoryzowanego dostępu)",
+      "when": "Przekroczony zostaje zdefiniowany próg alertu",
+      "then": "Administrator otrzymuje automatyczny alert z opisem anomalii, czasem zdarzenia i danymi pozwalającymi na identyfikację źródła"
+    },
+    {
+      "id": "AC18",
+      "given": "Specjalista jest zalogowany i przegląda dostępne plany",
+      "when": "Otwiera sekcję wyboru planu subskrypcyjnego",
+      "then": "System prezentuje czytelne zestawienie różnic między planem podstawowym a premium z cennikiem i umożliwia zmianę planu"
+    },
+    {
+      "id": "AC19",
+      "given": "Zalogowany użytkownik otwiera swój profil",
+      "when": "Przechodzi do sekcji historii rezerwacji",
+      "then": "System wyświetla pełną historię przeszłych i nadchodzących rezerwacji oraz umożliwia zarządzanie profilem i preferencjami powiadomień (email/SMS)"
+    },
+    {
+      "id": "AC20",
+      "given": "Użytkownik rejestruje się lub loguje przez SSO bez wcześniejszego konta",
+      "when": "Pomyślnie uwierzytelni się przez Google lub Apple",
+      "then": "System automatycznie tworzy konto użytkownika na podstawie danych z dostawcy SSO i kieruje użytkownika do uzupełnienia brakujących danych profilu w nie więcej niż 1 dodatkowym kroku"
+    }
+  ],
+  "metadata": {
+    "version": "llm",
+    "case_study": "appointment-booking",
+    "model_used": "claude-sonnet-4-6",
+    "prompt_log": "[SYSTEM]\nJestes Analitykiem Wymagan.\nNa podstawie wejsc interesariuszy opracuj najlepszy plan systemu.\nUwzglednij potencjalne konflikty i uzasadnij kompromisy w doborze wymagan.\nOdpowiadaj WYLACZNIE poprawnym JSON. Bez Markdown i bez komentarzy.\n\n[STAKEHOLDERS]\n[{\"stakeholder\": \"business\", \"goals\": [\"Maksymalizacja ROI poprzez szybkie wejście na rynek i pozyskanie pierwszych płacących klientów\", \"Minimalizacja kosztów wdrożenia i utrzymania systemu rezerwacji\", \"Skalowanie bazy użytkowników przy ograniczonym budżecie operacyjnym\", \"Generowanie przychodów poprzez modele subskrypcyjne lub prowizyjne od rezerwacji\", \"Szybkie eksperymenty produktowe i testy A/B bez długich cykli wydawniczych\"], \"needs\": [\"Prosty i szybki onboarding użytkowników bez zbędnych kroków weryfikacyjnych\", \"Minimalistyczny przepływ rezerwacji redukujący porzucenia koszyka\", \"Tani stack technologiczny oparty na gotowych komponentach i SaaS\", \"Dashboard raportowy dla zarządu z kluczowymi metrykami biznesowymi\", \"Mechanizmy monetyzacji wbudowane od pierwszego release (prowizje, plany premium)\", \"Możliwość szybkiego wdrożenia bez rozbudowanej fazy testów regresyjnych\", \"Minimalny zakres compliance wymagany prawnie, bez nadmiarowych zabezpieczeń\"], \"concerns\": [\"Zbyt rozbudowane zabezpieczenia bezpieczeństwa spowalniają onboarding i zwiększają koszty\", \"Długie cykle QA opóźniają time-to-market i generują koszty bez proporcjonalnego zwrotu\", \"Nadmiernie szczegółowe przepływy UX wydłużają czas implementacji i zwiększają złożoność\", \"Rozbudowana architektura techniczna podnosi koszty utrzymania ponad akceptowalny poziom\", \"Restrykcyjne polityki anulowania rezerwacji mogą odstraszać użytkowników i obniżać konwersję\", \"Zbyt rygorystyczne wymagania dotyczące ról i uprawnień komplikują system i spowalniają wdrożenie\", \"Brak szybkich eksperymentów A/B ogranicza optymalizację współczynnika konwersji\"], \"priorities\": [\"Wydanie MVP w ciągu maksymalnie 8 tygodni od startu projektu\", \"Wdrożenie modelu prowizyjnego lub subskrypcyjnego już w pierwszej wersji\", \"Uproszczony proces rejestracji: maksymalnie 2-3 kroki bez obowiązkowego MFA\", \"Wykorzystanie gotowych komponentów i integracji zamiast rozwiązań custom\", \"Ograniczenie zakresu testów do smoke testów i testów krytycznej ścieżki\", \"Priorytetyzacja funkcji generujących przychód nad funkcjami bezpieczeństwa i UX\"], \"constraints\": [\"Budżet wdrożeniowy nie może przekroczyć ustalonego limitu dla MVP\", \"Czas do pierwszego release maksymalnie 8 tygodni\", \"Koszty miesięczne utrzymania infrastruktury muszą być skalowalne i niskie na starcie\", \"Brak zasobów na dedykowany zespół bezpieczeństwa lub QA w fazie MVP\", \"Compliance ograniczony do absolutnego minimum wymaganego przez prawo (RODO podstawowe)\"], \"tradeoffs\": [\"Akceptujemy wyższe ryzyko bezpieczeństwa w zamian za szybszy onboarding i niższe koszty\", \"Rezygnujemy z pełnego pokrycia testami na rzecz szybszego time-to-market\", \"Upraszczamy przepływy UX kosztem precyzji informacji, aby zwiększyć konwersję\", \"Wybieramy tańsze rozwiązania infrastrukturalne kosztem pełnej skalowalności od dnia zero\", \"Dopuszczamy konflikty rezerwacji jako edge case zamiast inwestować w kosztowne mechanizmy blokad\", \"Ograniczamy granularność ról użytkowników do minimum, aby przyspieszyć implementację\"]}, {\"stakeholder\": \"security\", \"goals\": [\"Zapewnienie maksymalnej ochrony danych osobowych i medycznych użytkowników\", \"Wymuszenie silnej tożsamości i wieloskładnikowego uwierzytelniania dla wszystkich ról\", \"Pełna audytowalność wszystkich zdarzeń w systemie\", \"Minimalizacja powierzchni ataku poprzez ścisłą kontrolę dostępu\", \"Ochrona przed nieautoryzowanym dostępem do harmonogramów i danych rezerwacji\"], \"needs\": [\"Obowiązkowe MFA dla wszystkich użytkowników, w szczególności specjalistów i administratorów\", \"Szyfrowanie danych w spoczynku i w tranzycie (AES-256, TLS 1.3)\", \"Szczegółowe logi audytowe każdej operacji: rezerwacji, anulowania, modyfikacji grafiku\", \"Implementacja RBAC z zasadą najmniejszych uprawnień\", \"Silna polityka haseł: min. 12 znaków, złożoność, rotacja co 90 dni\", \"Segmentacja dostępu między rolami: użytkownik, specjalista, administrator\", \"System alertów na anomalie behawioralne i próby nieautoryzowanego dostępu\", \"Retencja logów przez minimum 12 miesięcy zgodnie z wymogami RODO i branżowymi\", \"Regularne audyty bezpieczeństwa i testy penetracyjne\"], \"concerns\": [\"Brak MFA naraża konta specjalistów na przejęcie i manipulację grafikiem\", \"Słabe hasła zwiększają ryzyko nieautoryzowanego dostępu do danych medycznych\", \"Brak logów audytowych uniemożliwia wykrycie i analizę incydentów bezpieczeństwa\", \"Nadmiarowe uprawnienia użytkowników mogą prowadzić do wycieku danych innych pacjentów\", \"Wyjątki w rezerwacjach mogą być exploitowane do ataków na dostępność systemu\", \"Modyfikacja grafiku przez specjalistów bez ścieżki audytu stwarza ryzyko manipulacji\", \"Brak szyfrowania danych rezerwacji naraża wrażliwe informacje na przechwycenie\", \"Niewystarczająca retencja logów uniemożliwia spełnienie wymogów regulacyjnych\", \"Skalowalność systemu bez odpowiednich mechanizmów bezpieczeństwa zwiększa powierzchnię ataku\"], \"priorities\": [\"Wdrożenie MFA jako wymagania obowiązkowego, nie opcjonalnego\", \"Szyfrowanie end-to-end wszystkich danych wrażliwych\", \"Implementacja kompletnego systemu logowania audytowego przed uruchomieniem produkcyjnym\", \"Ścisły RBAC uniemożliwiający dostęp do danych innych użytkowników\", \"Zero-trust architecture dla komunikacji między komponentami systemu\", \"Regularne testy penetracyjne i audyty kodu\"], \"constraints\": [\"MFA nie może być wyłączone ani obejście nawet na żądanie użytkownika lub biznesu\", \"Polityka haseł nie może być osłabiana w celu poprawy UX lub redukcji churnu\", \"Logi audytowe muszą być niemodyfikowalne i przechowywane przez minimum 12 miesięcy\", \"Dane osobowe muszą być szyfrowane zgodnie z RODO i standardami branżowymi\", \"Dostęp do danych innych użytkowników musi być technicznie niemożliwy bez odpowiednich uprawnień\", \"Wszelkie wyjątki w politykach bezpieczeństwa wymagają formalnej akceptacji i dokumentacji\"], \"tradeoffs\": [\"MFA zwiększa bezpieczeństwo kosztem wygody użytkownika i potencjalnie wyższego churnu\", \"Rygorystyczne logowanie zwiększa koszty infrastruktury i przechowywania danych\", \"Silna polityka haseł może frustrować użytkowników, ale jest niezbędna dla ochrony danych medycznych\", \"Segmentacja dostępu ogranicza elastyczność funkcjonalną, ale chroni przed wyciekiem danych\", \"Retencja logów generuje koszty operacyjne, ale jest wymagana regulacyjnie i bezpieczeństwowo\", \"Zero-trust zwiększa latencję systemu, ale eliminuje ryzyko ruchu bocznego po kompromitacji\"]}, {\"stakeholder\": \"ux\", \"goals\": [\"Minimalizacja liczby kroków w procesie rezerwacji wizyty do maksymalnie 3 kliknięć\", \"Zapewnienie intuicyjnego i przewidywalnego interfejsu użytkownika\", \"Skrócenie czasu onboardingu nowego użytkownika do minimum\", \"Eliminacja zbędnych barier i potwierdzeń w kluczowych przepływach\", \"Zapewnienie czytelnych i przyjaznych komunikatów błędów bez żargonu technicznego\"], \"needs\": [\"Logowanie jednym kliknięciem lub z wykorzystaniem SSO bez dodatkowych kroków weryfikacji\", \"Formularz rezerwacji ograniczony do absolutnie niezbędnych pól\", \"Natychmiastowe potwierdzenie rezerwacji bez wieloetapowej walidacji\", \"Prosty i szybki reset hasła bez skomplikowanych procedur weryfikacyjnych\", \"Spójne wzorce UI na wszystkich widokach systemu\", \"Szybkie ładowanie widoków poniżej 2 sekund\", \"Możliwość anulowania wizyty jednym kliknięciem bez nadmiarowych potwierdzeń\", \"Dostępność interfejsu na urządzeniach mobilnych bez utraty funkcjonalności\"], \"concerns\": [\"Wieloetapowe uwierzytelnianie (MFA) znacząco zwiększa tarcie i zniechęca użytkowników\", \"Rozbudowane formularze z wieloma polami obowiązkowymi wydłużają proces rezerwacji\", \"Nadmiarowe komunikaty ostrzegawcze i potwierdzenia dezorientują użytkowników\", \"Rygorystyczna walidacja danych w czasie rzeczywistym spowalnia interfejs\", \"Zbyt wiele ról i uprawnień komplikuje nawigację i zwiększa liczbę kroków\", \"Długi onboarding z weryfikacją danych odstrasza nowych użytkowników\", \"Blokady czasowe anulowania wizyt bez jasnego komunikatu frustrują użytkowników\", \"Złożone procedury bezpieczeństwa kosztem płynności doświadczenia użytkownika\"], \"priorities\": [\"Rezerwacja wizyty w maksymalnie 3 krokach\", \"Logowanie bez MFA lub z opcjonalnym MFA\", \"Onboarding skrócony do jednego ekranu\", \"Natychmiastowe potwierdzenie akcji użytkownika\", \"Czytelne komunikaty o konfliktach rezerwacji bez technicznego żargonu\", \"Możliwość anulowania wizyty bez zbędnych kroków potwierdzenia\", \"Szybkie ładowanie kalendarza dostępności specjalisty\"], \"constraints\": [\"Interfejs nie może wymagać więcej niż 3 kroków do wykonania rezerwacji\", \"Formularze mogą zawierać maksymalnie 5 pól obowiązkowych\", \"Czas ładowania kluczowych widoków nie może przekraczać 2 sekund\", \"Komunikaty błędów muszą być zrozumiałe dla nietech-savvy użytkowników\", \"Onboarding nie może wymagać weryfikacji email przed pierwszym użyciem systemu\"], \"tradeoffs\": [\"Akceptujemy mniejszą kompletność danych użytkownika w zamian za szybszy onboarding\", \"Rezygnujemy z MFA jako obowiązkowego elementu na rzecz płynności logowania\", \"Ograniczamy walidację formularzy w czasie rzeczywistym kosztem natychmiastowości interfejsu\", \"Upraszczamy komunikaty o błędach kosztem technicznej precyzji wymaganej przez QA\", \"Redukujemy liczbę potwierdzeń anulowania wizyty kosztem zabezpieczenia przed przypadkowym anulowaniem\"]}, {\"stakeholder\": \"qa\", \"goals\": [\"Zapewnienie maksymalnej testowalności wszystkich komponentów systemu rezerwacji\", \"Formalne zdefiniowanie kryteriów akceptacji dla każdego wymagania funkcjonalnego\", \"Eliminacja ryzyka regresji poprzez kompleksowe testy automatyczne\", \"Stabilność i przewidywalność kolejnych wersji systemu\", \"Pełne pokrycie scenariuszy brzegowych i wyjątkowych przypadków użycia\"], \"needs\": [\"Precyzyjne i mierzalne kryteria akceptacji dla każdej funkcjonalności (rezerwacja, anulowanie, konflikty)\", \"Rozbudowany zestaw testów regresji uruchamianych przed każdym wydaniem\", \"Spójna i przewidywalna obsługa błędów z jednoznacznymi kodami i komunikatami\", \"Monitoring i logi systemowe umożliwiające diagnozę błędów w środowisku testowym i produkcyjnym\", \"Testy integracyjne pokrywające interakcje między rolami użytkowników a grafikiem specjalistów\", \"Walidacja danych wejściowych na każdym etapie procesu rezerwacji\", \"Raporty stabilności systemu po każdym wdrożeniu\", \"Środowisko testowe odzwierciedlające produkcję z możliwością symulacji konfliktów rezerwacji\"], \"concerns\": [\"Brak formalnych kryteriów akceptacji uniemożliwia obiektywną ocenę gotowości do wydania\", \"Presja biznesowa na szybkie wydania zwiększa ryzyko regresji i niestabilności\", \"Niejasne reguły dotyczące wyjątków w konfliktach rezerwacji utrudniają testowanie\", \"Brak spójnej obsługi błędów prowadzi do nieprzewidywalnych stanów systemu\", \"Niewystarczające pokrycie scenariuszy brzegowych (np. jednoczesne rezerwacje, anulowanie w ostatniej chwili)\", \"Modyfikacje grafiku przez specjalistę dla istniejących rezerwacji mogą powodować niespójności danych\", \"Brak testów integracyjnych dla różnych ról użytkowników zwiększa ryzyko błędów uprawnień\", \"Zbyt szybkie wydania bez pełnego cyklu testów regresji generują dług techniczny\"], \"priorities\": [\"Zdefiniowanie kryteriów akceptacji przed rozpoczęciem implementacji\", \"Automatyzacja testów regresji jako warunek konieczny do wydania\", \"Ujednolicenie obsługi błędów w całym systemie\", \"Wdrożenie monitoringu i alertów dla kluczowych procesów rezerwacji\", \"Testy integracyjne dla scenariuszy wielorólowych\", \"Walidacja wszystkich danych wejściowych po stronie serwera\", \"Regularne raporty pokrycia testami i stabilności\"], \"constraints\": [\"Żadne wydanie nie może odbyć się bez przejścia pełnego zestawu testów regresji\", \"Każda funkcjonalność musi posiadać udokumentowane kryteria akceptacji przed wdrożeniem\", \"Obsługa błędów musi być spójna i zgodna z przyjętym standardem kodów błędów\", \"Środowisko testowe musi być izolowane i odzwierciedlać konfigurację produkcyjną\", \"Zmiany w logice konfliktów rezerwacji wymagają pełnego retestowania scenariuszy brzegowych\", \"Modyfikacje API muszą być poprzedzone aktualizacją testów integracyjnych\"], \"tradeoffs\": [\"Rygor testowy vs. szybkość wydania: preferujemy opóźnienie wydania nad ryzykiem regresji\", \"Dodatkowe walidacje vs. uproszczony UX: bezpieczeństwo danych ważniejsze niż minimalizacja kroków\", \"Pełne pokrycie testami vs. czas developmentu: akceptujemy dłuższy cykl dla wyższej jakości\", \"Twarde kryteria akceptacji vs. elastyczność biznesowa: stabilność systemu ponad szybką adaptację\", \"Szczegółowe logi i monitoring vs. wydajność: diagnostykowalność jest priorytetem\"]}]\n\n[STEP1]\nOpis systemu:\nSystem umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny. \n\nWejscie interesariuszy:\n[{\"stakeholder\": \"business\", \"goals\": [\"Maksymalizacja ROI poprzez szybkie wejście na rynek i pozyskanie pierwszych płacących klientów\", \"Minimalizacja kosztów wdrożenia i utrzymania systemu rezerwacji\", \"Skalowanie bazy użytkowników przy ograniczonym budżecie operacyjnym\", \"Generowanie przychodów poprzez modele subskrypcyjne lub prowizyjne od rezerwacji\", \"Szybkie eksperymenty produktowe i testy A/B bez długich cykli wydawniczych\"], \"needs\": [\"Prosty i szybki onboarding użytkowników bez zbędnych kroków weryfikacyjnych\", \"Minimalistyczny przepływ rezerwacji redukujący porzucenia koszyka\", \"Tani stack technologiczny oparty na gotowych komponentach i SaaS\", \"Dashboard raportowy dla zarządu z kluczowymi metrykami biznesowymi\", \"Mechanizmy monetyzacji wbudowane od pierwszego release (prowizje, plany premium)\", \"Możliwość szybkiego wdrożenia bez rozbudowanej fazy testów regresyjnych\", \"Minimalny zakres compliance wymagany prawnie, bez nadmiarowych zabezpieczeń\"], \"concerns\": [\"Zbyt rozbudowane zabezpieczenia bezpieczeństwa spowalniają onboarding i zwiększają koszty\", \"Długie cykle QA opóźniają time-to-market i generują koszty bez proporcjonalnego zwrotu\", \"Nadmiernie szczegółowe przepływy UX wydłużają czas implementacji i zwiększają złożoność\", \"Rozbudowana architektura techniczna podnosi koszty utrzymania ponad akceptowalny poziom\", \"Restrykcyjne polityki anulowania rezerwacji mogą odstraszać użytkowników i obniżać konwersję\", \"Zbyt rygorystyczne wymagania dotyczące ról i uprawnień komplikują system i spowalniają wdrożenie\", \"Brak szybkich eksperymentów A/B ogranicza optymalizację współczynnika konwersji\"], \"priorities\": [\"Wydanie MVP w ciągu maksymalnie 8 tygodni od startu projektu\", \"Wdrożenie modelu prowizyjnego lub subskrypcyjnego już w pierwszej wersji\", \"Uproszczony proces rejestracji: maksymalnie 2-3 kroki bez obowiązkowego MFA\", \"Wykorzystanie gotowych komponentów i integracji zamiast rozwiązań custom\", \"Ograniczenie zakresu testów do smoke testów i testów krytycznej ścieżki\", \"Priorytetyzacja funkcji generujących przychód nad funkcjami bezpieczeństwa i UX\"], \"constraints\": [\"Budżet wdrożeniowy nie może przekroczyć ustalonego limitu dla MVP\", \"Czas do pierwszego release maksymalnie 8 tygodni\", \"Koszty miesięczne utrzymania infrastruktury muszą być skalowalne i niskie na starcie\", \"Brak zasobów na dedykowany zespół bezpieczeństwa lub QA w fazie MVP\", \"Compliance ograniczony do absolutnego minimum wymaganego przez prawo (RODO podstawowe)\"], \"tradeoffs\": [\"Akceptujemy wyższe ryzyko bezpieczeństwa w zamian za szybszy onboarding i niższe koszty\", \"Rezygnujemy z pełnego pokrycia testami na rzecz szybszego time-to-market\", \"Upraszczamy przepływy UX kosztem precyzji informacji, aby zwiększyć konwersję\", \"Wybieramy tańsze rozwiązania infrastrukturalne kosztem pełnej skalowalności od dnia zero\", \"Dopuszczamy konflikty rezerwacji jako edge case zamiast inwestować w kosztowne mechanizmy blokad\", \"Ograniczamy granularność ról użytkowników do minimum, aby przyspieszyć implementację\"]}, {\"stakeholder\": \"security\", \"goals\": [\"Zapewnienie maksymalnej ochrony danych osobowych i medycznych użytkowników\", \"Wymuszenie silnej tożsamości i wieloskładnikowego uwierzytelniania dla wszystkich ról\", \"Pełna audytowalność wszystkich zdarzeń w systemie\", \"Minimalizacja powierzchni ataku poprzez ścisłą kontrolę dostępu\", \"Ochrona przed nieautoryzowanym dostępem do harmonogramów i danych rezerwacji\"], \"needs\": [\"Obowiązkowe MFA dla wszystkich użytkowników, w szczególności specjalistów i administratorów\", \"Szyfrowanie danych w spoczynku i w tranzycie (AES-256, TLS 1.3)\", \"Szczegółowe logi audytowe każdej operacji: rezerwacji, anulowania, modyfikacji grafiku\", \"Implementacja RBAC z zasadą najmniejszych uprawnień\", \"Silna polityka haseł: min. 12 znaków, złożoność, rotacja co 90 dni\", \"Segmentacja dostępu między rolami: użytkownik, specjalista, administrator\", \"System alertów na anomalie behawioralne i próby nieautoryzowanego dostępu\", \"Retencja logów przez minimum 12 miesięcy zgodnie z wymogami RODO i branżowymi\", \"Regularne audyty bezpieczeństwa i testy penetracyjne\"], \"concerns\": [\"Brak MFA naraża konta specjalistów na przejęcie i manipulację grafikiem\", \"Słabe hasła zwiększają ryzyko nieautoryzowanego dostępu do danych medycznych\", \"Brak logów audytowych uniemożliwia wykrycie i analizę incydentów bezpieczeństwa\", \"Nadmiarowe uprawnienia użytkowników mogą prowadzić do wycieku danych innych pacjentów\", \"Wyjątki w rezerwacjach mogą być exploitowane do ataków na dostępność systemu\", \"Modyfikacja grafiku przez specjalistów bez ścieżki audytu stwarza ryzyko manipulacji\", \"Brak szyfrowania danych rezerwacji naraża wrażliwe informacje na przechwycenie\", \"Niewystarczająca retencja logów uniemożliwia spełnienie wymogów regulacyjnych\", \"Skalowalność systemu bez odpowiednich mechanizmów bezpieczeństwa zwiększa powierzchnię ataku\"], \"priorities\": [\"Wdrożenie MFA jako wymagania obowiązkowego, nie opcjonalnego\", \"Szyfrowanie end-to-end wszystkich danych wrażliwych\", \"Implementacja kompletnego systemu logowania audytowego przed uruchomieniem produkcyjnym\", \"Ścisły RBAC uniemożliwiający dostęp do danych innych użytkowników\", \"Zero-trust architecture dla komunikacji między komponentami systemu\", \"Regularne testy penetracyjne i audyty kodu\"], \"constraints\": [\"MFA nie może być wyłączone ani obejście nawet na żądanie użytkownika lub biznesu\", \"Polityka haseł nie może być osłabiana w celu poprawy UX lub redukcji churnu\", \"Logi audytowe muszą być niemodyfikowalne i przechowywane przez minimum 12 miesięcy\", \"Dane osobowe muszą być szyfrowane zgodnie z RODO i standardami branżowymi\", \"Dostęp do danych innych użytkowników musi być technicznie niemożliwy bez odpowiednich uprawnień\", \"Wszelkie wyjątki w politykach bezpieczeństwa wymagają formalnej akceptacji i dokumentacji\"], \"tradeoffs\": [\"MFA zwiększa bezpieczeństwo kosztem wygody użytkownika i potencjalnie wyższego churnu\", \"Rygorystyczne logowanie zwiększa koszty infrastruktury i przechowywania danych\", \"Silna polityka haseł może frustrować użytkowników, ale jest niezbędna dla ochrony danych medycznych\", \"Segmentacja dostępu ogranicza elastyczność funkcjonalną, ale chroni przed wyciekiem danych\", \"Retencja logów generuje koszty operacyjne, ale jest wymagana regulacyjnie i bezpieczeństwowo\", \"Zero-trust zwiększa latencję systemu, ale eliminuje ryzyko ruchu bocznego po kompromitacji\"]}, {\"stakeholder\": \"ux\", \"goals\": [\"Minimalizacja liczby kroków w procesie rezerwacji wizyty do maksymalnie 3 kliknięć\", \"Zapewnienie intuicyjnego i przewidywalnego interfejsu użytkownika\", \"Skrócenie czasu onboardingu nowego użytkownika do minimum\", \"Eliminacja zbędnych barier i potwierdzeń w kluczowych przepływach\", \"Zapewnienie czytelnych i przyjaznych komunikatów błędów bez żargonu technicznego\"], \"needs\": [\"Logowanie jednym kliknięciem lub z wykorzystaniem SSO bez dodatkowych kroków weryfikacji\", \"Formularz rezerwacji ograniczony do absolutnie niezbędnych pól\", \"Natychmiastowe potwierdzenie rezerwacji bez wieloetapowej walidacji\", \"Prosty i szybki reset hasła bez skomplikowanych procedur weryfikacyjnych\", \"Spójne wzorce UI na wszystkich widokach systemu\", \"Szybkie ładowanie widoków poniżej 2 sekund\", \"Możliwość anulowania wizyty jednym kliknięciem bez nadmiarowych potwierdzeń\", \"Dostępność interfejsu na urządzeniach mobilnych bez utraty funkcjonalności\"], \"concerns\": [\"Wieloetapowe uwierzytelnianie (MFA) znacząco zwiększa tarcie i zniechęca użytkowników\", \"Rozbudowane formularze z wieloma polami obowiązkowymi wydłużają proces rezerwacji\", \"Nadmiarowe komunikaty ostrzegawcze i potwierdzenia dezorientują użytkowników\", \"Rygorystyczna walidacja danych w czasie rzeczywistym spowalnia interfejs\", \"Zbyt wiele ról i uprawnień komplikuje nawigację i zwiększa liczbę kroków\", \"Długi onboarding z weryfikacją danych odstrasza nowych użytkowników\", \"Blokady czasowe anulowania wizyt bez jasnego komunikatu frustrują użytkowników\", \"Złożone procedury bezpieczeństwa kosztem płynności doświadczenia użytkownika\"], \"priorities\": [\"Rezerwacja wizyty w maksymalnie 3 krokach\", \"Logowanie bez MFA lub z opcjonalnym MFA\", \"Onboarding skrócony do jednego ekranu\", \"Natychmiastowe potwierdzenie akcji użytkownika\", \"Czytelne komunikaty o konfliktach rezerwacji bez technicznego żargonu\", \"Możliwość anulowania wizyty bez zbędnych kroków potwierdzenia\", \"Szybkie ładowanie kalendarza dostępności specjalisty\"], \"constraints\": [\"Interfejs nie może wymagać więcej niż 3 kroków do wykonania rezerwacji\", \"Formularze mogą zawierać maksymalnie 5 pól obowiązkowych\", \"Czas ładowania kluczowych widoków nie może przekraczać 2 sekund\", \"Komunikaty błędów muszą być zrozumiałe dla nietech-savvy użytkowników\", \"Onboarding nie może wymagać weryfikacji email przed pierwszym użyciem systemu\"], \"tradeoffs\": [\"Akceptujemy mniejszą kompletność danych użytkownika w zamian za szybszy onboarding\", \"Rezygnujemy z MFA jako obowiązkowego elementu na rzecz płynności logowania\", \"Ograniczamy walidację formularzy w czasie rzeczywistym kosztem natychmiastowości interfejsu\", \"Upraszczamy komunikaty o błędach kosztem technicznej precyzji wymaganej przez QA\", \"Redukujemy liczbę potwierdzeń anulowania wizyty kosztem zabezpieczenia przed przypadkowym anulowaniem\"]}, {\"stakeholder\": \"qa\", \"goals\": [\"Zapewnienie maksymalnej testowalności wszystkich komponentów systemu rezerwacji\", \"Formalne zdefiniowanie kryteriów akceptacji dla każdego wymagania funkcjonalnego\", \"Eliminacja ryzyka regresji poprzez kompleksowe testy automatyczne\", \"Stabilność i przewidywalność kolejnych wersji systemu\", \"Pełne pokrycie scenariuszy brzegowych i wyjątkowych przypadków użycia\"], \"needs\": [\"Precyzyjne i mierzalne kryteria akceptacji dla każdej funkcjonalności (rezerwacja, anulowanie, konflikty)\", \"Rozbudowany zestaw testów regresji uruchamianych przed każdym wydaniem\", \"Spójna i przewidywalna obsługa błędów z jednoznacznymi kodami i komunikatami\", \"Monitoring i logi systemowe umożliwiające diagnozę błędów w środowisku testowym i produkcyjnym\", \"Testy integracyjne pokrywające interakcje między rolami użytkowników a grafikiem specjalistów\", \"Walidacja danych wejściowych na każdym etapie procesu rezerwacji\", \"Raporty stabilności systemu po każdym wdrożeniu\", \"Środowisko testowe odzwierciedlające produkcję z możliwością symulacji konfliktów rezerwacji\"], \"concerns\": [\"Brak formalnych kryteriów akceptacji uniemożliwia obiektywną ocenę gotowości do wydania\", \"Presja biznesowa na szybkie wydania zwiększa ryzyko regresji i niestabilności\", \"Niejasne reguły dotyczące wyjątków w konfliktach rezerwacji utrudniają testowanie\", \"Brak spójnej obsługi błędów prowadzi do nieprzewidywalnych stanów systemu\", \"Niewystarczające pokrycie scenariuszy brzegowych (np. jednoczesne rezerwacje, anulowanie w ostatniej chwili)\", \"Modyfikacje grafiku przez specjalistę dla istniejących rezerwacji mogą powodować niespójności danych\", \"Brak testów integracyjnych dla różnych ról użytkowników zwiększa ryzyko błędów uprawnień\", \"Zbyt szybkie wydania bez pełnego cyklu testów regresji generują dług techniczny\"], \"priorities\": [\"Zdefiniowanie kryteriów akceptacji przed rozpoczęciem implementacji\", \"Automatyzacja testów regresji jako warunek konieczny do wydania\", \"Ujednolicenie obsługi błędów w całym systemie\", \"Wdrożenie monitoringu i alertów dla kluczowych procesów rezerwacji\", \"Testy integracyjne dla scenariuszy wielorólowych\", \"Walidacja wszystkich danych wejściowych po stronie serwera\", \"Regularne raporty pokrycia testami i stabilności\"], \"constraints\": [\"Żadne wydanie nie może odbyć się bez przejścia pełnego zestawu testów regresji\", \"Każda funkcjonalność musi posiadać udokumentowane kryteria akceptacji przed wdrożeniem\", \"Obsługa błędów musi być spójna i zgodna z przyjętym standardem kodów błędów\", \"Środowisko testowe musi być izolowane i odzwierciedlać konfigurację produkcyjną\", \"Zmiany w logice konfliktów rezerwacji wymagają pełnego retestowania scenariuszy brzegowych\", \"Modyfikacje API muszą być poprzedzone aktualizacją testów integracyjnych\"], \"tradeoffs\": [\"Rygor testowy vs. szybkość wydania: preferujemy opóźnienie wydania nad ryzykiem regresji\", \"Dodatkowe walidacje vs. uproszczony UX: bezpieczeństwo danych ważniejsze niż minimalizacja kroków\", \"Pełne pokrycie testami vs. czas developmentu: akceptujemy dłuższy cykl dla wyższej jakości\", \"Twarde kryteria akceptacji vs. elastyczność biznesowa: stabilność systemu ponad szybką adaptację\", \"Szczegółowe logi i monitoring vs. wydajność: diagnostykowalność jest priorytetem\"]}]\n\nOgraniczenia:\n- Maksymalnie 20 elementow w liscie \"functional_requirements\".\n\nZwracaj WYŁĄCZNIE ten fragment JSON:\n{\n  \"system_goal\": \"1-3 sentence system goal\",\n  \"roles\": [\n    {\"name\": \"RoleName\", \"permissions\": [\"perm1\", \"perm2\"]}\n  ],\n  \"functional_requirements\": [\n    {\"id\": \"FR1\", \"description\": \"Opis wymagania\"}\n  ]\n}\n\n\n[STEP2]\nOpis systemu:\nSystem umożliwia użytkownikom rezerwację wizyt u specjalistów (np. lekarzy lub konsultantów). Użytkownicy mogą przeglądać dostępne terminy, dokonywać rezerwacji oraz je anulować. Specjaliści zarządzają swoim grafikiem. System powinien zapobiegać konfliktom rezerwacji, ale w niektórych przypadkach dopuszczalne są wyjątki. Użytkownik może anulować wizytę w uzasadnionych przypadkach, jednak anulowanie może być ograniczone czasowo. Specjalista może modyfikować swój grafik, także dla już istniejących rezerwacji. System powinien obsługiwać różne role użytkowników i być skalowalny. \n\nWejscie interesariuszy:\n[{\"stakeholder\": \"business\", \"goals\": [\"Maksymalizacja ROI poprzez szybkie wejście na rynek i pozyskanie pierwszych płacących klientów\", \"Minimalizacja kosztów wdrożenia i utrzymania systemu rezerwacji\", \"Skalowanie bazy użytkowników przy ograniczonym budżecie operacyjnym\", \"Generowanie przychodów poprzez modele subskrypcyjne lub prowizyjne od rezerwacji\", \"Szybkie eksperymenty produktowe i testy A/B bez długich cykli wydawniczych\"], \"needs\": [\"Prosty i szybki onboarding użytkowników bez zbędnych kroków weryfikacyjnych\", \"Minimalistyczny przepływ rezerwacji redukujący porzucenia koszyka\", \"Tani stack technologiczny oparty na gotowych komponentach i SaaS\", \"Dashboard raportowy dla zarządu z kluczowymi metrykami biznesowymi\", \"Mechanizmy monetyzacji wbudowane od pierwszego release (prowizje, plany premium)\", \"Możliwość szybkiego wdrożenia bez rozbudowanej fazy testów regresyjnych\", \"Minimalny zakres compliance wymagany prawnie, bez nadmiarowych zabezpieczeń\"], \"concerns\": [\"Zbyt rozbudowane zabezpieczenia bezpieczeństwa spowalniają onboarding i zwiększają koszty\", \"Długie cykle QA opóźniają time-to-market i generują koszty bez proporcjonalnego zwrotu\", \"Nadmiernie szczegółowe przepływy UX wydłużają czas implementacji i zwiększają złożoność\", \"Rozbudowana architektura techniczna podnosi koszty utrzymania ponad akceptowalny poziom\", \"Restrykcyjne polityki anulowania rezerwacji mogą odstraszać użytkowników i obniżać konwersję\", \"Zbyt rygorystyczne wymagania dotyczące ról i uprawnień komplikują system i spowalniają wdrożenie\", \"Brak szybkich eksperymentów A/B ogranicza optymalizację współczynnika konwersji\"], \"priorities\": [\"Wydanie MVP w ciągu maksymalnie 8 tygodni od startu projektu\", \"Wdrożenie modelu prowizyjnego lub subskrypcyjnego już w pierwszej wersji\", \"Uproszczony proces rejestracji: maksymalnie 2-3 kroki bez obowiązkowego MFA\", \"Wykorzystanie gotowych komponentów i integracji zamiast rozwiązań custom\", \"Ograniczenie zakresu testów do smoke testów i testów krytycznej ścieżki\", \"Priorytetyzacja funkcji generujących przychód nad funkcjami bezpieczeństwa i UX\"], \"constraints\": [\"Budżet wdrożeniowy nie może przekroczyć ustalonego limitu dla MVP\", \"Czas do pierwszego release maksymalnie 8 tygodni\", \"Koszty miesięczne utrzymania infrastruktury muszą być skalowalne i niskie na starcie\", \"Brak zasobów na dedykowany zespół bezpieczeństwa lub QA w fazie MVP\", \"Compliance ograniczony do absolutnego minimum wymaganego przez prawo (RODO podstawowe)\"], \"tradeoffs\": [\"Akceptujemy wyższe ryzyko bezpieczeństwa w zamian za szybszy onboarding i niższe koszty\", \"Rezygnujemy z pełnego pokrycia testami na rzecz szybszego time-to-market\", \"Upraszczamy przepływy UX kosztem precyzji informacji, aby zwiększyć konwersję\", \"Wybieramy tańsze rozwiązania infrastrukturalne kosztem pełnej skalowalności od dnia zero\", \"Dopuszczamy konflikty rezerwacji jako edge case zamiast inwestować w kosztowne mechanizmy blokad\", \"Ograniczamy granularność ról użytkowników do minimum, aby przyspieszyć implementację\"]}, {\"stakeholder\": \"security\", \"goals\": [\"Zapewnienie maksymalnej ochrony danych osobowych i medycznych użytkowników\", \"Wymuszenie silnej tożsamości i wieloskładnikowego uwierzytelniania dla wszystkich ról\", \"Pełna audytowalność wszystkich zdarzeń w systemie\", \"Minimalizacja powierzchni ataku poprzez ścisłą kontrolę dostępu\", \"Ochrona przed nieautoryzowanym dostępem do harmonogramów i danych rezerwacji\"], \"needs\": [\"Obowiązkowe MFA dla wszystkich użytkowników, w szczególności specjalistów i administratorów\", \"Szyfrowanie danych w spoczynku i w tranzycie (AES-256, TLS 1.3)\", \"Szczegółowe logi audytowe każdej operacji: rezerwacji, anulowania, modyfikacji grafiku\", \"Implementacja RBAC z zasadą najmniejszych uprawnień\", \"Silna polityka haseł: min. 12 znaków, złożoność, rotacja co 90 dni\", \"Segmentacja dostępu między rolami: użytkownik, specjalista, administrator\", \"System alertów na anomalie behawioralne i próby nieautoryzowanego dostępu\", \"Retencja logów przez minimum 12 miesięcy zgodnie z wymogami RODO i branżowymi\", \"Regularne audyty bezpieczeństwa i testy penetracyjne\"], \"concerns\": [\"Brak MFA naraża konta specjalistów na przejęcie i manipulację grafikiem\", \"Słabe hasła zwiększają ryzyko nieautoryzowanego dostępu do danych medycznych\", \"Brak logów audytowych uniemożliwia wykrycie i analizę incydentów bezpieczeństwa\", \"Nadmiarowe uprawnienia użytkowników mogą prowadzić do wycieku danych innych pacjentów\", \"Wyjątki w rezerwacjach mogą być exploitowane do ataków na dostępność systemu\", \"Modyfikacja grafiku przez specjalistów bez ścieżki audytu stwarza ryzyko manipulacji\", \"Brak szyfrowania danych rezerwacji naraża wrażliwe informacje na przechwycenie\", \"Niewystarczająca retencja logów uniemożliwia spełnienie wymogów regulacyjnych\", \"Skalowalność systemu bez odpowiednich mechanizmów bezpieczeństwa zwiększa powierzchnię ataku\"], \"priorities\": [\"Wdrożenie MFA jako wymagania obowiązkowego, nie opcjonalnego\", \"Szyfrowanie end-to-end wszystkich danych wrażliwych\", \"Implementacja kompletnego systemu logowania audytowego przed uruchomieniem produkcyjnym\", \"Ścisły RBAC uniemożliwiający dostęp do danych innych użytkowników\", \"Zero-trust architecture dla komunikacji między komponentami systemu\", \"Regularne testy penetracyjne i audyty kodu\"], \"constraints\": [\"MFA nie może być wyłączone ani obejście nawet na żądanie użytkownika lub biznesu\", \"Polityka haseł nie może być osłabiana w celu poprawy UX lub redukcji churnu\", \"Logi audytowe muszą być niemodyfikowalne i przechowywane przez minimum 12 miesięcy\", \"Dane osobowe muszą być szyfrowane zgodnie z RODO i standardami branżowymi\", \"Dostęp do danych innych użytkowników musi być technicznie niemożliwy bez odpowiednich uprawnień\", \"Wszelkie wyjątki w politykach bezpieczeństwa wymagają formalnej akceptacji i dokumentacji\"], \"tradeoffs\": [\"MFA zwiększa bezpieczeństwo kosztem wygody użytkownika i potencjalnie wyższego churnu\", \"Rygorystyczne logowanie zwiększa koszty infrastruktury i przechowywania danych\", \"Silna polityka haseł może frustrować użytkowników, ale jest niezbędna dla ochrony danych medycznych\", \"Segmentacja dostępu ogranicza elastyczność funkcjonalną, ale chroni przed wyciekiem danych\", \"Retencja logów generuje koszty operacyjne, ale jest wymagana regulacyjnie i bezpieczeństwowo\", \"Zero-trust zwiększa latencję systemu, ale eliminuje ryzyko ruchu bocznego po kompromitacji\"]}, {\"stakeholder\": \"ux\", \"goals\": [\"Minimalizacja liczby kroków w procesie rezerwacji wizyty do maksymalnie 3 kliknięć\", \"Zapewnienie intuicyjnego i przewidywalnego interfejsu użytkownika\", \"Skrócenie czasu onboardingu nowego użytkownika do minimum\", \"Eliminacja zbędnych barier i potwierdzeń w kluczowych przepływach\", \"Zapewnienie czytelnych i przyjaznych komunikatów błędów bez żargonu technicznego\"], \"needs\": [\"Logowanie jednym kliknięciem lub z wykorzystaniem SSO bez dodatkowych kroków weryfikacji\", \"Formularz rezerwacji ograniczony do absolutnie niezbędnych pól\", \"Natychmiastowe potwierdzenie rezerwacji bez wieloetapowej walidacji\", \"Prosty i szybki reset hasła bez skomplikowanych procedur weryfikacyjnych\", \"Spójne wzorce UI na wszystkich widokach systemu\", \"Szybkie ładowanie widoków poniżej 2 sekund\", \"Możliwość anulowania wizyty jednym kliknięciem bez nadmiarowych potwierdzeń\", \"Dostępność interfejsu na urządzeniach mobilnych bez utraty funkcjonalności\"], \"concerns\": [\"Wieloetapowe uwierzytelnianie (MFA) znacząco zwiększa tarcie i zniechęca użytkowników\", \"Rozbudowane formularze z wieloma polami obowiązkowymi wydłużają proces rezerwacji\", \"Nadmiarowe komunikaty ostrzegawcze i potwierdzenia dezorientują użytkowników\", \"Rygorystyczna walidacja danych w czasie rzeczywistym spowalnia interfejs\", \"Zbyt wiele ról i uprawnień komplikuje nawigację i zwiększa liczbę kroków\", \"Długi onboarding z weryfikacją danych odstrasza nowych użytkowników\", \"Blokady czasowe anulowania wizyt bez jasnego komunikatu frustrują użytkowników\", \"Złożone procedury bezpieczeństwa kosztem płynności doświadczenia użytkownika\"], \"priorities\": [\"Rezerwacja wizyty w maksymalnie 3 krokach\", \"Logowanie bez MFA lub z opcjonalnym MFA\", \"Onboarding skrócony do jednego ekranu\", \"Natychmiastowe potwierdzenie akcji użytkownika\", \"Czytelne komunikaty o konfliktach rezerwacji bez technicznego żargonu\", \"Możliwość anulowania wizyty bez zbędnych kroków potwierdzenia\", \"Szybkie ładowanie kalendarza dostępności specjalisty\"], \"constraints\": [\"Interfejs nie może wymagać więcej niż 3 kroków do wykonania rezerwacji\", \"Formularze mogą zawierać maksymalnie 5 pól obowiązkowych\", \"Czas ładowania kluczowych widoków nie może przekraczać 2 sekund\", \"Komunikaty błędów muszą być zrozumiałe dla nietech-savvy użytkowników\", \"Onboarding nie może wymagać weryfikacji email przed pierwszym użyciem systemu\"], \"tradeoffs\": [\"Akceptujemy mniejszą kompletność danych użytkownika w zamian za szybszy onboarding\", \"Rezygnujemy z MFA jako obowiązkowego elementu na rzecz płynności logowania\", \"Ograniczamy walidację formularzy w czasie rzeczywistym kosztem natychmiastowości interfejsu\", \"Upraszczamy komunikaty o błędach kosztem technicznej precyzji wymaganej przez QA\", \"Redukujemy liczbę potwierdzeń anulowania wizyty kosztem zabezpieczenia przed przypadkowym anulowaniem\"]}, {\"stakeholder\": \"qa\", \"goals\": [\"Zapewnienie maksymalnej testowalności wszystkich komponentów systemu rezerwacji\", \"Formalne zdefiniowanie kryteriów akceptacji dla każdego wymagania funkcjonalnego\", \"Eliminacja ryzyka regresji poprzez kompleksowe testy automatyczne\", \"Stabilność i przewidywalność kolejnych wersji systemu\", \"Pełne pokrycie scenariuszy brzegowych i wyjątkowych przypadków użycia\"], \"needs\": [\"Precyzyjne i mierzalne kryteria akceptacji dla każdej funkcjonalności (rezerwacja, anulowanie, konflikty)\", \"Rozbudowany zestaw testów regresji uruchamianych przed każdym wydaniem\", \"Spójna i przewidywalna obsługa błędów z jednoznacznymi kodami i komunikatami\", \"Monitoring i logi systemowe umożliwiające diagnozę błędów w środowisku testowym i produkcyjnym\", \"Testy integracyjne pokrywające interakcje między rolami użytkowników a grafikiem specjalistów\", \"Walidacja danych wejściowych na każdym etapie procesu rezerwacji\", \"Raporty stabilności systemu po każdym wdrożeniu\", \"Środowisko testowe odzwierciedlające produkcję z możliwością symulacji konfliktów rezerwacji\"], \"concerns\": [\"Brak formalnych kryteriów akceptacji uniemożliwia obiektywną ocenę gotowości do wydania\", \"Presja biznesowa na szybkie wydania zwiększa ryzyko regresji i niestabilności\", \"Niejasne reguły dotyczące wyjątków w konfliktach rezerwacji utrudniają testowanie\", \"Brak spójnej obsługi błędów prowadzi do nieprzewidywalnych stanów systemu\", \"Niewystarczające pokrycie scenariuszy brzegowych (np. jednoczesne rezerwacje, anulowanie w ostatniej chwili)\", \"Modyfikacje grafiku przez specjalistę dla istniejących rezerwacji mogą powodować niespójności danych\", \"Brak testów integracyjnych dla różnych ról użytkowników zwiększa ryzyko błędów uprawnień\", \"Zbyt szybkie wydania bez pełnego cyklu testów regresji generują dług techniczny\"], \"priorities\": [\"Zdefiniowanie kryteriów akceptacji przed rozpoczęciem implementacji\", \"Automatyzacja testów regresji jako warunek konieczny do wydania\", \"Ujednolicenie obsługi błędów w całym systemie\", \"Wdrożenie monitoringu i alertów dla kluczowych procesów rezerwacji\", \"Testy integracyjne dla scenariuszy wielorólowych\", \"Walidacja wszystkich danych wejściowych po stronie serwera\", \"Regularne raporty pokrycia testami i stabilności\"], \"constraints\": [\"Żadne wydanie nie może odbyć się bez przejścia pełnego zestawu testów regresji\", \"Każda funkcjonalność musi posiadać udokumentowane kryteria akceptacji przed wdrożeniem\", \"Obsługa błędów musi być spójna i zgodna z przyjętym standardem kodów błędów\", \"Środowisko testowe musi być izolowane i odzwierciedlać konfigurację produkcyjną\", \"Zmiany w logice konfliktów rezerwacji wymagają pełnego retestowania scenariuszy brzegowych\", \"Modyfikacje API muszą być poprzedzone aktualizacją testów integracyjnych\"], \"tradeoffs\": [\"Rygor testowy vs. szybkość wydania: preferujemy opóźnienie wydania nad ryzykiem regresji\", \"Dodatkowe walidacje vs. uproszczony UX: bezpieczeństwo danych ważniejsze niż minimalizacja kroków\", \"Pełne pokrycie testami vs. czas developmentu: akceptujemy dłuższy cykl dla wyższej jakości\", \"Twarde kryteria akceptacji vs. elastyczność biznesowa: stabilność systemu ponad szybką adaptację\", \"Szczegółowe logi i monitoring vs. wydajność: diagnostykowalność jest priorytetem\"]}]\n\nWczesniejsze wyjscia:\n{\"system_goal\": \"System rezerwacji wizyt umożliwia użytkownikom przeglądanie dostępności specjalistów, dokonywanie i anulowanie rezerwacji oraz zarządzanie grafikiem przez specjalistów. System balansuje między szybkim time-to-market a bezpieczeństwem danych wrażliwych, zapewniając skalowalną architekturę opartą na gotowych komponentach SaaS z wbudowanymi mechanizmami monetyzacji.\", \"roles\": [{\"name\": \"Użytkownik\", \"permissions\": [\"przeglądanie dostępnych terminów\", \"dokonywanie rezerwacji\", \"anulowanie własnych rezerwacji (z ograniczeniem czasowym)\", \"przeglądanie historii własnych rezerwacji\", \"edycja własnego profilu\"]}, {\"name\": \"Specjalista\", \"permissions\": [\"zarządzanie własnym grafikiem\", \"modyfikacja istniejących rezerwacji z powiadomieniem użytkownika\", \"przeglądanie listy własnych rezerwacji\", \"blokowanie terminów\", \"przeglądanie danych kontaktowych rezerwujących użytkowników\"]}, {\"name\": \"Administrator\", \"permissions\": [\"zarządzanie kontami użytkowników i specjalistów\", \"przeglądanie logów audytowych\", \"konfiguracja polityk rezerwacji i anulowania\", \"dostęp do dashboardu raportowego\", \"zarządzanie planami subskrypcyjnymi i prowizjami\", \"ręczne rozwiązywanie konfliktów rezerwacji\"]}], \"functional_requirements\": [{\"id\": \"FR1\", \"description\": \"System umożliwia rejestrację użytkownika w maksymalnie 3 krokach z weryfikacją email wymaganą przed dokonaniem pierwszej rezerwacji (kompromis: onboarding bez natychmiastowej weryfikacji email jest dozwolony dla przeglądania terminów, ale rezerwacja wymaga potwierdzonego konta ze względu na ochronę danych i redukcję fake bookings).\"}, {\"id\": \"FR2\", \"description\": \"System obsługuje logowanie przez SSO (Google, Apple) jako podstawową metodę uwierzytelniania. MFA jest obowiązkowe dla roli Specjalista i Administrator, natomiast dla roli Użytkownik MFA jest opcjonalne i rekomendowane (kompromis między bezpieczeństwem kont wrażliwych a płynnością onboardingu zwykłych użytkowników).\"}, {\"id\": \"FR3\", \"description\": \"System implementuje RBAC z trzema rolami (Użytkownik, Specjalista, Administrator) zapewniający techniczną niemożność dostępu do danych innych użytkowników bez odpowiednich uprawnień. Każda rola posiada udokumentowany zestaw uprawnień zgodny z zasadą najmniejszych uprawnień.\"}, {\"id\": \"FR4\", \"description\": \"Użytkownik może przeglądać dostępne terminy specjalisty w widoku kalendarza ładującym się w czasie poniżej 2 sekund. Widok prezentuje wyłącznie dostępność (wolny/zajęty) bez ujawniania danych innych rezerwujących.\"}, {\"id\": \"FR5\", \"description\": \"Proces rezerwacji wizyty składa się z maksymalnie 3 kroków: (1) wybór terminu, (2) podanie niezbędnych danych (maksymalnie 5 pól obowiązkowych), (3) potwierdzenie. System wyświetla natychmiastowe potwierdzenie rezerwacji po jej dokonaniu.\"}, {\"id\": \"FR6\", \"description\": \"System zapobiega konfliktom rezerwacji poprzez blokadę terminu w momencie jego wyboru (optymistyczne blokowanie z timeout 5 minut). Administrator może ręcznie dopuścić wyjątek od reguły konfliktu z obowiązkowym uzasadnieniem zapisanym w logu audytowym (kompromis: wyjątki są możliwe, ale audytowalne).\"}, {\"id\": \"FR7\", \"description\": \"Użytkownik może anulować rezerwację samodzielnie do 24 godzin przed wizytą. Anulowanie w krótszym terminie wymaga kontaktu ze specjalistą lub administratorem. Komunikat o ograniczeniu czasowym jest wyświetlany w języku zrozumiałym dla użytkownika bez technicznego żargonu.\"}, {\"id\": \"FR8\", \"description\": \"Specjalista może modyfikować swój grafik, w tym terminy z istniejącymi rezerwacjami. W przypadku modyfikacji wpływającej na istniejącą rezerwację system automatycznie wysyła powiadomienie do użytkownika z propozycją nowego terminu lub możliwością anulowania bez kary.\"}, {\"id\": \"FR9\", \"description\": \"System rejestruje niemodyfikowalne logi audytowe dla wszystkich operacji: rejestracja, logowanie, rezerwacja, anulowanie, modyfikacja grafiku, zmiany uprawnień. Logi przechowywane są przez minimum 12 miesięcy i dostępne wyłącznie dla Administratora.\"}, {\"id\": \"FR10\", \"description\": \"Wszystkie dane osobowe i dane rezerwacji są szyfrowane w spoczynku (AES-256) i w tranzycie (TLS 1.3). System spełnia wymagania RODO w zakresie przechowywania, przetwarzania i usuwania danych osobowych na żądanie użytkownika.\"}, {\"id\": \"FR11\", \"description\": \"System wysyła automatyczne powiadomienia email i/lub SMS do użytkownika: potwierdzenie rezerwacji, przypomnienie 24h przed wizytą, informacja o modyfikacji lub anulowaniu przez specjalistę.\"}, {\"id\": \"FR12\", \"description\": \"System obsługuje modele monetyzacji: prowizja od rezerwacji (pobierana od specjalisty) oraz plany subskrypcyjne dla specjalistów (podstawowy/premium). Mechanizm płatności oparty na gotowym dostawcy SaaS (np. Stripe) bez implementacji custom.\"}, {\"id\": \"FR13\", \"description\": \"Administrator ma dostęp do dashboardu raportowego prezentującego kluczowe metryki biznesowe: liczba rezerwacji, przychody z prowizji i subskrypcji, wskaźnik anulowań, aktywni użytkownicy. Dashboard ładuje dane z opóźnieniem do 5 minut (nie real-time, kompromis kosztowy).\"}, {\"id\": \"FR14\", \"description\": \"System obsługuje silną politykę haseł dla kont lokalnych (minimum 12 znaków, złożoność) z obowiązkową rotacją co 90 dni dla ról Specjalista i Administrator. Dla roli Użytkownik polityka haseł wynosi minimum 8 znaków (kompromis między bezpieczeństwem a UX dla użytkowników końcowych).\"}, {\"id\": \"FR15\", \"description\": \"System implementuje walidację danych wejściowych po stronie serwera dla wszystkich operacji rezerwacji, anulowania i modyfikacji grafiku. Każda operacja zwraca ustandaryzowany kod błędu i komunikat zrozumiały dla użytkownika końcowego.\"}, {\"id\": \"FR16\", \"description\": \"System wykrywa anomalie behawioralne (np. masowe rezerwacje z jednego konta, wielokrotne nieudane logowania) i generuje alerty dla Administratora. Po 5 nieudanych próbach logowania konto jest tymczasowo blokowane z możliwością odblokowania przez email.\"}, {\"id\": \"FR17\", \"description\": \"Interfejs systemu jest responsywny i w pełni funkcjonalny na urządzeniach mobilnych (iOS, Android) poprzez przeglądarkę mobilną lub dedykowaną aplikację PWA. Kluczowe widoki (kalendarz, formularz rezerwacji, lista rezerwacji) ładują się poniżej 2 sekund.\"}, {\"id\": \"FR18\", \"description\": \"System umożliwia Specjaliście definiowanie dostępności w grafiku: godziny pracy, przerwy, urlopy, czas trwania wizyty. Specjalista może ustawić maksymalną liczbę rezerwacji dziennie oraz bufor czasowy między wizytami.\"}, {\"id\": \"FR19\", \"description\": \"Każda funkcjonalność systemu posiada udokumentowane kryteria akceptacji zdefiniowane przed implementacją. System przechodzi pełny zestaw testów regresji (automatycznych) przed każdym wydaniem produkcyjnym, obejmujący scenariusze: rezerwacja, anulowanie, konflikty, modyfikacja grafiku, przepływy wielorólowe (kompromis: 8-tygodniowy MVP dopuszcza ograniczony zakres testów automatycznych dla funkcji niekrytycznych, ale krytyczna ścieżka musi być w pełni pokryta).\"}, {\"id\": \"FR20\", \"description\": \"System jest zbudowany na skalowalnej architekturze chmurowej (np. AWS/GCP/Azure) z wykorzystaniem gotowych komponentów SaaS dla: uwierzytelniania (np. Auth0), płatności (np. Stripe), powiadomień (np. SendGrid/Twilio). Infrastruktura skaluje się automatycznie przy wzroście liczby użytkowników bez zmian w kodzie aplikacji.\"}]}\n\nOgraniczenia:\n- Maksymalnie 20 elementow w liscie \"non_functional_requirements\".\n- Maksymalnie 20 elementow w liscie \"user_stories\".\n\nZwracaj WYŁĄCZNIE ten fragment JSON:\n{\n  \"non_functional_requirements\": [\n    {\"id\": \"NFR1\", \"description\": \"Opis wymagania\"}\n  ],\n  \"user_stories\": [\n    {\"id\": \"US1\", \"description\": \"Jako X chcę Y aby Z.\"}\n  ]\n}\n\n\n[STEP3]\nUser stories:\n[{\"id\": \"US1\", \"description\": \"Jako nowy Użytkownik chcę zarejestrować się w systemie w maksymalnie 3 krokach (dane podstawowe, hasło, potwierdzenie email) aby móc szybko rozpocząć korzystanie z systemu bez zbędnych barier wejścia.\"}, {\"id\": \"US2\", \"description\": \"Jako Użytkownik chcę zalogować się przez SSO (Google lub Apple) jednym kliknięciem aby uniknąć konieczności pamiętania hasła i przyspieszyć dostęp do systemu.\"}, {\"id\": \"US3\", \"description\": \"Jako Użytkownik chcę przeglądać dostępne terminy wybranego specjalisty w widoku kalendarza aby szybko znaleźć odpowiadający mi termin bez znajomości szczegółów innych rezerwacji.\"}, {\"id\": \"US4\", \"description\": \"Jako Użytkownik chcę zarezerwować wizytę w maksymalnie 3 krokach (wybór terminu, podanie danych, potwierdzenie) aby proces był szybki i nie wymagał podawania zbędnych informacji.\"}, {\"id\": \"US5\", \"description\": \"Jako Użytkownik chcę otrzymać natychmiastowe potwierdzenie rezerwacji na ekranie oraz email z detalami wizyty aby mieć pewność, że rezerwacja została przyjęta.\"}, {\"id\": \"US6\", \"description\": \"Jako Użytkownik chcę anulować rezerwację samodzielnie do 24 godzin przed wizytą jednym kliknięciem z jednym potwierdzeniem aby móc elastycznie zarządzać swoim harmonogramem bez kontaktu z obsługą.\"}, {\"id\": \"US7\", \"description\": \"Jako Użytkownik chcę otrzymać czytelny komunikat (bez technicznego żargonu) gdy wybrany termin jest już zajęty lub gdy anulowanie jest niemożliwe ze względu na ograniczenie czasowe aby wiedzieć co zrobić w takiej sytuacji.\"}, {\"id\": \"US8\", \"description\": \"Jako Użytkownik chcę otrzymać przypomnienie email lub SMS 24 godziny przed wizytą aby nie zapomnieć o zaplanowanej wizycie.\"}, {\"id\": \"US9\", \"description\": \"Jako Użytkownik chcę być natychmiast powiadomiony emailem gdy specjalista zmodyfikuje lub odwoła moją rezerwację wraz z propozycją nowego terminu lub możliwością bezkosztowego anulowania aby móc podjąć odpowiednie działania.\"}, {\"id\": \"US10\", \"description\": \"Jako Specjalista chcę skonfigurować swój grafik dostępności (godziny pracy, przerwy, urlopy, czas trwania wizyty, bufory między wizytami) aby system automatycznie prezentował użytkownikom tylko faktycznie dostępne terminy.\"}, {\"id\": \"US11\", \"description\": \"Jako Specjalista chcę zalogować się do systemu z obowiązkowym MFA (TOTP lub SMS) aby moje konto i dane moich pacjentów były chronione przed nieautoryzowanym dostępem.\"}, {\"id\": \"US12\", \"description\": \"Jako Specjalista chcę modyfikować swój grafik nawet gdy istnieją już rezerwacje w danym terminie, z automatycznym powiadomieniem dotkniętych użytkowników, aby móc elastycznie zarządzać swoją dostępnością w uzasadnionych przypadkach.\"}, {\"id\": \"US13\", \"description\": \"Jako Specjalista chcę przeglądać listę moich nadchodzących rezerwacji z danymi kontaktowymi rezerwujących użytkowników aby móc przygotować się do wizyt i w razie potrzeby skontaktować się z pacjentem.\"}, {\"id\": \"US14\", \"description\": \"Jako Administrator chcę przeglądać niemodyfikowalne logi audytowe wszystkich operacji w systemie (rezerwacje, anulowania, logowania, modyfikacje grafiku) aby móc wykrywać i analizować incydenty bezpieczeństwa oraz nieprawidłowości.\"}, {\"id\": \"US15\", \"description\": \"Jako Administrator chcę mieć dostęp do dashboardu raportowego z kluczowymi metrykami biznesowymi (liczba rezerwacji, przychody z prowizji i subskrypcji, wskaźnik anulowań, aktywni użytkownicy) aby monitorować kondycję biznesu i podejmować decyzje operacyjne.\"}, {\"id\": \"US16\", \"description\": \"Jako Administrator chcę ręcznie dopuścić wyjątek od reguły konfliktu rezerwacji z obowiązkowym uzasadnieniem zapisanym w logu audytowym aby obsłużyć szczególne przypadki biznesowe przy zachowaniu pełnej audytowalności.\"}, {\"id\": \"US17\", \"description\": \"Jako Administrator chcę zarządzać planami subskrypcyjnymi specjalistów (podstawowy/premium) oraz konfiguracją prowizji od rezerwacji aby móc elastycznie dostosowywać model monetyzacji do potrzeb biznesowych.\"}, {\"id\": \"US18\", \"description\": \"Jako Administrator chcę otrzymywać automatyczne alerty o anomaliach behawioralnych (masowe rezerwacje, wielokrotne nieudane logowania, próby nieautoryzowanego dostępu) aby móc szybko reagować na potencjalne zagrożenia bezpieczeństwa.\"}, {\"id\": \"US19\", \"description\": \"Jako Specjalista chcę wybierać między planem subskrypcyjnym podstawowym a premium aby dopasować zakres funkcjonalności do moich potrzeb i możliwości finansowych, z jasnym przedstawieniem różnic między planami.\"}, {\"id\": \"US20\", \"description\": \"Jako Użytkownik chcę przeglądać historię moich rezerwacji (przeszłych i nadchodzących) oraz zarządzać swoim profilem i preferencjami powiadomień aby mieć pełną kontrolę nad swoimi danymi i aktywnością w systemie.\"}]\n\nOgraniczenia:\n- Maksymalnie 20 elementow w liscie \"acceptance_criteria\".\n\nZwracaj WYŁĄCZNIE ten fragment JSON:\n{\n  \"acceptance_criteria\": [\n    {\n      \"id\": \"AC1\",\n      \"given\": \"warunek wstępny\",\n      \"when\": \"akcja użytkownika\",\n      \"then\": \"przewidywany wynik\"\n    }\n  ]\n}\n",
+    "human_changes": null,
+    "score": null
+  }
+}

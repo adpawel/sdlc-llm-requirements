@@ -1,0 +1,30 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+Syntetyczny sygnal celu negocjacji (bez wag):
+${negotiation_focus_json}
+
+Zaktualizowane wymagania R':
+${artifact_json}
+
+Zadanie:
+Zbuduj tabele rozwiazan konfliktow w formacie JSON.
+W uzasadnieniach odwoluj sie do "focus_concerns" i balansu satysfakcji.
+
+Zwracaj WYLACZNIE ten obiekt JSON:
+{
+  "conflict_resolution_table": [
+    {
+      "conflict": "...",
+      "options": ["..."],
+      "decision": "...",
+      "justification": "..."
+    }
+  ]
+}

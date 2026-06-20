@@ -1,11 +1,13 @@
 import os
 import csv
 
+from utils.paths import get_output_dir
+
 def log_experiment_to_csv(filename, task_id, model_name, mode, iteration, prompt, output, elapsed_seconds=0.0):
     """
     Centralna funkcja do zapisu logów z zachowaniem ujednoliconego formatu.
     """
-    output_dir = "outputs"
+    output_dir = get_output_dir()
     os.makedirs(output_dir, exist_ok=True)
     
     csv_filename = os.path.join(output_dir, filename)

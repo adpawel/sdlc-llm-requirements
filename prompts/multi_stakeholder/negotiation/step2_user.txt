@@ -1,0 +1,30 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Aktualne wymagania R:
+${artifact_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+Wczesniejsze wyjscia:
+${step1_json}
+
+Ograniczenia:
+- Maksymalnie 15 elementow w liscie "non_functional_requirements".
+- Maksymalnie 15 elementow w liscie "user_stories".
+- Kazdy opis ma miec maksymalnie 140 znakow i byc jednym zdaniem.
+- Jesli kilka wymagan dotyczy tego samego ryzyka, scal je w jedno krotsze wymaganie.
+
+Zwracaj WYLACZNIE ten fragment JSON:
+{
+  "non_functional_requirements": [
+    {"id": "NFR1", "description": "Opis wymagania"}
+  ],
+  "user_stories": [
+    {"id": "US1", "description": "Jako X chce Y aby Z."}
+  ]
+}

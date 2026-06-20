@@ -1,0 +1,28 @@
+Opis systemu:
+${system_description}
+
+Twoj profil interesariusza:
+${stakeholder_profile}
+
+Aktualne wymagania R:
+${artifact_json}
+
+Ocena wplywu:
+${impact_json}
+
+Zadanie:
+Zaproponuj minimalne zmiany wymagan, ktore redukuja Twoje ryzyka.
+Nie przepisuj calego systemu. Tylko minimalne propozycje zmian.
+Ograniczenia:
+- Maksymalnie 3 propozycje.
+
+Zwracaj WYLACZNIE ten obiekt JSON:
+{
+  "proposals": [
+    {
+      "proposal": "...",
+      "rationale": "...",
+      "affected_requirements": ["FR1", "NFR2"]
+    }
+  ]
+}

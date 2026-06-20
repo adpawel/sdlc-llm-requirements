@@ -1,0 +1,22 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Podzbior wymagan (tylko te pozycje oceniaj):
+${requirements_subset_json}
+
+Zwracaj WYLACZNIE ten obiekt JSON.
+Utrzymaj zwiezly format:
+- Uzywaj tylko identyfikatorow interesariuszy (bez uzasadnien).
+- Maksymalnie 4 interesariuszy na wymaganie.
+- Jesli nic nie pasuje, zwroc pusta liste.
+{
+  "by_requirement": {
+    "FR1": ["business", "security"],
+    "NFR1": ["security"],
+    "US1": ["ux"],
+    "AC1": ["qa"]
+  }
+}

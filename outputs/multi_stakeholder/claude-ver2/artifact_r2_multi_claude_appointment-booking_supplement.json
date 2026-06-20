@@ -1,0 +1,640 @@
+{
+  "stakeholder_runs": [
+    {
+      "stakeholder": "business",
+      "goals": [
+        "Maksymalizacja ROI poprzez szybkie wejście na rynek i pozyskanie pierwszych płacących klientów",
+        "Minimalizacja kosztów wdrożenia i utrzymania systemu rezerwacji",
+        "Skalowanie bazy użytkowników przy ograniczonym budżecie operacyjnym",
+        "Generowanie przychodów poprzez modele subskrypcyjne lub prowizyjne od rezerwacji",
+        "Szybkie eksperymenty produktowe i testy A/B bez długich cykli wydawniczych"
+      ],
+      "needs": [
+        "Prosty i szybki onboarding użytkowników bez zbędnych kroków weryfikacyjnych",
+        "Minimalistyczny przepływ rezerwacji redukujący porzucenia koszyka",
+        "Tani stack technologiczny oparty na gotowych komponentach i SaaS",
+        "Dashboard raportowy dla zarządu z kluczowymi metrykami biznesowymi",
+        "Mechanizmy monetyzacji wbudowane od pierwszego release (prowizje, plany premium)",
+        "Możliwość szybkiego wdrożenia bez rozbudowanej fazy testów regresyjnych",
+        "Minimalny zakres compliance wymagany prawnie, bez nadmiarowych zabezpieczeń"
+      ],
+      "concerns": [
+        "Zbyt rozbudowane zabezpieczenia bezpieczeństwa spowalniają onboarding i zwiększają koszty",
+        "Długie cykle QA opóźniają time-to-market i generują koszty bez proporcjonalnego zwrotu",
+        "Nadmiernie szczegółowe przepływy UX wydłużają czas implementacji i zwiększają złożoność",
+        "Rozbudowana architektura techniczna podnosi koszty utrzymania ponad akceptowalny poziom",
+        "Restrykcyjne polityki anulowania rezerwacji mogą odstraszać użytkowników i obniżać konwersję",
+        "Zbyt rygorystyczne wymagania dotyczące ról i uprawnień komplikują system i spowalniają wdrożenie",
+        "Brak szybkich eksperymentów A/B ogranicza optymalizację współczynnika konwersji"
+      ],
+      "weighted_concerns": [
+        {
+          "concern": "szybki_onboarding_bez_barier",
+          "weight": 0.18
+        },
+        {
+          "concern": "niski_koszt_operacyjny",
+          "weight": 0.16
+        },
+        {
+          "concern": "funkcje_monetyzacji",
+          "weight": 0.14
+        },
+        {
+          "concern": "minimalny_zakres_compliance",
+          "weight": 0.12
+        },
+        {
+          "concern": "szybkie_time_to_market",
+          "weight": 0.12
+        },
+        {
+          "concern": "redukcja_tarcia_w_rezerwacji",
+          "weight": 0.1
+        },
+        {
+          "concern": "proste_cenniki_i_plany",
+          "weight": 0.1
+        },
+        {
+          "concern": "szybkie_raporty_dla_zarzadu",
+          "weight": 0.08
+        }
+      ],
+      "priorities": [
+        "Wydanie MVP w ciągu maksymalnie 8 tygodni od startu projektu",
+        "Wdrożenie modelu prowizyjnego lub subskrypcyjnego już w pierwszej wersji",
+        "Uproszczony proces rejestracji: maksymalnie 2-3 kroki bez obowiązkowego MFA",
+        "Wykorzystanie gotowych komponentów i integracji zamiast rozwiązań custom",
+        "Ograniczenie zakresu testów do smoke testów i testów krytycznej ścieżki",
+        "Priorytetyzacja funkcji generujących przychód nad funkcjami bezpieczeństwa i UX"
+      ],
+      "constraints": [
+        "Budżet wdrożeniowy nie może przekroczyć ustalonego limitu dla MVP",
+        "Czas do pierwszego release maksymalnie 8 tygodni",
+        "Koszty miesięczne utrzymania infrastruktury muszą być skalowalne i niskie na starcie",
+        "Brak zasobów na dedykowany zespół bezpieczeństwa lub QA w fazie MVP",
+        "Compliance ograniczony do absolutnego minimum wymaganego przez prawo (RODO podstawowe)"
+      ],
+      "tradeoffs": [
+        "Akceptujemy wyższe ryzyko bezpieczeństwa w zamian za szybszy onboarding i niższe koszty",
+        "Rezygnujemy z pełnego pokrycia testami na rzecz szybszego time-to-market",
+        "Upraszczamy przepływy UX kosztem precyzji informacji, aby zwiększyć konwersję",
+        "Wybieramy tańsze rozwiązania infrastrukturalne kosztem pełnej skalowalności od dnia zero",
+        "Dopuszczamy konflikty rezerwacji jako edge case zamiast inwestować w kosztowne mechanizmy blokad",
+        "Ograniczamy granularność ról użytkowników do minimum, aby przyspieszyć implementację"
+      ]
+    },
+    {
+      "stakeholder": "security",
+      "goals": [
+        "Zapewnienie maksymalnej ochrony danych osobowych i medycznych użytkowników",
+        "Wymuszenie silnej tożsamości i wieloskładnikowego uwierzytelniania dla wszystkich ról",
+        "Pełna audytowalność wszystkich zdarzeń w systemie",
+        "Minimalizacja powierzchni ataku poprzez ścisłą kontrolę dostępu",
+        "Ochrona przed nieautoryzowanym dostępem do harmonogramów i danych rezerwacji"
+      ],
+      "needs": [
+        "Obowiązkowe MFA dla wszystkich użytkowników, w szczególności specjalistów i administratorów",
+        "Szyfrowanie danych w spoczynku i w tranzycie (AES-256, TLS 1.3)",
+        "Szczegółowe logi audytowe każdej operacji: rezerwacji, anulowania, modyfikacji grafiku",
+        "Implementacja RBAC z zasadą najmniejszych uprawnień",
+        "Silna polityka haseł: min. 12 znaków, złożoność, rotacja co 90 dni",
+        "Segmentacja dostępu między rolami: użytkownik, specjalista, administrator",
+        "System alertów na anomalie behawioralne i próby nieautoryzowanego dostępu",
+        "Retencja logów przez minimum 12 miesięcy zgodnie z wymogami RODO i branżowymi",
+        "Regularne audyty bezpieczeństwa i testy penetracyjne"
+      ],
+      "concerns": [
+        "Brak MFA naraża konta specjalistów na przejęcie i manipulację grafikiem",
+        "Słabe hasła zwiększają ryzyko nieautoryzowanego dostępu do danych medycznych",
+        "Brak logów audytowych uniemożliwia wykrycie i analizę incydentów bezpieczeństwa",
+        "Nadmiarowe uprawnienia użytkowników mogą prowadzić do wycieku danych innych pacjentów",
+        "Wyjątki w rezerwacjach mogą być exploitowane do ataków na dostępność systemu",
+        "Modyfikacja grafiku przez specjalistów bez ścieżki audytu stwarza ryzyko manipulacji",
+        "Brak szyfrowania danych rezerwacji naraża wrażliwe informacje na przechwycenie",
+        "Niewystarczająca retencja logów uniemożliwia spełnienie wymogów regulacyjnych",
+        "Skalowalność systemu bez odpowiednich mechanizmów bezpieczeństwa zwiększa powierzchnię ataku"
+      ],
+      "weighted_concerns": [
+        {
+          "concern": "MFA",
+          "weight": 0.2
+        },
+        {
+          "concern": "Szyfrowanie danych",
+          "weight": 0.18
+        },
+        {
+          "concern": "Logi audytowe",
+          "weight": 0.14
+        },
+        {
+          "concern": "RBAC",
+          "weight": 0.12
+        },
+        {
+          "concern": "Silna polityka haseł",
+          "weight": 0.1
+        },
+        {
+          "concern": "Segmentacja dostępu",
+          "weight": 0.1
+        },
+        {
+          "concern": "Alerty na anomalie",
+          "weight": 0.08
+        },
+        {
+          "concern": "Retencja logów",
+          "weight": 0.08
+        }
+      ],
+      "priorities": [
+        "Wdrożenie MFA jako wymagania obowiązkowego, nie opcjonalnego",
+        "Szyfrowanie end-to-end wszystkich danych wrażliwych",
+        "Implementacja kompletnego systemu logowania audytowego przed uruchomieniem produkcyjnym",
+        "Ścisły RBAC uniemożliwiający dostęp do danych innych użytkowników",
+        "Zero-trust architecture dla komunikacji między komponentami systemu",
+        "Regularne testy penetracyjne i audyty kodu"
+      ],
+      "constraints": [
+        "MFA nie może być wyłączone ani obejście nawet na żądanie użytkownika lub biznesu",
+        "Polityka haseł nie może być osłabiana w celu poprawy UX lub redukcji churnu",
+        "Logi audytowe muszą być niemodyfikowalne i przechowywane przez minimum 12 miesięcy",
+        "Dane osobowe muszą być szyfrowane zgodnie z RODO i standardami branżowymi",
+        "Dostęp do danych innych użytkowników musi być technicznie niemożliwy bez odpowiednich uprawnień",
+        "Wszelkie wyjątki w politykach bezpieczeństwa wymagają formalnej akceptacji i dokumentacji"
+      ],
+      "tradeoffs": [
+        "MFA zwiększa bezpieczeństwo kosztem wygody użytkownika i potencjalnie wyższego churnu",
+        "Rygorystyczne logowanie zwiększa koszty infrastruktury i przechowywania danych",
+        "Silna polityka haseł może frustrować użytkowników, ale jest niezbędna dla ochrony danych medycznych",
+        "Segmentacja dostępu ogranicza elastyczność funkcjonalną, ale chroni przed wyciekiem danych",
+        "Retencja logów generuje koszty operacyjne, ale jest wymagana regulacyjnie i bezpieczeństwowo",
+        "Zero-trust zwiększa latencję systemu, ale eliminuje ryzyko ruchu bocznego po kompromitacji"
+      ]
+    },
+    {
+      "stakeholder": "ux",
+      "goals": [
+        "Minimalizacja liczby kroków w procesie rezerwacji wizyty do maksymalnie 3 kliknięć",
+        "Zapewnienie intuicyjnego i przewidywalnego interfejsu użytkownika",
+        "Skrócenie czasu onboardingu nowego użytkownika do minimum",
+        "Eliminacja zbędnych barier i potwierdzeń w kluczowych przepływach",
+        "Zapewnienie czytelnych i przyjaznych komunikatów błędów bez żargonu technicznego"
+      ],
+      "needs": [
+        "Logowanie jednym kliknięciem lub z wykorzystaniem SSO bez dodatkowych kroków weryfikacji",
+        "Formularz rezerwacji ograniczony do absolutnie niezbędnych pól",
+        "Natychmiastowe potwierdzenie rezerwacji bez wieloetapowej walidacji",
+        "Prosty i szybki reset hasła bez skomplikowanych procedur weryfikacyjnych",
+        "Spójne wzorce UI na wszystkich widokach systemu",
+        "Szybkie ładowanie widoków poniżej 2 sekund",
+        "Możliwość anulowania wizyty jednym kliknięciem bez nadmiarowych potwierdzeń",
+        "Dostępność interfejsu na urządzeniach mobilnych bez utraty funkcjonalności"
+      ],
+      "concerns": [
+        "Wieloetapowe uwierzytelnianie (MFA) znacząco zwiększa tarcie i zniechęca użytkowników",
+        "Rozbudowane formularze z wieloma polami obowiązkowymi wydłużają proces rezerwacji",
+        "Nadmiarowe komunikaty ostrzegawcze i potwierdzenia dezorientują użytkowników",
+        "Rygorystyczna walidacja danych w czasie rzeczywistym spowalnia interfejs",
+        "Zbyt wiele ról i uprawnień komplikuje nawigację i zwiększa liczbę kroków",
+        "Długi onboarding z weryfikacją danych odstrasza nowych użytkowników",
+        "Blokady czasowe anulowania wizyt bez jasnego komunikatu frustrują użytkowników",
+        "Złożone procedury bezpieczeństwa kosztem płynności doświadczenia użytkownika"
+      ],
+      "weighted_concerns": [
+        {
+          "concern": "MFA i dodatkowe kroki uwierzytelniania",
+          "weight": 0.18
+        },
+        {
+          "concern": "Rozbudowane formularze rezerwacji",
+          "weight": 0.16
+        },
+        {
+          "concern": "Czytelność i prostota komunikatów błędów",
+          "weight": 0.14
+        },
+        {
+          "concern": "Dostępność i responsywność interfejsu",
+          "weight": 0.12
+        },
+        {
+          "concern": "Minimalna liczba kroków w kluczowych procesach",
+          "weight": 0.12
+        },
+        {
+          "concern": "Spójne wzorce UI",
+          "weight": 0.1
+        },
+        {
+          "concern": "Szybkość ładowania widoków",
+          "weight": 0.1
+        },
+        {
+          "concern": "Prosty reset hasła",
+          "weight": 0.08
+        }
+      ],
+      "priorities": [
+        "Rezerwacja wizyty w maksymalnie 3 krokach",
+        "Logowanie bez MFA lub z opcjonalnym MFA",
+        "Onboarding skrócony do jednego ekranu",
+        "Natychmiastowe potwierdzenie akcji użytkownika",
+        "Czytelne komunikaty o konfliktach rezerwacji bez technicznego żargonu",
+        "Możliwość anulowania wizyty bez zbędnych kroków potwierdzenia",
+        "Szybkie ładowanie kalendarza dostępności specjalisty"
+      ],
+      "constraints": [
+        "Interfejs nie może wymagać więcej niż 3 kroków do wykonania rezerwacji",
+        "Formularze mogą zawierać maksymalnie 5 pól obowiązkowych",
+        "Czas ładowania kluczowych widoków nie może przekraczać 2 sekund",
+        "Komunikaty błędów muszą być zrozumiałe dla nietech-savvy użytkowników",
+        "Onboarding nie może wymagać weryfikacji email przed pierwszym użyciem systemu"
+      ],
+      "tradeoffs": [
+        "Akceptujemy mniejszą kompletność danych użytkownika w zamian za szybszy onboarding",
+        "Rezygnujemy z MFA jako obowiązkowego elementu na rzecz płynności logowania",
+        "Ograniczamy walidację formularzy w czasie rzeczywistym kosztem natychmiastowości interfejsu",
+        "Upraszczamy komunikaty o błędach kosztem technicznej precyzji wymaganej przez QA",
+        "Redukujemy liczbę potwierdzeń anulowania wizyty kosztem zabezpieczenia przed przypadkowym anulowaniem"
+      ]
+    },
+    {
+      "stakeholder": "qa",
+      "goals": [
+        "Zapewnienie maksymalnej testowalności wszystkich komponentów systemu rezerwacji",
+        "Formalne zdefiniowanie kryteriów akceptacji dla każdego wymagania funkcjonalnego",
+        "Eliminacja ryzyka regresji poprzez kompleksowe testy automatyczne",
+        "Stabilność i przewidywalność kolejnych wersji systemu",
+        "Pełne pokrycie scenariuszy brzegowych i wyjątkowych przypadków użycia"
+      ],
+      "needs": [
+        "Precyzyjne i mierzalne kryteria akceptacji dla każdej funkcjonalności (rezerwacja, anulowanie, konflikty)",
+        "Rozbudowany zestaw testów regresji uruchamianych przed każdym wydaniem",
+        "Spójna i przewidywalna obsługa błędów z jednoznacznymi kodami i komunikatami",
+        "Monitoring i logi systemowe umożliwiające diagnozę błędów w środowisku testowym i produkcyjnym",
+        "Testy integracyjne pokrywające interakcje między rolami użytkowników a grafikiem specjalistów",
+        "Walidacja danych wejściowych na każdym etapie procesu rezerwacji",
+        "Raporty stabilności systemu po każdym wdrożeniu",
+        "Środowisko testowe odzwierciedlające produkcję z możliwością symulacji konfliktów rezerwacji"
+      ],
+      "concerns": [
+        "Brak formalnych kryteriów akceptacji uniemożliwia obiektywną ocenę gotowości do wydania",
+        "Presja biznesowa na szybkie wydania zwiększa ryzyko regresji i niestabilności",
+        "Niejasne reguły dotyczące wyjątków w konfliktach rezerwacji utrudniają testowanie",
+        "Brak spójnej obsługi błędów prowadzi do nieprzewidywalnych stanów systemu",
+        "Niewystarczające pokrycie scenariuszy brzegowych (np. jednoczesne rezerwacje, anulowanie w ostatniej chwili)",
+        "Modyfikacje grafiku przez specjalistę dla istniejących rezerwacji mogą powodować niespójności danych",
+        "Brak testów integracyjnych dla różnych ról użytkowników zwiększa ryzyko błędów uprawnień",
+        "Zbyt szybkie wydania bez pełnego cyklu testów regresji generują dług techniczny"
+      ],
+      "weighted_concerns": [
+        {
+          "concern": "Formalne kryteria akceptacji dla każdego wymagania",
+          "weight": 0.18
+        },
+        {
+          "concern": "Kompleksowe testy regresji przed każdym wydaniem",
+          "weight": 0.16
+        },
+        {
+          "concern": "Spójna i przewidywalna obsługa błędów",
+          "weight": 0.14
+        },
+        {
+          "concern": "Monitoring i logi systemowe",
+          "weight": 0.12
+        },
+        {
+          "concern": "Testy integracyjne dla ról i grafiku specjalistów",
+          "weight": 0.12
+        },
+        {
+          "concern": "Walidacja danych wejściowych na każdym etapie",
+          "weight": 0.1
+        },
+        {
+          "concern": "Raporty stabilności po każdym wdrożeniu",
+          "weight": 0.1
+        },
+        {
+          "concern": "Pokrycie scenariuszy brzegowych i wyjątkowych",
+          "weight": 0.08
+        }
+      ],
+      "priorities": [
+        "Zdefiniowanie kryteriów akceptacji przed rozpoczęciem implementacji",
+        "Automatyzacja testów regresji jako warunek konieczny do wydania",
+        "Ujednolicenie obsługi błędów w całym systemie",
+        "Wdrożenie monitoringu i alertów dla kluczowych procesów rezerwacji",
+        "Testy integracyjne dla scenariuszy wielorólowych",
+        "Walidacja wszystkich danych wejściowych po stronie serwera",
+        "Regularne raporty pokrycia testami i stabilności"
+      ],
+      "constraints": [
+        "Żadne wydanie nie może odbyć się bez przejścia pełnego zestawu testów regresji",
+        "Każda funkcjonalność musi posiadać udokumentowane kryteria akceptacji przed wdrożeniem",
+        "Obsługa błędów musi być spójna i zgodna z przyjętym standardem kodów błędów",
+        "Środowisko testowe musi być izolowane i odzwierciedlać konfigurację produkcyjną",
+        "Zmiany w logice konfliktów rezerwacji wymagają pełnego retestowania scenariuszy brzegowych",
+        "Modyfikacje API muszą być poprzedzone aktualizacją testów integracyjnych"
+      ],
+      "tradeoffs": [
+        "Rygor testowy vs. szybkość wydania: preferujemy opóźnienie wydania nad ryzykiem regresji",
+        "Dodatkowe walidacje vs. uproszczony UX: bezpieczeństwo danych ważniejsze niż minimalizacja kroków",
+        "Pełne pokrycie testami vs. czas developmentu: akceptujemy dłuższy cykl dla wyższej jakości",
+        "Twarde kryteria akceptacji vs. elastyczność biznesowa: stabilność systemu ponad szybką adaptację",
+        "Szczegółowe logi i monitoring vs. wydajność: diagnostykowalność jest priorytetem"
+      ]
+    }
+  ],
+  "traceability": {
+    "by_requirement": {
+      "FR2": [
+        "security: MFA obowiązkowe dla wszystkich ról",
+        "ux: MFA tylko opcjonalne dla użytkowników",
+        "business: brak obowiązkowego MFA przyspiesza onboarding"
+      ],
+      "FR6": [
+        "business: konflikty rezerwacji dopuszczalne jako edge case bez kosztownych blokad",
+        "qa: niejasne reguły wyjątków utrudniają testowanie scenariuszy brzegowych",
+        "security: wyjątki mogą być exploitowane do ataków na dostępność"
+      ],
+      "FR19": [
+        "business: ograniczenie testów do smoke testów i krytycznej ścieżki",
+        "qa: pełny zestaw testów regresji jako warunek konieczny do wydania"
+      ],
+      "FR1": [
+        "ux: onboarding bez weryfikacji email przed pierwszym użyciem",
+        "security: weryfikacja tożsamości wymagana przed dostępem do danych wrażliwych"
+      ],
+      "FR14": [
+        "ux: silna polityka haseł frustruje użytkowników i zwiększa churn",
+        "security: polityka haseł nie może być osłabiana dla żadnej roli"
+      ]
+    },
+    "gaps": [
+      "business: brak wymagania dotyczącego mechanizmu testów A/B w MVP",
+      "security: brak wymagania dotyczącego regularnych testów penetracyjnych i audytów kodu po wdrożeniu",
+      "ux: brak wymagania dotyczącego dostępności WCAG dla użytkowników z niepełnosprawnościami",
+      "qa: brak wymagania dotyczącego raportów pokrycia testami generowanych automatycznie po każdym wydaniu",
+      "business: brak zdefiniowanego planu awaryjnego dla niedostępności dostawców SaaS (Stripe, Auth0)"
+    ],
+    "conflicts": [
+      "MFA dla Użytkownika: security wymaga obowiązkowego MFA dla wszystkich ról, ux i business odrzucają obowiązkowe MFA dla zwykłych użytkowników jako barierę konwersji - kompromis: MFA obowiązkowe tylko dla Specjalista i Administrator",
+      "Zakres testów przed wydaniem: qa wymaga pełnego zestawu testów regresji jako warunku wydania, business akceptuje tylko smoke testy dla MVP - kompromis: pełne testy dla krytycznej ścieżki, ograniczone dla funkcji niekrytycznych w MVP",
+      "Weryfikacja email przy onboardingu: ux zabrania weryfikacji email przed pierwszym użyciem, security i qa wymagają potwierdzonej tożsamości przed rezerwacją - kompromis: przeglądanie bez weryfikacji, rezerwacja wymaga potwierdzonego konta",
+      "Polityka haseł dla Użytkownika: security wymaga min. 12 znaków dla wszystkich, ux i business chcą minimum barier - kompromis: 8 znaków dla Użytkownika, 12 znaków dla Specjalista i Administrator",
+      "Obsługa konfliktów rezerwacji: business akceptuje konflikty jako edge case bez kosztownych mechanizmów, security ostrzega przed exploitowaniem wyjątków, qa wymaga jasnych reguł testowalnych - kompromis: optymistyczne blokowanie z timeout, wyjątki tylko przez Administratora z obowiązkowym uzasadnieniem w logu"
+    ]
+  },
+  "stakeholder_evaluations": [
+    {
+      "stakeholder": "business",
+      "satisfaction_score": 0.72,
+      "weighted_satisfaction": 0.71,
+      "satisfied_goals": [
+        "Szybki onboarding (max 3 kroki, SSO, weryfikacja email dopiero przed rezerwacją)",
+        "Niski koszt operacyjny (architektura SaaS: Auth0, Stripe, SendGrid/Twilio, pay-as-you-go)",
+        "Funkcje monetyzacji (prowizje + plany subskrypcyjne podstawowy/premium od MVP)",
+        "Szybkie time-to-market (MVP 8 tygodni, gotowe komponenty SaaS)",
+        "Redukcja tarcia w checkout (max 3 kroki rezerwacji, max 5 pól, natychmiastowe potwierdzenie)",
+        "Proste cenniki (dwa plany: podstawowy/premium z jasnym zestawieniem)",
+        "Szybkie raporty dla zarządu (dashboard z metrykami, odświeżanie co 5 minut)"
+      ],
+      "unsatisfied_goals": [
+        "Minimalny zakres compliance (wymagania idą dalej niż minimum: AES-256, TLS 1.3, rotacja kluczy, WCAG 2.1 AA, pełne RODO z 72h usunięciem danych - to przekracza 'absolutne minimum')",
+        "Ograniczenie kosztownych zabezpieczeń (MFA obowiązkowe dla Specjalistów i Administratorów, logi audytowe 12 miesięcy z hash chain, monitoring anomalii - generują koszty infrastruktury)"
+      ],
+      "per_concern": [
+        {
+          "concern": "Szybki onboarding",
+          "status": "satisfied",
+          "rationale": "FR1 i US1 definiują rejestrację w max 3 krokach; przeglądanie terminów bez weryfikacji email; SSO jednym kliknięciem (FR2, US2). AC1 i AC20 potwierdzają płynny onboarding."
+        },
+        {
+          "concern": "Niski koszt operacyjny",
+          "status": "satisfied",
+          "rationale": "FR20 i NFR8 explicite wymagają architektury SaaS (Auth0, Stripe, SendGrid/Twilio), modelu pay-as-you-go i braku stałych kosztów przekraczających limit MVP. NFR20 zakłada wdrożenie MVP w 8 tygodniach."
+        },
+        {
+          "concern": "Funkcje monetyzacji",
+          "status": "satisfied",
+          "rationale": "FR12 definiuje prowizje od rezerwacji i plany subskrypcyjne (podstawowy/premium) oparte na Stripe od pierwszego release. US17, US19, AC16, AC18 pokrywają zarządzanie planami i konfiguracją prowizji."
+        },
+        {
+          "concern": "Minimalny zakres compliance",
+          "status": "partially_satisfied",
+          "rationale": "NFR3, NFR4, NFR5 wymagają AES-256, TLS 1.3, rotacji kluczy co 12 miesięcy, RODO z 72h realizacją usunięcia danych, hash chain logów. To przekracza 'absolutne minimum RODO' postulowane przez business, generując dodatkowe koszty implementacji i utrzymania."
+        },
+        {
+          "concern": "Szybkie time-to-market",
+          "status": "satisfied",
+          "rationale": "FR19 i NFR20 explicite zakładają 8-tygodniowy MVP z ograniczonym zakresem testów automatycznych dla funkcji niekrytycznych. Architektura SaaS przyspiesza wdrożenie."
+        },
+        {
+          "concern": "Redukcja tarcia w checkout",
+          "status": "satisfied",
+          "rationale": "FR5 (max 3 kroki, max 5 pól, natychmiastowe potwierdzenie), FR4 (kalendarz <2s), US4, US6 (anulowanie jednym kliknięciem), AC4 potwierdzają minimalne tarcie w procesie rezerwacji."
+        },
+        {
+          "concern": "Proste cenniki",
+          "status": "satisfied",
+          "rationale": "FR12 definiuje dwa przejrzyste modele (prowizja + subskrypcja podstawowy/premium). AC18 wymaga czytelnego zestawienia różnic z cennikiem."
+        },
+        {
+          "concern": "Szybkie raporty dla zarządu",
+          "status": "satisfied",
+          "rationale": "FR13 i NFR15 definiują dashboard z kluczowymi metrykami (rezerwacje, przychody, anulowania, aktywni użytkownicy) z opóźnieniem max 5 minut jako kompromis kosztowy. Eksport CSV/JSON dostępny."
+        }
+      ],
+      "comments": "Wymagania w dużej mierze realizują cele biznesowe: szybki onboarding, monetyzacja od MVP, architektura SaaS minimalizująca koszty, 8-tygodniowy czas wdrożenia. Główne napięcie dotyczy zakresu zabezpieczeń i compliance - wymagania idą dalej niż 'absolutne minimum' postulowane przez business (obowiązkowe MFA dla Specjalistów/Administratorów, rozbudowane logi audytowe z hash chain, WCAG 2.1 AA, rotacja kluczy szyfrowania). Kompromisy są jednak racjonalne: MFA tylko dla ról wrażliwych (nie dla zwykłych użytkowników), testy automatyczne ograniczone do krytycznej ścieżki w MVP, dashboard niereal-time. Wymagania dobrze balansują interesy biznesowe z wymogami bezpieczeństwa i jakości."
+    },
+    {
+      "stakeholder": "security",
+      "satisfaction_score": 0.82,
+      "weighted_satisfaction": 0.82,
+      "satisfied_goals": [
+        "Szyfrowanie danych w spoczynku (AES-256) i w tranzycie (TLS 1.3) z zarządzaniem kluczami przez dedykowany serwis (NFR3, FR10)",
+        "Pełna audytowalność zdarzeń - niemodyfikowalne logi audytowe z hash chain, retencja 12 miesięcy (FR9, NFR5)",
+        "RBAC z techniczną niemożnością dostępu do danych innych użytkowników (FR3, NFR6)",
+        "Silna polityka haseł dla Specjalisty i Administratora (min. 12 znaków, rotacja 90 dni) (FR14)",
+        "Segmentacja dostępu między rolami zgodna z zasadą najmniejszych uprawnień (FR3)",
+        "Alerty na anomalie behawioralne z czasem reakcji do 30 sekund (FR16, NFR9)",
+        "Retencja logów minimum 12 miesięcy z archiwizacją do cold storage (NFR5)"
+      ],
+      "unsatisfied_goals": [
+        "MFA obowiązkowe dla WSZYSTKICH użytkowników - wymaganie nie spełnione dla roli Użytkownik (MFA opcjonalne, nie obowiązkowe)",
+        "Regularne testy penetracyjne i audyty kodu - brak wymagania w artefakcie",
+        "Zero-trust architecture - brak explicite wymagania w artefakcie",
+        "Polityka haseł dla Użytkownika osłabiona do 8 znaków (kompromis z UX, niezgodny z postulatem Security)"
+      ],
+      "per_concern": [
+        {
+          "concern": "MFA",
+          "status": "partially_satisfied",
+          "rationale": "MFA obowiązkowe dla Specjalisty i Administratora (FR2, AC11, US11) - spełnione. Dla roli Użytkownik MFA jest jedynie opcjonalne i rekomendowane - niezgodne z postulatem Security o obowiązkowym MFA dla wszystkich ról."
+        },
+        {
+          "concern": "Szyfrowanie danych",
+          "status": "satisfied",
+          "rationale": "AES-256 w spoczynku, TLS 1.3 w tranzycie, klucze zarządzane przez AWS KMS z rotacją co 12 miesięcy (FR10, NFR3). Pełne pokrycie wymagania."
+        },
+        {
+          "concern": "Logi audytowe",
+          "status": "satisfied",
+          "rationale": "Niemodyfikowalne logi append-only z hash chain, retencja 12 miesięcy, archiwizacja po 3 miesiącach, dostęp wyłącznie dla Administratora (FR9, NFR5, AC13, US14). Wymaganie w pełni spełnione."
+        },
+        {
+          "concern": "RBAC",
+          "status": "satisfied",
+          "rationale": "Trzy role z udokumentowanymi uprawnieniami, techniczna niemożność dostępu do danych innych użytkowników, naruszenia automatycznie logowane i generujące alert (FR3, NFR6). Wymaganie spełnione."
+        },
+        {
+          "concern": "Silna polityka haseł",
+          "status": "partially_satisfied",
+          "rationale": "Dla Specjalisty i Administratora: min. 12 znaków, złożoność, rotacja 90 dni (FR14) - spełnione. Dla Użytkownika: min. 8 znaków bez rotacji - kompromis z UX niezgodny z postulatem Security o jednolitej silnej polityce."
+        },
+        {
+          "concern": "Segmentacja dostępu",
+          "status": "satisfied",
+          "rationale": "RBAC z zasadą najmniejszych uprawnień, każda rola ma udokumentowany zestaw uprawnień, techniczna niemożność cross-access (FR3, NFR6). Wymaganie spełnione."
+        },
+        {
+          "concern": "Alerty na anomalie",
+          "status": "satisfied",
+          "rationale": "System wykrywa masowe rezerwacje i wielokrotne nieudane logowania, blokada po 5 próbach, alerty dla Administratora w czasie do 30 sekund (FR16, NFR9, AC17, US18). Wymaganie spełnione."
+        },
+        {
+          "concern": "Retencja logów",
+          "status": "satisfied",
+          "rationale": "Minimum 12 miesięcy retencji, automatyczna archiwizacja do cold storage po 3 miesiącach, integralność weryfikowalna przez sumy kontrolne (NFR5). Wymaganie spełnione."
+        }
+      ],
+      "comments": "Artefakt wymagan w dużej mierze spełnia cele Security Stakeholdera, szczególnie w zakresie szyfrowania, logów audytowych, RBAC i alertów na anomalie. Główne zastrzeżenie dotyczy MFA - kompromis z UX/Business skutkuje opcjonalnym MFA dla roli Użytkownik, co jest niezgodne z postulatem Security o obowiązkowym MFA dla wszystkich. Polityka haseł dla Użytkownika (8 znaków) jest osłabiona względem wymagań Security. Brak explicite wymagań dotyczących testów penetracyjnych i zero-trust architecture. Ogólnie artefakt reprezentuje rozsądny kompromis z przewagą na rzecz bezpieczeństwa dla ról wrażliwych (Specjalista, Administrator)."
+    },
+    {
+      "stakeholder": "ux",
+      "satisfaction_score": 0.78,
+      "weighted_satisfaction": 0.78,
+      "satisfied_goals": [
+        "Minimalizacja liczby kroków w procesie rezerwacji wizyty do maksymalnie 3 kliknięć",
+        "Zapewnienie intuicyjnego i przewidywalnego interfejsu użytkownika",
+        "Zapewnienie czytelnych i przyjaznych komunikatów błędów bez żargonu technicznego",
+        "Skrócenie czasu onboardingu nowego użytkownika do minimum",
+        "Dostępność interfejsu na urządzeniach mobilnych"
+      ],
+      "unsatisfied_goals": [
+        "Eliminacja zbędnych barier i potwierdzeń w kluczowych przepływach (MFA obowiązkowe dla Specjalistów)",
+        "Logowanie jednym kliknięciem bez dodatkowych kroków weryfikacji dla wszystkich ról"
+      ],
+      "per_concern": [
+        {
+          "concern": "Logowanie bez tarcia",
+          "status": "partially_satisfied",
+          "rationale": "SSO (Google/Apple) dostępne jako podstawowa metoda dla Użytkowników (FR2, US2, AC2), ale MFA obowiązkowe dla Specjalistów i Administratorów wprowadza tarcie dla tych ról. Dla zwykłych Użytkowników logowanie jest płynne."
+        },
+        {
+          "concern": "Krótki onboarding",
+          "status": "satisfied",
+          "rationale": "Rejestracja w maksymalnie 3 krokach (FR1, US1, AC1). Przeglądanie terminów możliwe bez weryfikacji email, weryfikacja wymagana dopiero przed rezerwacją. AC20 dopuszcza SSO z jednym dodatkowym krokiem uzupełnienia profilu."
+        },
+        {
+          "concern": "Czytelne komunikaty błędów",
+          "status": "satisfied",
+          "rationale": "FR7 i FR15 explicite wymagają komunikatów zrozumiałych dla użytkownika bez technicznego żargonu. US7 i AC5, AC7 potwierdzają czytelne komunikaty o zajętym terminie i ograniczeniu anulowania."
+        },
+        {
+          "concern": "Dostępność",
+          "status": "satisfied",
+          "rationale": "FR17 i NFR10 wymagają pełnej responsywności na iOS/Android oraz zgodności z WCAG 2.1 AA. US4 i kluczowe widoki dostępne mobilnie."
+        },
+        {
+          "concern": "Minimalna liczba kroków",
+          "status": "satisfied",
+          "rationale": "FR5 ogranicza rezerwację do 3 kroków z max 5 polami obowiązkowymi. AC4 potwierdza dokładnie 3 kroki. Anulowanie jednym kliknięciem z jednym potwierdzeniem (US6, AC6)."
+        },
+        {
+          "concern": "Spójne wzorce UI",
+          "status": "satisfied",
+          "rationale": "NFR11 wymaga spójnej obsługi błędów w całym systemie. FR17 zapewnia spójny responsywny interfejs. Brak explicite dokumentu design system, ale wymagania sugerują spójność."
+        },
+        {
+          "concern": "Szybkie ładowanie widoków",
+          "status": "satisfied",
+          "rationale": "FR4 i FR17 wymagają ładowania kluczowych widoków poniżej 2 sekund. NFR1 i NFR13 potwierdzają wymagania wydajnościowe dla kalendarza, formularza rezerwacji i listy rezerwacji."
+        },
+        {
+          "concern": "Prosty reset hasła",
+          "status": "partially_satisfied",
+          "rationale": "FR14 definiuje politykę haseł, ale brak explicite wymagania dotyczącego uproszczonego resetu hasła. SSO jako podstawowa metoda redukuje potrzebę resetu, ale dla kont lokalnych brak szczegółów o prostocie procesu."
+        }
+      ],
+      "comments": "Wymagania w dużej mierze spełniają cele UX: rezerwacja w 3 krokach, SSO, szybkie ładowanie, czytelne komunikaty i responsywność są dobrze zaadresowane. Główne zastrzeżenie to obowiązkowe MFA dla Specjalistów i Administratorów, co jest kompromisem z Security - akceptowalnym z perspektywy UX, ponieważ dotyczy ról uprzywilejowanych, a nie zwykłych Użytkowników. Onboarding jest wystarczająco uproszczony dzięki SSO i odroczonej weryfikacji email. Brak explicite wymagania dotyczącego prostego resetu hasła jest drobnym brakiem."
+    },
+    {
+      "stakeholder": "qa",
+      "satisfaction_score": 0.87,
+      "weighted_satisfaction": 0.87,
+      "satisfied_goals": [
+        "Formalne zdefiniowanie kryteriów akceptacji dla każdego wymagania funkcjonalnego",
+        "Eliminacja ryzyka regresji poprzez kompleksowe testy automatyczne",
+        "Spójna i przewidywalna obsługa błędów",
+        "Monitoring i logi systemowe umożliwiające diagnozę błędów",
+        "Walidacja danych wejściowych na każdym etapie procesu rezerwacji",
+        "Środowisko testowe odzwierciedlające produkcję",
+        "Testy integracyjne dla scenariuszy wielorólowych"
+      ],
+      "unsatisfied_goals": [
+        "Pełne pokrycie scenariuszy brzegowych i wyjątkowych przypadków użycia - kompromis MVP ogranicza zakres testów automatycznych dla funkcji niekrytycznych",
+        "Raporty stabilności systemu po każdym wdrożeniu - brak explicite zdefiniowanego wymagania na raporty pokrycia testami"
+      ],
+      "per_concern": [
+        {
+          "concern": "Kryteria akceptacji",
+          "status": "satisfied",
+          "rationale": "FR19 oraz NFR12 explicite wymagają udokumentowanych kryteriów akceptacji przed implementacją. Zdefiniowano 20 kryteriów akceptacji w formacie Given/When/Then dla wszystkich kluczowych user stories."
+        },
+        {
+          "concern": "Testy regresji",
+          "status": "satisfied",
+          "rationale": "FR19 i NFR12 wymagają pełnego zestawu testów regresji przed każdym wydaniem produkcyjnym z minimalnym pokryciem 80% krytycznej ścieżki. Kompromis MVP dopuszcza ograniczony zakres dla funkcji niekrytycznych."
+        },
+        {
+          "concern": "Obsluga bledow",
+          "status": "satisfied",
+          "rationale": "FR15 i NFR11 definiują ustandaryzowaną obsługę błędów z kodami błędów, komunikatami technicznymi i przyjaznymi dla użytkownika. Kody błędów muszą być stabilne między wersjami API."
+        },
+        {
+          "concern": "Monitoring",
+          "status": "satisfied",
+          "rationale": "NFR19 definiuje monitoring produkcyjny z alertami dla dostępności, błędów 5xx, przekroczenia progów czasu odpowiedzi i anomalii rezerwacji. Alerty w ciągu 5 minut od zdarzenia."
+        },
+        {
+          "concern": "Testy integracyjne",
+          "status": "satisfied",
+          "rationale": "FR19 explicite wymienia przepływy wielorólowe jako część zestawu testów regresji. NFR17 definiuje izolowane środowisko testowe z możliwością symulacji konfliktów i scenariuszy wielorólowych."
+        },
+        {
+          "concern": "Walidacje danych",
+          "status": "satisfied",
+          "rationale": "FR15 i NFR16 wymagają walidacji po stronie serwera niezależnie od walidacji klienta, obejmującej typy danych, zakresy, formaty dat, sanityzację przed zapisem do bazy (SQL injection, XSS)."
+        },
+        {
+          "concern": "Raporty stabilnosci",
+          "status": "partially_satisfied",
+          "rationale": "NFR19 definiuje monitoring i alerty, ale brak explicite wymagania na raporty stabilności po każdym wdrożeniu ani raporty pokrycia testami. Dashboard raportowy (FR13) skupia się na metrykach biznesowych, nie jakościowych."
+        },
+        {
+          "concern": "Pokrycie scenariuszy brzegowych",
+          "status": "partially_satisfied",
+          "rationale": "FR19 wymienia scenariusze brzegowe (konflikty, anulowanie, przepływy wielorólowe), ale kompromis MVP dopuszcza ograniczony zakres testów automatycznych dla funkcji niekrytycznych, co może pozostawić luki w pokryciu edge cases."
+        }
+      ],
+      "comments": "Wymagania w wysokim stopniu spełniają cele QA. Kluczowe priorytety - kryteria akceptacji, testy regresji, obsługa błędów, walidacja danych i środowisko testowe - są dobrze zaadresowane. Główne zastrzeżenia dotyczą kompromisu MVP (FR19) dopuszczającego ograniczony zakres testów automatycznych dla funkcji niekrytycznych oraz braku explicite zdefiniowanych raportów stabilności po wdrożeniu. NFR17 dobrze adresuje potrzebę izolowanego środowiska testowego. Ogólna ocena jest wysoka ze względu na solidne fundamenty testowalności w wymaganiach."
+    }
+  ]
+}

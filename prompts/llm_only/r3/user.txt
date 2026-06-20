@@ -1,0 +1,20 @@
+Przeanalizuj poniższy surowy opis systemu:
+
+<opis>
+${system_description}
+</opis>
+
+Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
+
+### 1. Lista wykrytych konfliktów
+Wypunktuj wszystkie znalezione konflikty w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
+
+### 2. Poprawiona wersja
+Sformułuj nowy, spójny opis systemu w formie tekstu ciągłego, z którego usunięto wyżej wymienione konflikty, zachowując przy tym pierwotny cel biznesowy.
+
+WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
+
+- W sekcji 1 każdy punkt MUSI zaczynać się od "- " (myślnik + spacja).
+- W sekcji 1 NIE używaj numeracji (1., 2., itd.) ani innych symboli list (np. *, •).
+- Sekcja 2 MUSI być tekstem ciągłym. NIE używaj w niej żadnych wypunktowań.
+- Nie dodawaj żadnego tekstu wprowadzającego, podsumowań ani komentarzy poza dwiema wymaganymi sekcjami.

@@ -1,0 +1,22 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Wczesniejsze wyjscia:
+${step1_json}
+
+Ograniczenia:
+- Maksymalnie 17 elementow w liscie "non_functional_requirements".
+- Maksymalnie 17 elementow w liscie "user_stories".
+
+Zwracaj WYŁĄCZNIE ten fragment JSON:
+{
+  "non_functional_requirements": [
+    {"id": "NFR1", "description": "Opis wymagania"}
+  ],
+  "user_stories": [
+    {"id": "US1", "description": "Jako X chcę Y aby Z."}
+  ]
+}

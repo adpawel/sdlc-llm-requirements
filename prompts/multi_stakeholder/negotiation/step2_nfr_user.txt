@@ -1,0 +1,34 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Aktualne wymagania R:
+${artifact_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+Syntetyczny sygnal celu negocjacji (bez wag):
+${negotiation_focus_json}
+
+Wczesniejsze wyjscie:
+${step1_json}
+
+Zadanie:
+Zaktualizuj tylko liste wymagan niefunkcjonalnych.
+Utrzymuj minimalny zakres zmian.
+Priorytetyzuj zmiany, ktore adresuja "focus_concerns".
+
+Ograniczenia:
+- Maksymalnie 15 elementow w liscie "non_functional_requirements".
+- Kazdy opis ma miec maksymalnie 140 znakow i byc jednym zdaniem.
+- Jesli kilka wymagan dotyczy tego samego ryzyka, scal je.
+
+Zwracaj WYLACZNIE ten fragment JSON:
+{
+  "non_functional_requirements": [
+    {"id": "NFR1", "description": "Opis wymagania"}
+  ]
+}

@@ -1,5 +1,9 @@
 import json
+from pathlib import Path
+
 from utils.logger import log_experiment_to_csv
+from utils.paths import get_prompt_dir
+from utils.prompt_loader import render_prompt
 
 def run_task_r1(model_func, model_name, case_study, iteration=1):
     # Wczytanie opisu systemu z JSON
@@ -8,36 +12,13 @@ def run_task_r1(model_func, model_name, case_study, iteration=1):
     
     system_description = data[case_study]
     
-    # Prompty specyficzne dla R1
-    system_prompt = """Jesteś Doświadczonym Analitykiem Wymagań (Senior Business Analyst). Twoją specjalnością jest krytyczna weryfikacja surowych koncepcji biznesowych. 
-Twoim zadaniem jest dogłębna analiza dostarczonego opisu systemu pod kątem wykrywania niejednoznaczności, brakujących informacji oraz konfliktów logicznych. 
-Zasady:
-1. Skup się na przypadkach brzegowych (edge cases), logice biznesowej, bezpieczeństwie i przepływie danych.
-2. Skup się na jakości, a nie ilości. Nie wymyślaj trywialnych problemów (np. UI/UX).
-3. Nie wymyślaj nowych funkcjonalności - analizuj tylko to, co wynika z tekstu (lub czego w nim ewidentnie brakuje).
-4. Bądź precyzyjny i dociekliwy."""
+    prompt_dir = Path(get_prompt_dir()) / "r1"
 
-    user_prompt = f"""Przeanalizuj poniższy surowy opis systemu:
-
-<opis>
-{system_description}
-</opis>
-
-Zwróć wynik w formacie Markdown, zachowując dokładnie dwie poniższe sekcje:
-
-### 1. Lista problemów
-Wypunktuj najważniejsze niejednoznaczności, braki informacji oraz konflikty logiczne w dostarczonym opisie. Przy każdym punkcie krótko (jedno zdanie) uzasadnij, na czym polega problem.
-
-### 2. Pytania do doprecyzowania
-Sformułuj listę konkretnych pytań do interesariuszy, które pozwolą rozwiązać wyżej wymienione problemy. Tam gdzie to możliwe, zaproponuj w pytaniu warianty do wyboru, aby ułatwić podjęcie decyzji biznesowej.
-
-WYMAGANIA FORMATOWANIA (OBOWIĄZKOWE):
-
-Każdy punkt w obu sekcjach MUSI zaczynać się od "- " (myślnik + spacja)
-NIE używaj numeracji (1., 2., itd.)
-NIE używaj innych symboli list (np. *, •)
-Każdy punkt w osobnej linii
-Nie dodawaj żadnych dodatkowych sekcji ani komentarzy"""
+    system_prompt = render_prompt(prompt_dir / "system.txt")
+    user_prompt = render_prompt(
+        prompt_dir / "user.txt",
+        system_description=system_description,
+    )
 
     print(f"[Zadanie R1] Odpytuję model {model_name}...")
     llm_response = model_func(system_prompt, user_prompt, temperature=0.2)

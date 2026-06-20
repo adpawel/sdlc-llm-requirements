@@ -1,0 +1,35 @@
+Opis systemu:
+${system_description}
+
+Wejscie interesariuszy:
+${stakeholder_inputs_json}
+
+Aktualne wymagania R:
+${artifact_json}
+
+Oceny wplywu i propozycje:
+${negotiation_inputs_json}
+
+Syntetyczny sygnal celu negocjacji (bez wag):
+${negotiation_focus_json}
+
+Wczesniejsze wyjscia:
+${step1_json}
+${step2_json}
+
+Zadanie:
+Zaktualizuj tylko liste user stories.
+Utrzymuj minimalny zakres zmian.
+Priorytetyzuj zmiany, ktore adresuja "focus_concerns".
+
+Ograniczenia:
+- Maksymalnie 15 elementow w liscie "user_stories".
+- Kazdy opis ma miec maksymalnie 140 znakow i byc jednym zdaniem.
+- Jesli kilka historii dotyczy tego samego celu, scal je.
+
+Zwracaj WYLACZNIE ten fragment JSON:
+{
+  "user_stories": [
+    {"id": "US1", "description": "Jako X chce Y aby Z."}
+  ]
+}
